@@ -5,7 +5,9 @@
         public PaginatedList(IEnumerable<T> content, long totalItems, long pageIndex, int pageSize)
         {
             Content = content;
-            TotalItems = totalItems; PageIndex = pageIndex; PageSize = pageSize;
+            TotalItems = totalItems;
+            PageIndex = pageIndex;
+            PageSize = pageSize;
             TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
         }
 

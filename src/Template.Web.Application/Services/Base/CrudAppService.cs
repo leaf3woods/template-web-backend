@@ -7,8 +7,9 @@ using Template.Web.Infrastructure.DbContexts;
 
 namespace Template.Web.Application.Services.Base;
 
-public abstract class CrudAppService<TEntity, TKey, TReadDto> : BaseService,
-    ICrudAppService<TEntity, TKey, TReadDto>
+public abstract class CrudAppService<TEntity, TKey, TReadDto>
+    : BaseService,
+        ICrudAppService<TEntity, TKey, TReadDto>
     where TEntity : AggregateRoot
     where TReadDto : ReadDto
 {
@@ -19,7 +20,10 @@ public abstract class CrudAppService<TEntity, TKey, TReadDto> : BaseService,
     public IHttpContextAccessor? HttpContextAccessor { get; init; }
     public ILogger<TEntity> Logger { get; init; } = null!;
 
-    protected IQueryable<TEntity> Queryable { get => DbContext.Set<TEntity>().AsQueryable(); }
+    protected IQueryable<TEntity> Queryable
+    {
+        get => DbContext.Set<TEntity>().AsQueryable();
+    }
 
     /// <summary>
     /// 删除实体
@@ -55,9 +59,9 @@ public abstract class CrudAppService<TEntity, TKey, TReadDto> : BaseService,
     }
 }
 
-public abstract class CrudAppService<TEntity, TKey, TReadDto, TQueryDto> :
-    CrudAppService<TEntity, TKey, TReadDto>,
-    ICrudAppService<TEntity, TKey, TReadDto, TQueryDto>
+public abstract class CrudAppService<TEntity, TKey, TReadDto, TQueryDto>
+    : CrudAppService<TEntity, TKey, TReadDto>,
+        ICrudAppService<TEntity, TKey, TReadDto, TQueryDto>
     where TEntity : AggregateRoot
     where TReadDto : ReadDto
     where TQueryDto : QueryDto
@@ -77,9 +81,9 @@ public abstract class CrudAppService<TEntity, TKey, TReadDto, TQueryDto> :
     public abstract Task<PaginatedList<TReadDto>> GetPaginatedListAsync(TQueryDto queryDto);
 }
 
-public abstract class CrudAppService<TEntity, TKey, TReadDto, TQueryDto, TCreateDto> :
-    CrudAppService<TEntity, TKey, TReadDto, TQueryDto>,
-    ICrudAppService<TEntity, TKey, TReadDto, TQueryDto, TCreateDto>
+public abstract class CrudAppService<TEntity, TKey, TReadDto, TQueryDto, TCreateDto>
+    : CrudAppService<TEntity, TKey, TReadDto, TQueryDto>,
+        ICrudAppService<TEntity, TKey, TReadDto, TQueryDto, TCreateDto>
     where TEntity : AggregateRoot
     where TReadDto : ReadDto
     where TQueryDto : QueryDto
@@ -99,9 +103,9 @@ public abstract class CrudAppService<TEntity, TKey, TReadDto, TQueryDto, TCreate
     }
 }
 
-public abstract class CrudAppService<TEntity, TKey, TReadDto, TQueryDto, TCreateDto, TUpdateDto> :
-    CrudAppService<TEntity, TKey, TReadDto, TQueryDto, TCreateDto>,
-    ICrudAppService<TEntity, TKey, TReadDto, TQueryDto, TCreateDto, TUpdateDto>
+public abstract class CrudAppService<TEntity, TKey, TReadDto, TQueryDto, TCreateDto, TUpdateDto>
+    : CrudAppService<TEntity, TKey, TReadDto, TQueryDto, TCreateDto>,
+        ICrudAppService<TEntity, TKey, TReadDto, TQueryDto, TCreateDto, TUpdateDto>
     where TEntity : AggregateRoot
     where TReadDto : ReadDto
     where TQueryDto : QueryDto

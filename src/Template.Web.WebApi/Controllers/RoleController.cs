@@ -1,9 +1,9 @@
-﻿using Template.Web.Application.Auth;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Template.Web.Application.Auth;
 using Template.Web.Application.Dtos;
 using Template.Web.Application.Services.Base;
 using Template.Web.WebApi.Utilities;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Template.Web.WebApi.Controllers
 {
@@ -19,9 +19,7 @@ namespace Template.Web.WebApi.Controllers
         ///     注入
         /// </summary>
         /// <param name="roleService"></param>
-        public RoleController(
-            IRoleService roleService
-            )
+        public RoleController(IRoleService roleService)
         {
             _roleService = roleService;
         }
@@ -80,8 +78,10 @@ namespace Template.Web.WebApi.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [Authorize(Policy = $"{ManagedResource.Role}.{ManagedAction.Put}.Scopes")]
-        public async Task<ResponseWrapper<int>> ModifyRoleScopeAsync(Guid roleId, List<string> scopes) =>
-            (await _roleService.ModifyRoleScopeAsync(roleId, scopes)).Wrap();
+        public async Task<ResponseWrapper<int>> ModifyRoleScopeAsync(
+            Guid roleId,
+            List<string> scopes
+        ) => (await _roleService.ModifyRoleScopeAsync(roleId, scopes)).Wrap();
 
         /// <summary>
         ///     获取支持的权限范围

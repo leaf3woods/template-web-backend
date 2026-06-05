@@ -1,128 +1,49 @@
-# AGENTS.md - Guidance for AI Agents
+# Repository Guidelines
 
-This file provides guidance for AI coding agents working in this repository.
+## Project Structure & Module Organization
 
-## Build, Run & Test Commands
+This repository is a .NET 8 Web API solution organized around DDD layers.
+
+- `TemplateWeb.sln` is the main solution file.
+- `src/Template.Web.WebApi/` contains controllers, middleware, and `Program.cs`.
+- `src/Template.Web.Application/` contains services, DTOs, authentication, and mapping.
+- `src/Template.Web.Domain/` contains entities, domain services, events, and interfaces.
+- `src/Template.Web.Infrastructure/` contains EF Core persistence and repositories.
+- `src/Template.Web.Core/` contains shared exceptions, utilities, and extensions.
+- `deployment/` and `doc/` hold deployment and project documentation assets.
+
+## Build, Test, and Development Commands
+
+Run commands from the repository root.
 
 ```bash
-# Build the entire solution
 dotnet build TemplateWeb.sln
-
-# Run the WebApi project (Development profile)
 dotnet run --project src/Template.Web.WebApi/Template.Web.WebApi.csproj
-
-# Run with specific launch profile
 dotnet run --project src/Template.Web.WebApi/Template.Web.WebApi.csproj --launch-profile https
-
-# Build for production
 dotnet publish src/Template.Web.WebApi/Template.Web.WebApi.csproj -c Release
-
-# Run all tests
 dotnet test
-
-# Run a single test (filter by name)
-dotnet test --filter "FullyQualifiedName~TestMethodName"
-
-# Run tests in a specific project
-dotnet test src/Template.Web.Tests/Template.Web.Tests.csproj
 ```
 
-## Architecture Overview
+`dotnet build` validates the full solution. `dotnet run` starts the Web API locally. `dotnet publish` creates a Release build for deployment. `dotnet test` is the standard test entry point; add future test projects to the solution so this command remains complete.
 
-This is a .NET 8 Web API using Domain-Driven Design (DDD):
+## Coding Style & Naming Conventions
 
-| Project | Responsibility |
-|---------|----------------|
-| Template.Web.WebApi | Controllers, middleware, Program.cs |
-| Template.Web.Application | Services, DTOs, authentication, AutoMapper |
-| Template.Web.Domain | Entities, domain services, interfaces |
-| Template.Web.Infrastructure | EF Core DbContext, repositories |
-| Template.Web.Core | Shared utilities, exceptions, extensions |
+Use nullable reference types and implicit usings. Keep one public class per file and match file names to class names. Use `PascalCase` for classes, methods, and properties; `_camelCase` for private fields; `I` prefixes for interfaces; and `*Dto` suffixes for DTOs. Database names should remain `snake_case` through EF Core conventions.
 
-## Code Style Guidelines
+Place base entities under `Domain/Entities/Base/`. Use `Guid` IDs for universal entities and `int` IDs for auto-increment entities. Prefer custom exceptions from `Template.Web.Core.Exceptions` for API errors.
 
-### Naming Conventions
-- **Classes/Methods/Properties**: `PascalCase`
-- **Private fields**: `_camelCase` (e.g., `_userService`)
-- **Interfaces**: `I` prefix (e.g., `IUserService`)
-- **DTOs**: `PostfixDto` (e.g., `UserReadDto`, `CreateDto`)
-- **Database columns**: `snake_case` (enforced via EF Core `UseSnakeCaseNamingConvention()`)
+## Testing Guidelines
 
-### File Organization
-- One class per file; filename matches class name
-- Group related code with `#region` blocks (e.g., `#region navigation`, `#region audit`)
-- Follow namespace-to-folder correspondence
+No test project is currently listed in `TemplateWeb.sln`. When adding tests, create or restore `src/Template.Web.Tests/`, add it to the solution, and keep test names behavior-focused, for example `CreateUser_WhenNameExists_ThrowsBadRequestException`. Run targeted tests with:
 
-### Imports
-- Use implicit usings (enabled in all projects)
-- Explicit imports for project references only
-- Order: System namespaces → Project namespaces (alphabetical)
+```bash
+dotnet test --filter "FullyQualifiedName~TestMethodName"
+```
 
-### Types
-- Enable nullable reference types: `<Nullable>enable</Nullable>`
-- Use `string!` for properties that are initialized but analyzer can't verify
-- Prefer `Guid` for entity IDs, `int` for auto-increment entities
-- Base entity classes in `Domain/Entities/Base/`:
-  - `UniversalEntity` → `Guid Id`
-  - `IncrementEntity` → `int Id`
-  - `AggregateRoot` → marker interface
+## Commit & Pull Request Guidelines
 
-### Error Handling
-- Throw custom exceptions from `Template.Web.Core.Exceptions`:
-  - `NotFoundException` - resource not found (404)
-  - `BadRequestException` - invalid input (400)
-  - `NotAcceptableException` - business rule violation (406)
-  - `ForbiddenException` - authorization failure (403)
-- All exceptions inherit from `CustomException`
-- Global exception handling via `ExceptionExtension.cs`
+Git history currently only establishes `init`, so keep commits concise, imperative, and scoped, for example `Add user permission query`. Pull requests should include a short summary, related issue or task, database/configuration changes, and test results. Include API examples or screenshots when response shapes or Swagger-visible behavior changes.
 
-### Documentation
-- XML documentation on all public members (`<summary>`, `<param>`)
-- Use Chinese comments for domain-specific terms (用户名, 角色)
-- Keep comments concise; explain "why" not "what"
+## Security & Configuration Tips
 
-## Key Patterns
-
-### Dependency Injection
-- Uses **Autofac** (not Microsoft DI)
-- Register modules in `Utilities/InjectionModules/`:
-  - `AppServiceModule` - application services
-  - `AuthModule` - authentication/authorization
-  - `SingletonModule` - singleton services
-
-### Authorization
-- Permission-based via `[PermissionDefinition]` attribute
-- Policies dynamically built in `Program.cs`
-- Format: `"{ManagedResource}.{ManagedAction}.{Suffix}"` (e.g., `User.Get.Id`)
-
-### Entity Relationships
-- User ↔ Role: many-to-many via `UserRole` join table
-- Role ↔ Permission: many-to-many via `RolePermission` join table
-- Permission self-references via `Parent`
-
-### Domain Events
-- Use **MediatR** for domain events
-- Handlers implement `IRequestHandler<TEvent, TResponse>`
-
-### DTOs
-- Base classes in `Application/Dtos/Base/`:
-  - `CreateDto` - for POST requests
-  - `UpdateDto` - for PUT/PATCH requests
-  - `ReadDto` - for responses
-  - `QueryDto` / `PaginatedQueryDto` - for queries
-
-### Database
-- PostgreSQL via EF Core with Npgsql
-- Soft delete via `ISoftDelete` interface
-- Global query filter in `SoftDeleteQueryExtension`
-
-## Response Wrapping
-- All controller responses wrapped via `ResponseWrapper<T>.Wrap()`
-- Returns standardized API response format
-
-## Configuration
-Key settings in `appsettings.json`:
-- `ConnectionStrings:Postgres` - database
-- `ConnectionStrings:Redis` - cache
-- `Jwt:KeyFolder` - ECDSA key path for JWT signing
-- `Serilog` - logging configuration
+Do not commit secrets. Configure PostgreSQL, Redis, JWT key paths, and Serilog through `appsettings.json`, environment-specific overrides, or environment variables. Verify authentication and permission-policy changes against the dynamic policy format: `{ManagedResource}.{ManagedAction}.{Suffix}`.

@@ -1,5 +1,4 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -18,5 +17,4 @@
     <ProjectReference Include="..\Template.Web.Core\Template.Web.Core.csproj" />
     <ProjectReference Include="..\Template.Web.Domain\Template.Web.Domain.csproj" />
   </ItemGroup>
-
 </Project>

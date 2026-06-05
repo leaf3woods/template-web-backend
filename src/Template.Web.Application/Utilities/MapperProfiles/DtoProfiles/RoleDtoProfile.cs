@@ -10,7 +10,8 @@ namespace Template.Web.Application.Utilities.MapperProfiles.DtoProfiles
     {
         public RoleDtoProfile()
         {
-            CreateMap(typeof(PaginatedList<>), typeof(PaginatedList<>)).ConvertUsing(typeof(PaginatedListConverter<,>));
+            CreateMap(typeof(PaginatedList<>), typeof(PaginatedList<>))
+                .ConvertUsing(typeof(PaginatedListConverter<,>));
             CreateMap<RoleCreateDto, Role>()
                 .ForMember(dest => dest.Permissions, opt => opt.Ignore());
             CreateMap<Role, RoleReadDto>();

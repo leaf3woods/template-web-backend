@@ -12,20 +12,21 @@ using Template.Web.Infrastructure.Utilities;
 namespace Template.Web.Application.Services
 {
     [PermissionDefinition("manage all role resources", ManagedResource.Role)]
-    public class RoleService :
-        CrudAppService<Role, Guid, RoleReadDto, RoleQueryDto, RoleCreateDto, RoleUpdateDto>,
-        IRoleService
+    public class RoleService
+        : CrudAppService<Role, Guid, RoleReadDto, RoleQueryDto, RoleCreateDto, RoleUpdateDto>,
+            IRoleService
     {
-
-        public override async Task<IEnumerable<RoleReadDto>> GetListAsync(RoleQueryDto? queryDto = null)
+        public override async Task<IEnumerable<RoleReadDto>> GetListAsync(
+            RoleQueryDto? queryDto = null
+        )
         {
-            var roles = await Queryable
-                .Include(r => r.Permissions)
-                .ToListAsync();
+            var roles = await Queryable.Include(r => r.Permissions).ToListAsync();
             return Mapper.Map<IEnumerable<RoleReadDto>>(roles);
         }
 
-        public override async Task<PaginatedList<RoleReadDto>> GetPaginatedListAsync(RoleQueryDto queryDto)
+        public override async Task<PaginatedList<RoleReadDto>> GetPaginatedListAsync(
+            RoleQueryDto queryDto
+        )
         {
             var roles = await Queryable
                 .WhereIf(!string.IsNullOrEmpty(queryDto.Name), x => x.Name.Contains(queryDto.Name!))
@@ -49,11 +50,14 @@ namespace Template.Web.Application.Services
             return index == 0 ? null : Mapper.Map<RoleReadDto>(entity);
         }
 
-        [PermissionDefinition("get role info by id", $"{ManagedResource.Role}.{ManagedAction.Get}.Id")]
+        [PermissionDefinition(
+            "get role info by id",
+            $"{ManagedResource.Role}.{ManagedAction.Get}.Id"
+        )]
         public async Task<RoleReadDto?> GetRoleAsync(Guid id)
         {
-            var role = await DbContext.Roles
-                .Where(r => r.Id == id)
+            var role = await DbContext
+                .Roles.Where(r => r.Id == id)
                 .Include(r => r.Permissions)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
@@ -63,26 +67,31 @@ namespace Template.Web.Application.Services
         [PermissionDefinition("get all roles", $"{ManagedResource.Role}.{ManagedAction.Get}.All")]
         public async Task<IEnumerable<RoleReadDto>> GetRolesAsync()
         {
-            var roles = await DbContext.Roles
-                .Include(r => r.Permissions)
+            var roles = await DbContext
+                .Roles.Include(r => r.Permissions)
                 .AsNoTracking()
                 .ToArrayAsync();
             return Mapper.Map<IEnumerable<RoleReadDto>>(roles);
         }
 
-        [PermissionDefinition("change role manage scope", $"{ManagedResource.Role}.{ManagedAction.Put}.Scopes")]
+        [PermissionDefinition(
+            "change role manage scope",
+            $"{ManagedResource.Role}.{ManagedAction.Put}.Scopes"
+        )]
         public async Task<int> ModifyRoleScopeAsync(Guid roleId, List<string> permissionNames)
         {
             //if (!RequireScopeUtil.Scopes.Any(s => !permissionNames.Contains(s.Name)))
             //{
             //    throw new NotAcceptableException("unsupported scope find");
             //}
-            var role = (await DbContext.Roles
-                .Include(r => r.Permissions)
-                .FirstOrDefaultAsync(r => r.Id == roleId)) ??
-                throw new NotFoundException("role is not exist");
-            var targets = await DbContext.Permissions
-                .Where(p => permissionNames.Contains(p.Name))
+            var role =
+                (
+                    await DbContext
+                        .Roles.Include(r => r.Permissions)
+                        .FirstOrDefaultAsync(r => r.Id == roleId)
+                ) ?? throw new NotFoundException("role is not exist");
+            var targets = await DbContext
+                .Permissions.Where(p => permissionNames.Contains(p.Name))
                 .ToArrayAsync();
             role.Permissions = targets;
             DbContext.Roles.Update(role);

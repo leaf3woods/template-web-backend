@@ -1,6 +1,6 @@
-﻿using Autofac;
+﻿using System.Reflection;
+using Autofac;
 using Microsoft.AspNetCore.Authorization;
-using System.Reflection;
 
 namespace Template.Web.Application.Utilities.InjectionModules
 {
@@ -8,10 +8,12 @@ namespace Template.Web.Application.Utilities.InjectionModules
     {
         protected override void Load(ContainerBuilder builder)
         {
-            builder.RegisterAssemblyTypes(Assembly.GetExecutingAssembly())
+            builder
+                .RegisterAssemblyTypes(Assembly.GetExecutingAssembly())
                 .Where(type => type.Name.EndsWith("RequireHandler"))
                 .AsImplementedInterfaces();
-            builder.RegisterAssemblyTypes(Assembly.GetExecutingAssembly())
+            builder
+                .RegisterAssemblyTypes(Assembly.GetExecutingAssembly())
                 .Where(type => type.IsAssignableTo(typeof(IAuthorizationRequirement)))
                 .AsImplementedInterfaces();
         }

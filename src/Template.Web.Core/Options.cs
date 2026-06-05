@@ -5,11 +5,12 @@ namespace Template.Web.Core
 {
     public static class Options
     {
-        public static JsonSerializerOptions CustomJsonSerializerOptions { get; set; } = new JsonSerializerOptions
-        {
-            AllowTrailingCommas = true,
-            PropertyNameCaseInsensitive = false,
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-        };
+        public static JsonSerializerOptions CustomJsonSerializerOptions { get; set; } =
+            new JsonSerializerOptions
+            {
+                AllowTrailingCommas = true,
+                PropertyNameCaseInsensitive = false,
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            };
     }
 }

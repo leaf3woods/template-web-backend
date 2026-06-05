@@ -2,7 +2,8 @@
 {
     public class ValidateException : CustomException
     {
-        public ValidateException(string exceptionCode, params object?[] param) : base(exceptionCode)
+        public ValidateException(string exceptionCode, params object?[] param)
+            : base(exceptionCode)
         {
             ExceptionCode = string.Format(exceptionCode, param);
         }

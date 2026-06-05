@@ -1,15 +1,12 @@
-﻿using Template.Web.Domain.Entities;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Template.Web.Domain.Entities;
 
 namespace Template.Web.Infrastructure.DbContexts
 {
     public class InitialDatabase
     {
-        public InitialDatabase(
-            ApiDbContext apiDbContext,
-            ILogger<InitialDatabase> logger
-            )
+        public InitialDatabase(ApiDbContext apiDbContext, ILogger<InitialDatabase> logger)
         {
             _apiDbContext = apiDbContext;
             _logger = logger;
@@ -25,8 +22,7 @@ namespace Template.Web.Infrastructure.DbContexts
                 _logger.LogInformation("database already created");
                 //await _apiDbContext.Database.MigrateAsync();
             }
-            var permissions = await _apiDbContext.Permissions
-                .ToArrayAsync();
+            var permissions = await _apiDbContext.Permissions.ToArrayAsync();
             var transaction = await _apiDbContext.Database.BeginTransactionAsync();
             try
             {

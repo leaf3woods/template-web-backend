@@ -16,6 +16,5 @@ namespace Template.Web.Domain.Utilities
         public string? Description { get; private set; }
 
         private PermissionMethodType _type;
-
     }
 }

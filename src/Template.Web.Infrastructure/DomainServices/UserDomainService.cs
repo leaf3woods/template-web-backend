@@ -1,8 +1,8 @@
-﻿using Template.Web.Core;
+﻿using StackExchange.Redis;
+using Template.Web.Core;
 using Template.Web.Domain.Entities.Account;
 using Template.Web.Domain.Services;
 using Template.Web.Domain.Utilities;
-using StackExchange.Redis;
 
 namespace Template.Web.Infrastructure.DomainServices
 {

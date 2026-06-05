@@ -18,6 +18,6 @@ namespace Template.Web.Domain.ValueObjects.UserValue
     {
         Male,
         Female,
-        Unknow
+        Unknow,
     }
 }

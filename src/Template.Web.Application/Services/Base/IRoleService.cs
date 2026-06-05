@@ -3,8 +3,8 @@ using Template.Web.Domain.Entities.Account;
 
 namespace Template.Web.Application.Services.Base
 {
-    public interface IRoleService :
-        ICrudAppService<Role, Guid, RoleReadDto, RoleQueryDto, RoleCreateDto, RoleUpdateDto>
+    public interface IRoleService
+        : ICrudAppService<Role, Guid, RoleReadDto, RoleQueryDto, RoleCreateDto, RoleUpdateDto>
     {
         public Task<RoleReadDto?> GetRoleAsync(Guid id);
 

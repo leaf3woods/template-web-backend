@@ -1,6 +1,6 @@
-﻿using Template.Web.Domain.Entities.Account;
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 using System.Text;
+using Template.Web.Domain.Entities.Account;
 
 namespace Template.Web.Domain.Utilities
 {
@@ -68,8 +68,7 @@ namespace Template.Web.Domain.Utilities
             var salt = Convert.FromBase64String(user.Salt);
             var combine = secret.Concat(salt).ToArray();
             var salted = SHA256.HashData(combine);
-            return Convert.FromBase64String(user.Passphrase)
-                .SequenceEqual(salted);
+            return Convert.FromBase64String(user.Passphrase).SequenceEqual(salted);
         }
 
         /// <summary>

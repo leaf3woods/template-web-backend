@@ -1,8 +1,8 @@
-﻿using Template.Web.Application.Dtos;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Template.Web.Application.Dtos;
 using Template.Web.Application.Services.Base;
 using Template.Web.WebApi.Utilities;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Template.Web.WebApi.Controllers
 {
@@ -13,9 +13,7 @@ namespace Template.Web.WebApi.Controllers
     [ApiController]
     public class HomeController : ControllerBase
     {
-        public HomeController(
-                IUserService userService
-            )
+        public HomeController(IUserService userService)
         {
             _userService = userService;
         }

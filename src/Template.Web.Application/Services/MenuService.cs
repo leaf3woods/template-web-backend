@@ -9,20 +9,26 @@ using Template.Web.Infrastructure.Utilities;
 
 namespace Template.Web.Application.Services
 {
-    public class MenuService : CrudAppService<Permission, Guid, MenuReadDto, MenuQueryDto, MenuCreateDto, MenuUpdateDto>, IMenuService
+    public class MenuService
+        : CrudAppService<Permission, Guid, MenuReadDto, MenuQueryDto, MenuCreateDto, MenuUpdateDto>,
+            IMenuService
     {
         public MenuService(ApiDbContext dbContext)
         {
             DbContext = dbContext;
         }
 
-        public override async Task<IEnumerable<MenuReadDto>> GetListAsync(MenuQueryDto? queryDto = null)
+        public override async Task<IEnumerable<MenuReadDto>> GetListAsync(
+            MenuQueryDto? queryDto = null
+        )
         {
             var permissions = await Queryable.ToListAsync();
             return Mapper.Map<IEnumerable<MenuReadDto>>(permissions);
         }
 
-        public override async Task<PaginatedList<MenuReadDto>> GetPaginatedListAsync(MenuQueryDto queryDto)
+        public override async Task<PaginatedList<MenuReadDto>> GetPaginatedListAsync(
+            MenuQueryDto queryDto
+        )
         {
             var permissions = await Queryable
                 .WhereIf(!string.IsNullOrEmpty(queryDto.Name), x => x.Name.Contains(queryDto.Name!))
@@ -66,9 +72,12 @@ namespace Template.Web.Application.Services
 
         public override async Task<int> DeleteAsync(Guid key)
         {
-            var menu = await DbContext.Permissions.FindAsync(key) ?? throw new NotFoundException("id not exist");
+            var menu =
+                await DbContext.Permissions.FindAsync(key)
+                ?? throw new NotFoundException("id not exist");
 
-            if (menu.ParentId is null) throw new NotAcceptableException("root menu can't delete");
+            if (menu.ParentId is null)
+                throw new NotAcceptableException("root menu can't delete");
 
             if (await DbContext.Permissions.AnyAsync(m => m.ParentId == key))
             {

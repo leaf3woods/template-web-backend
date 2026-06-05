@@ -17,7 +17,8 @@ namespace Template.Web.Application.Captchas.Builder
 
         public abstract CaptchaBuilder WithGenOption(CaptchaGenOptions options);
 
-        public static TBuilder Create<TBuilder>() where TBuilder : CaptchaBuilder, new()
+        public static TBuilder Create<TBuilder>()
+            where TBuilder : CaptchaBuilder, new()
         {
             return new TBuilder();
         }

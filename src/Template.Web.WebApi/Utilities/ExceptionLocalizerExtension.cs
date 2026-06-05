@@ -1,14 +1,17 @@
-﻿using Template.Web.Core;
+﻿using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.Extensions.Localization;
+using Template.Web.Core;
 using Template.Web.Core.Exceptions;
 using Template.Web.WebApi.Exceptions;
-using Microsoft.AspNetCore.Diagnostics;
-using Microsoft.Extensions.Localization;
 
 namespace Template.Web.WebApi.Utilities
 {
     public static class ExceptionLocalizerExtension
     {
-        public static async Task LocalizeException(HttpContext context, IStringLocalizer stringLocalizer)
+        public static async Task LocalizeException(
+            HttpContext context,
+            IStringLocalizer stringLocalizer
+        )
         {
             context.Response.ContentType = "application/json";
             var exception = context.Features.Get<IExceptionHandlerFeature>();
@@ -18,11 +21,14 @@ namespace Template.Web.WebApi.Utilities
                 {
                     NotFoundException => StatusCodes.Status404NotFound,
                     NotAcceptableException => StatusCodes.Status406NotAcceptable,
-                    _ => StatusCodes.Status500InternalServerError
+                    _ => StatusCodes.Status500InternalServerError,
                 };
 
                 var errDto = exception.Error.Localize(stringLocalizer);
-                await context.Response.WriteAsJsonAsync(errDto, Options.CustomJsonSerializerOptions);
+                await context.Response.WriteAsJsonAsync(
+                    errDto,
+                    Options.CustomJsonSerializerOptions
+                );
             }
         }
     }

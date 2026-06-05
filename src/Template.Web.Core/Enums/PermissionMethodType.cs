@@ -1,5 +1,4 @@
-﻿
-namespace Template.Web.Core.Enums
+﻿namespace Template.Web.Core.Enums
 {
     public enum PermissionMethodType
     {
@@ -8,6 +7,6 @@ namespace Template.Web.Core.Enums
         Remove,
         Add,
         Edit,
-        Extend
+        Extend,
     }
 }

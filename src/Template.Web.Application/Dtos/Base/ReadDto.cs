@@ -5,8 +5,8 @@
         public Guid Id { get; set; }
     }
 
-    public abstract class ReadDto<TKey> :
-        IReadDto where TKey : struct
+    public abstract class ReadDto<TKey> : IReadDto
+        where TKey : struct
     {
         public TKey Id { get; set; } = default!;
     }

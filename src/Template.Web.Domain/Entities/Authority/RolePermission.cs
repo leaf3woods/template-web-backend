@@ -1,5 +1,5 @@
-﻿using Template.Web.Domain.Entities.Base;
-using Template.Web.Domain.Entities.Account;
+﻿using Template.Web.Domain.Entities.Account;
+using Template.Web.Domain.Entities.Base;
 
 namespace Template.Web.Domain.Entities.Authority
 {

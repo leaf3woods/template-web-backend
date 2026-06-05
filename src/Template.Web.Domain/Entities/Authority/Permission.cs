@@ -14,7 +14,6 @@ namespace Template.Web.Domain.Entities.Authority
         /// <summary>
         /// 前端组件路径
         /// </summary>
-
         /// <summary>
         /// 调用的接口地址
         /// </summary>
@@ -31,7 +30,7 @@ namespace Template.Web.Domain.Entities.Authority
         public bool IsLink { get; set; }
         public string? IconUrl { get; set; }
 
-        public PermissionType Type {  get; set; }
+        public PermissionType Type { get; set; }
 
         public int Order { get; set; }
         public bool State { get; set; }

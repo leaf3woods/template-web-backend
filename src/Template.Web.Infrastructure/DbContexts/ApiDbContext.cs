@@ -1,17 +1,16 @@
-﻿using Template.Web.Domain.Entities;
-using Template.Web.Domain.Entities.Base;
+﻿using CaseExtensions;
 using Microsoft.EntityFrameworkCore;
-using CaseExtensions;
+using Template.Web.Domain.Entities;
 using Template.Web.Domain.Entities.Account;
 using Template.Web.Domain.Entities.Authority;
+using Template.Web.Domain.Entities.Base;
 
 namespace Template.Web.Infrastructure.DbContexts
 {
     public class ApiDbContext : DbContext
     {
-        public ApiDbContext(DbContextOptions<ApiDbContext> options) : base(options)
-        {
-        }
+        public ApiDbContext(DbContextOptions<ApiDbContext> options)
+            : base(options) { }
 
         #region dbsets
 
@@ -25,7 +24,10 @@ namespace Template.Web.Infrastructure.DbContexts
         {
             foreach (var entityEntry in ChangeTracker.Entries())
             {
-                if (entityEntry.State == EntityState.Deleted && entityEntry.Entity is ISoftDelete delete)
+                if (
+                    entityEntry.State == EntityState.Deleted
+                    && entityEntry.Entity is ISoftDelete delete
+                )
                 {
                     entityEntry.State = EntityState.Unchanged;
                     delete.SoftDeleted = true;
@@ -48,8 +50,11 @@ namespace Template.Web.Infrastructure.DbContexts
 
             #region soft delete filter
 
-            foreach (var entityType in modelBuilder.Model.GetEntityTypes()
-                .Where(t => typeof(ISoftDelete).IsAssignableFrom(t.ClrType)))
+            foreach (
+                var entityType in modelBuilder
+                    .Model.GetEntityTypes()
+                    .Where(t => typeof(ISoftDelete).IsAssignableFrom(t.ClrType))
+            )
             {
                 entityType.AddSoftDeleteQueryFilter();
             }
@@ -60,17 +65,14 @@ namespace Template.Web.Infrastructure.DbContexts
 
             #region role
 
-            modelBuilder.Entity<Role>()
-                .HasData(Role.Seeds);
+            modelBuilder.Entity<Role>().HasData(Role.Seeds);
 
-            modelBuilder.Entity<Role>()
-                .HasIndex(u => u.SoftDeleted);
+            modelBuilder.Entity<Role>().HasIndex(u => u.SoftDeleted);
 
-            modelBuilder.Entity<Role>()
-                .HasIndex(r => new { r.Name, r.SoftDeleted })
-                .IsUnique();
+            modelBuilder.Entity<Role>().HasIndex(r => new { r.Name, r.SoftDeleted }).IsUnique();
 
-            modelBuilder.Entity<Role>()
+            modelBuilder
+                .Entity<Role>()
                 .HasMany(r => r.Permissions)
                 .WithMany()
                 .UsingEntity<RolePermission>();
@@ -79,59 +81,48 @@ namespace Template.Web.Infrastructure.DbContexts
 
             #region user
 
-            modelBuilder.Entity<User>()
-                .HasData(User.Seeds);
+            modelBuilder.Entity<User>().HasData(User.Seeds);
 
-            modelBuilder.Entity<User>()
-                .HasIndex(u => new { u.Username, u.SoftDeleted })
-                .IsUnique();
+            modelBuilder.Entity<User>().HasIndex(u => new { u.Username, u.SoftDeleted }).IsUnique();
 
-            modelBuilder.Entity<User>()
-                .HasMany(u => u.Roles)
-                .WithMany()
-                .UsingEntity<UserRole>();
+            modelBuilder.Entity<User>().HasMany(u => u.Roles).WithMany().UsingEntity<UserRole>();
 
-            modelBuilder.Entity<User>()
-                .HasIndex(u => u.SoftDeleted);
+            modelBuilder.Entity<User>().HasIndex(u => u.SoftDeleted);
 
-            modelBuilder.Entity<User>()
-                .OwnsOne(u => u.Settings);
+            modelBuilder.Entity<User>().OwnsOne(u => u.Settings);
 
-            modelBuilder.Entity<User>()
-                .OwnsOne(u => u.Detail);
+            modelBuilder.Entity<User>().OwnsOne(u => u.Detail);
 
             #endregion user
 
             #region permission
 
-            modelBuilder.Entity<Permission>()
-                .HasIndex(m => m.Order);
+            modelBuilder.Entity<Permission>().HasIndex(m => m.Order);
 
-            modelBuilder.Entity<Permission>()
+            modelBuilder
+                .Entity<Permission>()
                 .HasOne(m => m.Parent)
                 .WithMany()
                 .HasForeignKey(m => m.ParentId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<Permission>()
-                .HasData(Permission.Seeds);
+            modelBuilder.Entity<Permission>().HasData(Permission.Seeds);
 
-            modelBuilder.Entity<Permission>()
-                .HasIndex(m => m.Code)
-                .IsUnique();
+            modelBuilder.Entity<Permission>().HasIndex(m => m.Code).IsUnique();
 
-            modelBuilder.Entity<RolePermission>()
+            modelBuilder
+                .Entity<RolePermission>()
                 .HasOne(rm => rm.Permission)
                 .WithMany()
                 .HasForeignKey(rm => rm.PermissionId);
 
-            modelBuilder.Entity<RolePermission>()
+            modelBuilder
+                .Entity<RolePermission>()
                 .HasOne(rm => rm.Role)
                 .WithMany()
                 .HasForeignKey(rm => rm.RoleId);
 
-            modelBuilder.Entity<Permission>()
-                .HasData(Permission.Seeds);
+            modelBuilder.Entity<Permission>().HasData(Permission.Seeds);
 
             #endregion
 

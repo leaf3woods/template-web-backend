@@ -1,9 +1,9 @@
-﻿using Template.Web.Application.Auth;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Template.Web.Application.Auth;
 using Template.Web.Application.Dtos;
 using Template.Web.Application.Services.Base;
 using Template.Web.WebApi.Utilities;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Template.Web.WebApi.Controllers
 {
@@ -19,9 +19,7 @@ namespace Template.Web.WebApi.Controllers
         ///     注入服务
         /// </summary>
         /// <param name="userService">用户服务</param>
-        public UserController(
-            IUserService userService
-            )
+        public UserController(IUserService userService)
         {
             _userService = userService;
         }
@@ -54,8 +52,9 @@ namespace Template.Web.WebApi.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [Authorize(Policy = $"{ManagedResource.User}.{ManagedAction.Get}.Query")]
-        public async Task<ResponseWrapper<IEnumerable<UserReadDto>>> GetUsers(string? name = null) =>
-            (await _userService.GetUsersWhereAsync(name)).Wrap();
+        public async Task<ResponseWrapper<IEnumerable<UserReadDto>>> GetUsers(
+            string? name = null
+        ) => (await _userService.GetUsersWhereAsync(name)).Wrap();
 
         /// <summary>
         ///     删除用户
@@ -83,8 +82,10 @@ namespace Template.Web.WebApi.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [Authorize(Policy = $"{ManagedResource.User}.{ManagedAction.Put}.Role")]
-        public async Task<ResponseWrapper<UserReadDto?>> ModifyRole(Guid userId, IEnumerable<Guid> roleIds) =>
-            (await _userService.ChangeRoleAsync(userId, roleIds)).Wrap();
+        public async Task<ResponseWrapper<UserReadDto?>> ModifyRole(
+            Guid userId,
+            IEnumerable<Guid> roleIds
+        ) => (await _userService.ChangeRoleAsync(userId, roleIds)).Wrap();
 
         /// <summary>
         ///     更换自己的密码

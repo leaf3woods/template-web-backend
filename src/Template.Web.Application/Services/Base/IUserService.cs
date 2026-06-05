@@ -1,10 +1,11 @@
-﻿using Template.Web.Application.Dtos;
-using System.Security.Claims;
+﻿using System.Security.Claims;
+using Template.Web.Application.Dtos;
 using Template.Web.Domain.Entities.Account;
 
 namespace Template.Web.Application.Services.Base
 {
-    public interface IUserService : ICrudAppService<User, Guid, UserReadDto, UserQueryDto, UserRegisterDto, UserUpdateDto>
+    public interface IUserService
+        : ICrudAppService<User, Guid, UserReadDto, UserQueryDto, UserRegisterDto, UserUpdateDto>
     {
         public Task<UserReadDto?> RegisterAsync(UserRegisterDto registerDto);
 

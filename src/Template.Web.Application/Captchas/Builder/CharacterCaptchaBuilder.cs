@@ -9,14 +9,21 @@ namespace Template.Web.Application.Captchas.Builder
 
         public override Captcha Build()
         {
-            if (CaptchaGenOptions is null) throw new ArgumentNullException("captcha generate options was not set");
+            if (CaptchaGenOptions is null)
+                throw new ArgumentNullException("captcha generate options was not set");
             var text = chars.GenCharacterText(Length);
             var captcha = new Captcha()
             {
                 Type = CaptchaType.Character,
-                Image = CaptchaUtil.GenerateImage(CaptchaGenOptions, text, GenNosie, GenLines, GenCircles),
+                Image = CaptchaUtil.GenerateImage(
+                    CaptchaGenOptions,
+                    text,
+                    GenNosie,
+                    GenLines,
+                    GenCircles
+                ),
                 Pixel = new(CaptchaGenOptions.Width, CaptchaGenOptions.Height),
-                Answer = new string(text)
+                Answer = new string(text),
             };
             return captcha;
         }

@@ -93,9 +93,6 @@ namespace Template.Web.Domain.Entities.Account
             RegisterTime = DateTime.UnixEpoch,
         };
 
-        public static User[] Seeds { get; } =
-        {
-            DevUser, SuperUser, AdminUser
-        };
+        public static User[] Seeds { get; } = { DevUser, SuperUser, AdminUser };
     }
 }

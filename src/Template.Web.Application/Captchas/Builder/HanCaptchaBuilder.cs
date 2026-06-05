@@ -8,10 +8,7 @@ namespace Template.Web.Application.Captchas.Builder
 
         public override Captcha Build()
         {
-            var captcha = new Captcha()
-            {
-                Type = CaptchaType.Han,
-            };
+            var captcha = new Captcha() { Type = CaptchaType.Han };
             return captcha;
         }
 

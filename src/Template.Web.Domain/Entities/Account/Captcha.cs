@@ -14,9 +14,7 @@ namespace Template.Web.Domain.Entities.Account
 
         public override string ToString()
         {
-            var base64 = Image is null ?
-                string.Empty :
-                Convert.ToBase64String(Image);
+            var base64 = Image is null ? string.Empty : Convert.ToBase64String(Image);
             return "data:image/png;base64," + base64;
         }
     }
@@ -25,6 +23,6 @@ namespace Template.Web.Domain.Entities.Account
     {
         Question,
         Han,
-        Character
+        Character,
     }
 }

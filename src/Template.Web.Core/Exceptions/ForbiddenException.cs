@@ -2,7 +2,8 @@
 {
     public class ForbiddenException : CustomException
     {
-        public ForbiddenException(string exceptionCode, params object?[] param) : base(exceptionCode)
+        public ForbiddenException(string exceptionCode, params object?[] param)
+            : base(exceptionCode)
         {
             ExceptionCode = string.Format(exceptionCode, param);
         }

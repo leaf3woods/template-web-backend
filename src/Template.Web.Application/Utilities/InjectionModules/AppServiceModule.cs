@@ -1,7 +1,7 @@
-﻿using Autofac;
+﻿using System.Reflection;
+using Autofac;
 using Template.Web.Application.Services.Base;
 using Template.Web.Domain.Services;
-using System.Reflection;
 
 namespace Template.Web.WebApi.Utilities.InjectionModules
 {
@@ -9,12 +9,17 @@ namespace Template.Web.WebApi.Utilities.InjectionModules
     {
         protected override void Load(ContainerBuilder builder)
         {
-            builder.RegisterAssemblyTypes(Assembly.Load("Template.Web." + nameof(Application)))
+            builder
+                .RegisterAssemblyTypes(Assembly.Load("Template.Web." + nameof(Application)))
                 .Where(type => type.IsAssignableTo(typeof(IBaseService)))
                 .AsImplementedInterfaces()
                 .PropertiesAutowired();
 
-            builder.RegisterAssemblyTypes(Assembly.Load("Template.Web." + nameof(Domain)), Assembly.Load("Template.Web." + nameof(Infrastructure)))
+            builder
+                .RegisterAssemblyTypes(
+                    Assembly.Load("Template.Web." + nameof(Domain)),
+                    Assembly.Load("Template.Web." + nameof(Infrastructure))
+                )
                 .Where(type => type.IsAssignableTo<IDomainService>())
                 .AsImplementedInterfaces()
                 .PropertiesAutowired();

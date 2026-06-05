@@ -2,7 +2,5 @@
 
 namespace Template.Web.Domain.Events
 {
-    public class UserLoginEvent : INotification
-    {
-    }
+    public class UserLoginEvent : INotification { }
 }

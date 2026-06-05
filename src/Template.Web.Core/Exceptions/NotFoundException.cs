@@ -2,7 +2,8 @@
 {
     public class NotFoundException : CustomException
     {
-        public NotFoundException(string exceptionCode, params object?[] param) : base(exceptionCode)
+        public NotFoundException(string exceptionCode, params object?[] param)
+            : base(exceptionCode)
         {
             ExceptionCode = string.Format(exceptionCode, param);
         }

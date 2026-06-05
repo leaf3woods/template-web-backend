@@ -1,6 +1,4 @@
-﻿
-
-namespace Template.Web.Application.Dtos.Base
+﻿namespace Template.Web.Application.Dtos.Base
 {
     public class PaginatedTimeQueryDto : QueryTimeDto
     {

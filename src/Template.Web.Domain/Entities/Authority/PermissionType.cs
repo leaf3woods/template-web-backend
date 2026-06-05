@@ -1,5 +1,4 @@
-﻿
-namespace Template.Web.Domain.Entities.Authority
+﻿namespace Template.Web.Domain.Entities.Authority
 {
     public enum PermissionType
     {

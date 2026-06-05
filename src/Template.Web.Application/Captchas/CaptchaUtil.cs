@@ -1,5 +1,5 @@
-﻿using SkiaSharp;
-using System.Reflection;
+﻿using System.Reflection;
+using SkiaSharp;
 
 namespace Template.Web.Application.Captchas
 {
@@ -21,8 +21,13 @@ namespace Template.Web.Application.Captchas
 
         private static (int, int) _circleCountRange = new(4, 8);
 
-        public static byte[] GenerateImage(CaptchaGenOptions options, char[] text,
-            bool noise = false, bool line = false, bool circle = false)
+        public static byte[] GenerateImage(
+            CaptchaGenOptions options,
+            char[] text,
+            bool noise = false,
+            bool line = false,
+            bool circle = false
+        )
         {
             if (options is null)
             {
@@ -30,7 +35,12 @@ namespace Template.Web.Application.Captchas
             }
             var random = new Random();
 
-            using var image2d = new SKBitmap(options.Width, options.Height, SKColorType.Bgra8888, SKAlphaType.Premul);
+            using var image2d = new SKBitmap(
+                options.Width,
+                options.Height,
+                SKColorType.Bgra8888,
+                SKAlphaType.Premul
+            );
             using var canvas = new SKCanvas(image2d);
 
             var background = options.Background ?? SKColors.WhiteSmoke;
@@ -50,14 +60,23 @@ namespace Template.Web.Application.Captchas
                 for (int i = 0; i < count; i++)
                 {
                     drawStyle.Color = Colors[random.Next(0, Colors.Length - 1)];
-                    canvas.DrawCircle(random.Next(options.Width), random.Next(limitHeigtStart, limitHeightEnd),
-                        random.Next(_circleRadiusRange.Item1, _circleRadiusRange.Item2), drawStyle);
+                    canvas.DrawCircle(
+                        random.Next(options.Width),
+                        random.Next(limitHeigtStart, limitHeightEnd),
+                        random.Next(_circleRadiusRange.Item1, _circleRadiusRange.Item2),
+                        drawStyle
+                    );
                 }
                 drawStyle.Style = SKPaintStyle.Fill;
                 drawStyle.StrokeWidth = 1;
             }
 
-            using var font = SKTypeface.FromFamilyName(options.FontFamily, SKFontStyleWeight.SemiBold, SKFontStyleWidth.ExtraCondensed, SKFontStyleSlant.Upright);
+            using var font = SKTypeface.FromFamilyName(
+                options.FontFamily,
+                SKFontStyleWeight.SemiBold,
+                SKFontStyleWidth.ExtraCondensed,
+                SKFontStyleSlant.Upright
+            );
             float py = (options.Height) / 2;
             drawStyle.Typeface = font;
             var offset = fontSize / 2;
@@ -79,7 +98,13 @@ namespace Template.Web.Application.Captchas
                 for (int i = 0; i < options.Width * 2; i++)
                 {
                     drawStyle.Color = Colors[random.Next(0, Colors.Length - 1)];
-                    canvas.DrawRect(random.Next(options.Width), random.Next(options.Height), _noiseSize, _noiseSize, drawStyle);
+                    canvas.DrawRect(
+                        random.Next(options.Width),
+                        random.Next(options.Height),
+                        _noiseSize,
+                        _noiseSize,
+                        drawStyle
+                    );
                 }
             }
 
@@ -90,8 +115,13 @@ namespace Template.Web.Application.Captchas
                 {
                     drawStyle.Color = Colors[random.Next(0, Colors.Length - 1)];
                     drawStyle.StrokeWidth = _lineWidth;
-                    canvas.DrawLine(random.Next(0, options.Width), random.Next(limitHeigtStart, limitHeightEnd),
-                        random.Next(0, options.Width), random.Next(limitHeigtStart, limitHeightEnd), drawStyle);
+                    canvas.DrawLine(
+                        random.Next(0, options.Width),
+                        random.Next(limitHeigtStart, limitHeightEnd),
+                        random.Next(0, options.Width),
+                        random.Next(limitHeigtStart, limitHeightEnd),
+                        drawStyle
+                    );
                 }
             }
 
@@ -146,7 +176,9 @@ namespace Template.Web.Application.Captchas
         public static readonly SKColor[] Colors = typeof(SKColors)
             .GetFields(BindingFlags.Public | BindingFlags.Static)
             .Select(f => (SKColor)f.GetValue(null)!)
-            .Where(f => f.Alpha != 0 && ((0.299 * f.Red + 0.587 * f.Green + 0.114 * f.Blue) / 255.0) <= 0.6)
+            .Where(f =>
+                f.Alpha != 0 && ((0.299 * f.Red + 0.587 * f.Green + 0.114 * f.Blue) / 255.0) <= 0.6
+            )
             .ToArray();
 
         public static readonly IEnumerable<int> NumChars = Enumerable.Range(48, 10);
@@ -156,6 +188,8 @@ namespace Template.Web.Application.Captchas
 
     public enum Operator
     {
-        Add, Subtract, Multiply
+        Add,
+        Subtract,
+        Multiply,
     }
 }
