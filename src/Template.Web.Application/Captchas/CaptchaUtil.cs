@@ -47,7 +47,7 @@ namespace Template.Web.Application.Captchas
             canvas.Clear(background);
 
             var fontSize = (options.Width) / (text.Length + 1);
-            using var drawStyle = new SKPaint { IsAntialias = true, TextSize = fontSize };
+            using var drawStyle = new SKPaint { IsAntialias = true };
 
             var limitHeigtStart = (int)(options.Height * (1 - _drawPositionLimit)) / 2;
             var limitHeightEnd = options.Height - limitHeigtStart;
@@ -77,8 +77,8 @@ namespace Template.Web.Application.Captchas
                 SKFontStyleWidth.ExtraCondensed,
                 SKFontStyleSlant.Upright
             );
+            using var textFont = new SKFont(font, fontSize);
             float py = (options.Height) / 2;
-            drawStyle.Typeface = font;
             var offset = fontSize / 2;
             var offsetY = fontSize * (float)(3 / 8);
             for (int i = 0; i < text.Length; i++)
@@ -88,7 +88,7 @@ namespace Template.Web.Application.Captchas
                 canvas.Translate(offset, offsetY);
                 canvas.RotateDegrees(angle, px, py);
                 drawStyle.Color = Colors[random.Next(0, Colors.Length - 1)];
-                canvas.DrawText(text[i].ToString(), px, py, drawStyle);
+                canvas.DrawText(text[i].ToString(), px, py, SKTextAlign.Left, textFont, drawStyle);
                 canvas.RotateDegrees(-angle, px, py);
                 canvas.Translate(-offset, -offsetY);
             }

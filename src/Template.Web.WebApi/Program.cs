@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using Npgsql;
 using Serilog;
 using Template.Web.Application.Auth;
@@ -129,22 +129,16 @@ builder.Services.AddSwaggerGen(option =>
             Scheme = JwtBearerDefaults.AuthenticationScheme,
         }
     );
-    option.AddSecurityRequirement(
+    option.AddSecurityRequirement(document =>
         new OpenApiSecurityRequirement
         {
             {
-                new OpenApiSecurityScheme
-                {
-                    In = ParameterLocation.Header,
-                    Type = SecuritySchemeType.Http,
-                    Scheme = JwtBearerDefaults.AuthenticationScheme,
-                    Reference = new OpenApiReference
-                    {
-                        Type = ReferenceType.SecurityScheme,
-                        Id = JwtBearerDefaults.AuthenticationScheme,
-                    },
-                },
-                Array.Empty<string>()
+                new OpenApiSecuritySchemeReference(
+                    JwtBearerDefaults.AuthenticationScheme,
+                    hostDocument: document,
+                    externalResource: null
+                ),
+                []
             },
         }
     );

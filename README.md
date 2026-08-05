@@ -1,11 +1,11 @@
 # Template Web Backend
 
-基于 .NET 8 的 Web API 后端模板项目，采用 DDD 分层组织代码，内置用户、角色、菜单/权限、JWT 鉴权、验证码、Redis 缓存、PostgreSQL 持久化、Swagger 和 Docker 部署示例。
+基于 .NET 10 的 Web API 后端模板项目，采用 DDD 分层组织代码，内置用户、角色、菜单/权限、JWT 鉴权、验证码、Redis 缓存、PostgreSQL 持久化、Swagger 和 Docker 部署示例。
 
 ## 技术栈
 
-- .NET 8 / ASP.NET Core Web API
-- Entity Framework Core 8 / Npgsql / PostgreSQL
+- .NET 10 / ASP.NET Core Web API
+- Entity Framework Core 10 / Npgsql / PostgreSQL
 - Autofac 依赖注入
 - AutoMapper DTO 映射
 - MediatR 领域事件
@@ -33,7 +33,7 @@
 
 ### 环境要求
 
-- .NET SDK 8.x
+- .NET SDK 10.x
 - PostgreSQL
 - Redis
 - Docker 可选，用于启动本地依赖或构建镜像

@@ -34,7 +34,7 @@ namespace Template.Web.Application.Services
                 .WhereIf(!string.IsNullOrEmpty(queryDto.Name), x => x.Name.Contains(queryDto.Name!))
                 .WhereIf(!string.IsNullOrEmpty(queryDto.Code), x => x.Code.Contains(queryDto.Code!))
                 .WhereIf(queryDto.ParentId != null, x => x.ParentId == queryDto.ParentId)
-                .WhereIf(queryDto.Type != null, x => x.Type == (PermissionType)queryDto.Type.Value)
+                .WhereIf(queryDto.Type != null, x => x.Type == (PermissionType)queryDto.Type!.Value)
                 .WhereIf(queryDto.Visible != null, x => x.Visible == queryDto.Visible)
                 .WhereIf(queryDto.State != null, x => x.State == queryDto.State)
                 .ToPaginatedListAsync(queryDto.PageIndex, queryDto.PageSize);
