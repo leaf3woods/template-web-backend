@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Template.Web.Application.Auth;
 using Template.Web.Application.Dtos;
 using Template.Web.Application.Services.Base;
+using Template.Web.Domain.Utilities;
 using Template.Web.WebApi.Utilities;
 
 namespace Template.Web.WebApi.Controllers

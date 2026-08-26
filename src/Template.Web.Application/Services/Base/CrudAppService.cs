@@ -1,9 +1,8 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
+using AutoMapper;
 using Template.Web.Application.Dtos.Base;
 using Template.Web.Core;
 using Template.Web.Domain.Entities.Base;
-using Template.Web.Infrastructure.DbContexts;
+using Template.Web.Application.Persistence;
 
 namespace Template.Web.Application.Services.Base;
 
@@ -13,12 +12,13 @@ public abstract class CrudAppService<TEntity, TKey, TReadDto>
     where TEntity : AggregateRoot
     where TReadDto : IReadDto
 {
-    /// <summary>
-    ///     aoc 属性注入
-    /// </summary>
-    public ApiDbContext DbContext { get; init; } = null!;
-    public IHttpContextAccessor? HttpContextAccessor { get; init; }
-    public ILogger<TEntity> Logger { get; init; } = null!;
+    protected CrudAppService(IApplicationDbContext dbContext, IMapper mapper)
+        : base(mapper)
+    {
+        DbContext = dbContext;
+    }
+
+    protected IApplicationDbContext DbContext { get; }
 
     protected IQueryable<TEntity> Queryable
     {
@@ -35,7 +35,7 @@ public abstract class CrudAppService<TEntity, TKey, TReadDto>
         var entity = await DbContext.Set<TEntity>().FindAsync(key);
         if (entity != null)
         {
-            var delete = DbContext.Set<TEntity>().Remove(entity);
+            var _ = DbContext.Set<TEntity>().Remove(entity);
             var count = await DbContext.SaveChangesAsync();
             return count;
         }
@@ -66,6 +66,9 @@ public abstract class CrudAppService<TEntity, TKey, TReadDto, TQueryDto>
     where TReadDto : IReadDto
     where TQueryDto : QueryDto
 {
+    protected CrudAppService(IApplicationDbContext dbContext, IMapper mapper)
+        : base(dbContext, mapper) { }
+
     /// <summary>
     /// 查询实体列表
     /// </summary>
@@ -89,6 +92,9 @@ public abstract class CrudAppService<TEntity, TKey, TReadDto, TQueryDto, TCreate
     where TQueryDto : QueryDto
     where TCreateDto : CreateDto
 {
+    protected CrudAppService(IApplicationDbContext dbContext, IMapper mapper)
+        : base(dbContext, mapper) { }
+
     /// <summary>
     /// 创建实体
     /// </summary>
@@ -112,6 +118,9 @@ public abstract class CrudAppService<TEntity, TKey, TReadDto, TQueryDto, TCreate
     where TCreateDto : CreateDto
     where TUpdateDto : UpdateDto
 {
+    protected CrudAppService(IApplicationDbContext dbContext, IMapper mapper)
+        : base(dbContext, mapper) { }
+
     /// <summary>
     /// 修改实体
     /// </summary>

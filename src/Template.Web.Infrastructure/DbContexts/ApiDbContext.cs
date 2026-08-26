@@ -1,5 +1,6 @@
 ﻿using CaseExtensions;
 using Microsoft.EntityFrameworkCore;
+using Template.Web.Application.Persistence;
 using Template.Web.Domain.Entities;
 using Template.Web.Domain.Entities.Account;
 using Template.Web.Domain.Entities.Authority;
@@ -7,18 +8,31 @@ using Template.Web.Domain.Entities.Base;
 
 namespace Template.Web.Infrastructure.DbContexts
 {
-    public class ApiDbContext : DbContext
+    public class ApiDbContext : DbContext, IApplicationDbContext
     {
         public ApiDbContext(DbContextOptions<ApiDbContext> options)
             : base(options) { }
 
-        #region dbsets
+        #region db sets
 
         public DbSet<User> Users { get; set; }
         public DbSet<Role> Roles { get; set; }
         public DbSet<Permission> Permissions { get; set; }
 
-        #endregion dbsets
+        #endregion db sets
+
+        public async Task<IApplicationTransaction> BeginTransactionAsync(
+            CancellationToken cancellationToken = default
+        )
+        {
+            var transaction = await Database.BeginTransactionAsync(cancellationToken);
+            return new EfApplicationTransaction(transaction);
+        }
+
+        public async Task<int> ExcuteSqlRaw(string sql, CancellationToken cancellationToken = default)
+        {
+            return await Database.ExecuteSqlRawAsync(sql, cancellationToken);
+        }
 
         public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {

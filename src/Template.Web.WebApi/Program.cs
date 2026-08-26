@@ -9,13 +9,14 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using Npgsql;
 using Serilog;
-using Template.Web.Application.Auth;
+using Template.Web.Application.Persistence;
 using Template.Web.Core;
 using Template.Web.Core.Utilities;
 using Template.Web.Domain.Utilities;
 using Template.Web.Domain.ValueObjects;
 using Template.Web.Infrastructure.DbContexts;
 using Template.Web.WebApi.Utilities;
+using Template.Web.WebApi.Auth;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -84,9 +85,9 @@ builder
 builder.Services.AddLocalization();
 
 var scopes = Assembly
-    .Load("Template.Web.Application")
+    .GetExecutingAssembly()
     .GetTypes()
-    .Where(type => type.Namespace == "Template.Web.Application.WebApi")
+    .Where(type => type.Namespace == "Template.Web.WebApi.Controllers")
     .SelectMany(type =>
         type.GetMethods()
             .Select(m => m.GetCustomAttribute<AuthorizeAttribute>())
@@ -156,6 +157,9 @@ builder.Services.AddDbContextPool<ApiDbContext>(options =>
         .EnableDetailedErrors();
     options.UseSnakeCaseNamingConvention();
 });
+builder.Services.AddScoped<IApplicationDbContext>(serviceProvider =>
+    serviceProvider.GetRequiredService<ApiDbContext>()
+);
 
 // Add mapper profiles
 builder.Services.AddAutoMapper(config =>
@@ -185,7 +189,11 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.Services.GetService<InitialDatabase>()?.Initialize();
+await using (var scope = app.Services.CreateAsyncScope())
+{
+    var initialDatabase = scope.ServiceProvider.GetRequiredService<InitialDatabase>();
+    await initialDatabase.Initialize();
+}
 
 app.UseExceptionHandler(builder =>
     builder.Run(async context =>

@@ -1,4 +1,4 @@
-﻿namespace Template.Web.Application.Auth
+namespace Template.Web.Domain.Utilities
 {
     public static class ManagedAction
     {

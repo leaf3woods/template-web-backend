@@ -1,13 +1,14 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Template.Web.Application.Auth;
+using AutoMapper;
 using Template.Web.Application.Dtos;
+using Template.Web.Application.Persistence;
+using Template.Web.Application.Utilities;
 using Template.Web.Application.Services.Base;
 using Template.Web.Core;
 using Template.Web.Core.Exceptions;
 using Template.Web.Domain.Entities.Account;
 using Template.Web.Domain.Utilities;
-using Template.Web.Infrastructure.DbContexts;
-using Template.Web.Infrastructure.Utilities;
+using Template.Web.Domain.Entities.Authority;
 
 namespace Template.Web.Application.Services
 {
@@ -16,6 +17,9 @@ namespace Template.Web.Application.Services
         : CrudAppService<Role, Guid, RoleReadDto, RoleQueryDto, RoleCreateDto, RoleUpdateDto>,
             IRoleService
     {
+        public RoleService(IApplicationDbContext dbContext, IMapper mapper)
+            : base(dbContext, mapper) { }
+
         public override async Task<IEnumerable<RoleReadDto>> GetListAsync(
             RoleQueryDto? queryDto = null
         )
@@ -45,7 +49,7 @@ namespace Template.Web.Application.Services
             //    throw new NotAcceptableException("unsupported scope find");
             //}
             var entity = Mapper.Map<Role>(roleDto);
-            await DbContext.Roles.AddAsync(entity);
+            await DbContext.Set<Role>().AddAsync(entity);
             var index = await DbContext.SaveChangesAsync();
             return index == 0 ? null : Mapper.Map<RoleReadDto>(entity);
         }
@@ -57,7 +61,8 @@ namespace Template.Web.Application.Services
         public async Task<RoleReadDto?> GetRoleAsync(Guid id)
         {
             var role = await DbContext
-                .Roles.Where(r => r.Id == id)
+                .Set<Role>()
+                .Where(r => r.Id == id)
                 .Include(r => r.Permissions)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
@@ -68,7 +73,8 @@ namespace Template.Web.Application.Services
         public async Task<IEnumerable<RoleReadDto>> GetRolesAsync()
         {
             var roles = await DbContext
-                .Roles.Include(r => r.Permissions)
+                .Set<Role>()
+                .Include(r => r.Permissions)
                 .AsNoTracking()
                 .ToArrayAsync();
             return Mapper.Map<IEnumerable<RoleReadDto>>(roles);
@@ -87,14 +93,16 @@ namespace Template.Web.Application.Services
             var role =
                 (
                     await DbContext
-                        .Roles.Include(r => r.Permissions)
+                        .Set<Role>()
+                        .Include(r => r.Permissions)
                         .FirstOrDefaultAsync(r => r.Id == roleId)
                 ) ?? throw new NotFoundException("role is not exist");
             var targets = await DbContext
-                .Permissions.Where(p => permissionNames.Contains(p.Name))
+                .Set<Permission>()
+                .Where(p => permissionNames.Contains(p.Name))
                 .ToArrayAsync();
             role.Permissions = targets;
-            DbContext.Roles.Update(role);
+            DbContext.Set<Role>().Update(role);
             var result = await DbContext.SaveChangesAsync();
             return result;
         }

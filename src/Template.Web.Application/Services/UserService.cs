@@ -1,9 +1,10 @@
 ﻿using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
-using Template.Web.Application.Auth;
+using AutoMapper;
 using Template.Web.Application.Captchas;
 using Template.Web.Application.Captchas.Builder;
 using Template.Web.Application.Dtos;
+using Template.Web.Application.Persistence;
 using Template.Web.Application.Services.Base;
 using Template.Web.Application.Utilities;
 using Template.Web.Core;
@@ -12,8 +13,6 @@ using Template.Web.Core.Utilities;
 using Template.Web.Domain.Entities.Account;
 using Template.Web.Domain.Services;
 using Template.Web.Domain.Utilities;
-using Template.Web.Infrastructure.DbContexts;
-using Template.Web.Infrastructure.Utilities;
 
 namespace Template.Web.Application.Services
 {
@@ -22,7 +21,12 @@ namespace Template.Web.Application.Services
         : CrudAppService<User, Guid, UserReadDto, UserQueryDto, UserRegisterDto, UserUpdateDto>,
             IUserService
     {
-        public UserService(IUserDomainService userDomainService)
+        public UserService(
+            IApplicationDbContext dbContext,
+            IMapper mapper,
+            IUserDomainService userDomainService
+        )
+            : base(dbContext, mapper)
         {
             _userDomainService = userDomainService;
         }
@@ -72,7 +76,7 @@ namespace Template.Web.Application.Services
         public async Task<UserReadDto?> RegisterAsync(UserRegisterDto registerDto)
         {
             var user = Mapper.Map<User>(registerDto);
-            await DbContext.Users.AddAsync(user);
+            await DbContext.Set<User>().AddAsync(user);
             var count = await DbContext.SaveChangesAsync();
             return count == 0 ? null : Mapper.Map<UserReadDto>(user);
         }
@@ -89,7 +93,8 @@ namespace Template.Web.Application.Services
                 throw new NotAcceptableException("captcha not found or not correct");
             }
             var user = await DbContext
-                .Users.Include(u => u.Roles)
+                .Set<User>()
+                .Include(u => u.Roles)
                 .FirstOrDefaultAsync(u => u.Username == credential.Username);
             var bytes = Convert.FromBase64String(credential.Password);
 
@@ -128,7 +133,8 @@ namespace Template.Web.Application.Services
         public async Task<UserReadDto?> GetUserAsync(Guid id)
         {
             var user = await DbContext
-                .Users.Where(u => u.Id == id)
+                .Set<User>()
+                .Where(u => u.Id == id)
                 .Include(u => u.Roles)
                 .FirstOrDefaultAsync();
             return Mapper.Map<UserReadDto>(user);
@@ -141,7 +147,8 @@ namespace Template.Web.Application.Services
         public async Task<IEnumerable<UserReadDto>> GetUsersWhereAsync(string? name = null)
         {
             var users = await DbContext
-                .Users.Where(u =>
+                .Set<User>()
+                .Where(u =>
                     string.IsNullOrEmpty(name)
                     || u.Username.Contains(name)
                     || u.Nick == null
@@ -159,13 +166,13 @@ namespace Template.Web.Application.Services
         public async Task<UserReadDto?> ChangeRoleAsync(Guid userId, IEnumerable<Guid> roleIds)
         {
             var user =
-                (await DbContext.Users.FindAsync(userId))
+                (await DbContext.Set<User>().FindAsync(userId))
                 ?? throw new NotFoundException("user not found");
-            var roles = await DbContext.Roles.Where(r => roleIds.Contains(r.Id)).ToArrayAsync();
+            var roles = await DbContext.Set<Role>().Where(r => roleIds.Contains(r.Id)).ToArrayAsync();
             if (roles?.Length == 0)
                 throw new NotFoundException("role not found");
             user.Roles = roles!;
-            DbContext.Users.Update(user);
+            DbContext.Set<User>().Update(user);
             var count = await DbContext.SaveChangesAsync();
             return count == 0 ? null : Mapper.Map<UserReadDto>(user);
         }
@@ -205,7 +212,7 @@ namespace Template.Web.Application.Services
                 throw new NotAcceptableException("captcha not exist or not correct");
             }
             var user =
-                await DbContext.Users.FindAsync(passwordDto.Username)
+                await DbContext.Set<User>().FindAsync(passwordDto.Username)
                 ?? throw new NotFoundException("user not found");
             var bytes = Convert.FromBase64String(passwordDto.OldPassword);
             if (!user.Verify(bytes))
@@ -214,7 +221,7 @@ namespace Template.Web.Application.Services
             }
 
             _userDomainService.WithSalt(ref user, passwordDto.NewPassword);
-            DbContext.Users.Update(user);
+            DbContext.Set<User>().Update(user);
             return await DbContext.SaveChangesAsync();
         }
 
@@ -225,11 +232,11 @@ namespace Template.Web.Application.Services
         public async Task<int> ResetPasswordAsync(Guid userId)
         {
             var user =
-                await DbContext.Users.FindAsync(userId)
+                await DbContext.Set<User>().FindAsync(userId)
                 ?? throw new NotFoundException("user not found");
             var hash = CryptoUtil.Sha256("12345678");
             _userDomainService.WithSalt(ref user, hash);
-            DbContext.Users.Update(user);
+            DbContext.Set<User>().Update(user);
             return await DbContext.SaveChangesAsync();
         }
     }

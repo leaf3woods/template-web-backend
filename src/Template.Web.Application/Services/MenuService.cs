@@ -1,11 +1,12 @@
 using Microsoft.EntityFrameworkCore;
+using AutoMapper;
 using Template.Web.Application.Dtos;
+using Template.Web.Application.Persistence;
+using Template.Web.Application.Utilities;
 using Template.Web.Application.Services.Base;
 using Template.Web.Core;
 using Template.Web.Core.Exceptions;
 using Template.Web.Domain.Entities.Authority;
-using Template.Web.Infrastructure.DbContexts;
-using Template.Web.Infrastructure.Utilities;
 
 namespace Template.Web.Application.Services
 {
@@ -13,9 +14,9 @@ namespace Template.Web.Application.Services
         : CrudAppService<Permission, Guid, MenuReadDto, MenuQueryDto, MenuCreateDto, MenuUpdateDto>,
             IMenuService
     {
-        public MenuService(ApiDbContext dbContext)
+        public MenuService(IApplicationDbContext dbContext, IMapper mapper)
+            : base(dbContext, mapper)
         {
-            DbContext = dbContext;
         }
 
         public override async Task<IEnumerable<MenuReadDto>> GetListAsync(
@@ -73,24 +74,24 @@ namespace Template.Web.Application.Services
         public override async Task<int> DeleteAsync(Guid key)
         {
             var menu =
-                await DbContext.Permissions.FindAsync(key)
+                await DbContext.Set<Permission>().FindAsync(key)
                 ?? throw new NotFoundException("id not exist");
 
             if (menu.ParentId is null)
                 throw new NotAcceptableException("root menu can't delete");
 
-            if (await DbContext.Permissions.AnyAsync(m => m.ParentId == key))
+            if (await DbContext.Set<Permission>().AnyAsync(m => m.ParentId == key))
             {
                 throw new NotAcceptableException("child menu exist");
             }
 
-            DbContext.Permissions.Remove(menu);
+            DbContext.Set<Permission>().Remove(menu);
             return await DbContext.SaveChangesAsync();
         }
 
         public override async Task<MenuReadDto?> UpdateAsync(Guid key, MenuUpdateDto dto)
         {
-            var entity = await DbContext.Permissions.FindAsync(key);
+            var entity = await DbContext.Set<Permission>().FindAsync(key);
             if (entity == null)
             {
                 return default;
@@ -106,7 +107,7 @@ namespace Template.Web.Application.Services
             entity.Visible = dto.Visible;
             entity.Favorite = dto.Favorite;
             entity.State = dto.State;
-            DbContext.Permissions.Update(entity);
+            DbContext.Set<Permission>().Update(entity);
             await DbContext.SaveChangesAsync();
             return Mapper.Map<MenuReadDto>(entity);
         }

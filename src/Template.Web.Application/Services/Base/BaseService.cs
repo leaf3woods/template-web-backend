@@ -2,8 +2,13 @@
 
 namespace Template.Web.Application.Services.Base
 {
-    public class BaseService : IBaseService
+    public abstract class BaseService : IBaseService
     {
-        public IMapper Mapper { get; init; } = null!;
+        protected BaseService(IMapper mapper)
+        {
+            Mapper = mapper;
+        }
+
+        protected IMapper Mapper { get; }
     }
 }
