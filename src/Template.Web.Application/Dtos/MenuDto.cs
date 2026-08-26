@@ -1,8 +1,10 @@
 ﻿using Template.Web.Application.Dtos.Base;
 
+using Template.Web.Domain.Entities.Authority;
+
 namespace Template.Web.Application.Dtos
 {
-    public class MenuReadDto : ReadDto
+    public class MenuReadDto : ReadDto<Permission>
     {
         public string Name { get; set; } = null!;
 
@@ -31,7 +33,7 @@ namespace Template.Web.Application.Dtos
         public IEnumerable<MenuReadDto>? Children { get; set; }
     }
 
-    public class MenuCreateDto : CreateDto
+    public class MenuCreateDto : CreateDto<Permission>
     {
         public string Name { get; set; } = null!;
 
@@ -56,7 +58,7 @@ namespace Template.Web.Application.Dtos
         public bool Favorite { get; set; }
     }
 
-    public class MenuUpdateDto : UpdateDto
+    public class MenuUpdateDto : UpdateDto<Permission>
     {
         public string Name { get; set; } = null!;
 

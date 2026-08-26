@@ -10,7 +10,6 @@ namespace Template.Web.Application.Utilities.MapperProfiles.DtoProfiles
     {
         public UserDtoProfile()
         {
-            CreateMap<User, UserReadDto>();
             CreateMap<UserRegisterDto, User>()
                 .AfterMap(
                     (src, dest) =>

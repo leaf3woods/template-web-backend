@@ -11,7 +11,7 @@ public abstract class CrudAppService<TEntity, TKey, TReadDto>
     : BaseService,
         ICrudAppService<TEntity, TKey, TReadDto>
     where TEntity : AggregateRoot
-    where TReadDto : ReadDto
+    where TReadDto : IReadDto
 {
     /// <summary>
     ///     aoc 属性注入
@@ -63,7 +63,7 @@ public abstract class CrudAppService<TEntity, TKey, TReadDto, TQueryDto>
     : CrudAppService<TEntity, TKey, TReadDto>,
         ICrudAppService<TEntity, TKey, TReadDto, TQueryDto>
     where TEntity : AggregateRoot
-    where TReadDto : ReadDto
+    where TReadDto : IReadDto
     where TQueryDto : QueryDto
 {
     /// <summary>
@@ -85,7 +85,7 @@ public abstract class CrudAppService<TEntity, TKey, TReadDto, TQueryDto, TCreate
     : CrudAppService<TEntity, TKey, TReadDto, TQueryDto>,
         ICrudAppService<TEntity, TKey, TReadDto, TQueryDto, TCreateDto>
     where TEntity : AggregateRoot
-    where TReadDto : ReadDto
+    where TReadDto : IReadDto
     where TQueryDto : QueryDto
     where TCreateDto : CreateDto
 {
@@ -107,7 +107,7 @@ public abstract class CrudAppService<TEntity, TKey, TReadDto, TQueryDto, TCreate
     : CrudAppService<TEntity, TKey, TReadDto, TQueryDto, TCreateDto>,
         ICrudAppService<TEntity, TKey, TReadDto, TQueryDto, TCreateDto, TUpdateDto>
     where TEntity : AggregateRoot
-    where TReadDto : ReadDto
+    where TReadDto : IReadDto
     where TQueryDto : QueryDto
     where TCreateDto : CreateDto
     where TUpdateDto : UpdateDto

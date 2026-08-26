@@ -39,7 +39,7 @@ public interface ICrudAppService<TEntity, TKey, TReadDto, TQueryDto, TCreateDto>
 public interface ICrudAppService<TEntity, TKey, TReadDto, TQueryDto, TCreateDto, TUpdateDto>
     : ICrudAppService<TEntity, TKey, TReadDto, TQueryDto, TCreateDto>
     where TEntity : AggregateRoot
-    where TReadDto : ReadDto
+    where TReadDto : IReadDto
     where TQueryDto : QueryDto
     where TCreateDto : CreateDto
     where TUpdateDto : UpdateDto

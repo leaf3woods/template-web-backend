@@ -1,8 +1,11 @@
 ﻿using Template.Web.Application.Dtos.Base;
 
+using Template.Web.Domain.Entities.Account;
+using Template.Web.Domain.Entities.Authority;
+
 namespace Template.Web.Application.Dtos
 {
-    public class RoleCreateDto : CreateDto
+    public class RoleCreateDto : CreateDto<Role>, IManualDtoMapping
     {
         public string Name { get; set; } = null!;
         public string Code { get; set; } = null!;
@@ -10,7 +13,7 @@ namespace Template.Web.Application.Dtos
         public IEnumerable<string> ScopeNames { get; set; } = null!;
     }
 
-    public class RoleReadDto : ReadDto
+    public class RoleReadDto : ReadDto<Role>
     {
         public string Name { get; set; } = null!;
         public string Description { get; set; } = null!;
@@ -25,7 +28,7 @@ namespace Template.Web.Application.Dtos
         public bool? State { get; set; }
     }
 
-    public class RoleUpdateDto : UpdateDto
+    public class RoleUpdateDto : UpdateDto<Role>
     {
         public string Name { get; set; } = null!;
         public string Description { get; set; } = null!;
@@ -34,13 +37,13 @@ namespace Template.Web.Application.Dtos
         public IEnumerable<Guid>? UserIds { get; set; } = null!;
     }
 
-    public class RoleScopeReadDto : ReadDto
+    public class RoleScopeReadDto : ReadDto<Permission>
     {
         public string Name { get; set; } = null!;
         public string? Description { get; set; }
     }
 
-    public class RoleScopeModifyDto : UpdateDto
+    public class RoleScopeModifyDto : UpdateDto<Permission>
     {
         public string Name { get; set; } = null!;
     }

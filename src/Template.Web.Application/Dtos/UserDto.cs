@@ -1,9 +1,10 @@
 ﻿using Template.Web.Application.Dtos.Base;
+using Template.Web.Domain.Entities.Account;
 using Template.Web.Domain.ValueObjects.UserValue;
 
 namespace Template.Web.Application.Dtos
 {
-    public class UserRegisterDto : CreateDto
+    public class UserRegisterDto : CreateDto<User>, IManualDtoMapping
     {
         public string Username { get; set; } = null!;
         public string Password { get; set; } = null!;
@@ -13,7 +14,7 @@ namespace Template.Web.Application.Dtos
         public DateTime RegisterTime { get; set; }
     }
 
-    public class UserUpdateDto : UpdateDto
+    public class UserUpdateDto : UpdateDto<User>
     {
         public string Username { get; set; } = null!;
 
@@ -43,7 +44,7 @@ namespace Template.Web.Application.Dtos
         public string? Filter { get; set; }
     }
 
-    public class UserReadDto : ReadDto
+    public class UserReadDto : ReadDto<User>
     {
         public string Username { get; set; } = null!;
         public string DisplayName { get; set; } = null!;
@@ -73,7 +74,7 @@ namespace Template.Web.Application.Dtos
         public string? AboutMe { get; set; }
     }
 
-    public class CaptchaReadDto : ReadDto
+    public class CaptchaReadDto : ReadDto<Captcha>, IManualDtoMapping
     {
         public string Type { get; set; } = null!;
         public int[] Pixel { get; set; } = null!;
