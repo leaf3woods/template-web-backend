@@ -7,8 +7,7 @@ using Template.Web.WebApi.Auth.Requirements;
 
 namespace Template.Web.WebApi.Auth.AuthHandlers;
 
-public sealed class CustomRequireHandler
-    : AuthorizationHandler<PermissionAuthorizationRequirement>
+public sealed class CustomRequireHandler : AuthorizationHandler<PermissionAuthorizationRequirement>
 {
     private readonly IApplicationDbContext _applicationDbContext;
     private readonly ILogger<CustomRequireHandler> _logger;
@@ -29,10 +28,7 @@ public sealed class CustomRequireHandler
     {
         var userId = context.User.FindFirst(CustomClaimsType.UserId)?.Value;
         var roleIdsValue = context.User.FindFirst(CustomClaimsType.RoleId)?.Value;
-        if (
-            !Guid.TryParse(userId, out _)
-            || string.IsNullOrWhiteSpace(roleIdsValue)
-        )
+        if (!Guid.TryParse(userId, out _) || string.IsNullOrWhiteSpace(roleIdsValue))
         {
             _logger.LogWarning("invalid token claims");
             context.Fail(new AuthorizationFailureReason(this, "invalid claims"));
@@ -81,7 +77,9 @@ public sealed class CustomRequireHandler
     {
         roleIds = value
             .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .Select(roleId => Guid.TryParse(roleId, out var parsedRoleId) ? parsedRoleId : Guid.Empty)
+            .Select(roleId =>
+                Guid.TryParse(roleId, out var parsedRoleId) ? parsedRoleId : Guid.Empty
+            )
             .ToArray();
 
         return roleIds.Length > 0 && roleIds.All(roleId => roleId != Guid.Empty);

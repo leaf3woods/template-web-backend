@@ -2,7 +2,5 @@
 {
     public abstract class UpdateDto { }
 
-    public abstract class UpdateDto<TEntity> : UpdateDto, IEntityDto<TEntity>
-    {
-    }
+    public abstract class UpdateDto<TEntity> : UpdateDto, IEntityDto<TEntity> { }
 }

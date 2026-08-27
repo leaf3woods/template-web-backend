@@ -1,6 +1,6 @@
 ﻿using System.Security.Claims;
-using Microsoft.EntityFrameworkCore;
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Template.Web.Application.Captchas;
 using Template.Web.Application.Captchas.Builder;
 using Template.Web.Application.Dtos;
@@ -168,7 +168,10 @@ namespace Template.Web.Application.Services
             var user =
                 (await DbContext.Set<User>().FindAsync(userId))
                 ?? throw new NotFoundException("user not found");
-            var roles = await DbContext.Set<Role>().Where(r => roleIds.Contains(r.Id)).ToArrayAsync();
+            var roles = await DbContext
+                .Set<Role>()
+                .Where(r => roleIds.Contains(r.Id))
+                .ToArrayAsync();
             if (roles?.Length == 0)
                 throw new NotFoundException("role not found");
             user.Roles = roles!;

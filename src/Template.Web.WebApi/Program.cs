@@ -15,8 +15,8 @@ using Template.Web.Core.Utilities;
 using Template.Web.Domain.Utilities;
 using Template.Web.Domain.ValueObjects;
 using Template.Web.Infrastructure.DbContexts;
-using Template.Web.WebApi.Utilities;
 using Template.Web.WebApi.Auth;
+using Template.Web.WebApi.Utilities;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -130,19 +130,17 @@ builder.Services.AddSwaggerGen(option =>
             Scheme = JwtBearerDefaults.AuthenticationScheme,
         }
     );
-    option.AddSecurityRequirement(document =>
-        new OpenApiSecurityRequirement
+    option.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+    {
         {
-            {
-                new OpenApiSecuritySchemeReference(
-                    JwtBearerDefaults.AuthenticationScheme,
-                    hostDocument: document,
-                    externalResource: null
-                ),
-                []
-            },
-        }
-    );
+            new OpenApiSecuritySchemeReference(
+                JwtBearerDefaults.AuthenticationScheme,
+                hostDocument: document,
+                externalResource: null
+            ),
+            []
+        },
+    });
 });
 
 // Add dbContext pool

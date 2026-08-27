@@ -1,14 +1,14 @@
-﻿using Microsoft.EntityFrameworkCore;
-using AutoMapper;
+﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Template.Web.Application.Dtos;
 using Template.Web.Application.Persistence;
-using Template.Web.Application.Utilities;
 using Template.Web.Application.Services.Base;
+using Template.Web.Application.Utilities;
 using Template.Web.Core;
 using Template.Web.Core.Exceptions;
 using Template.Web.Domain.Entities.Account;
-using Template.Web.Domain.Utilities;
 using Template.Web.Domain.Entities.Authority;
+using Template.Web.Domain.Utilities;
 
 namespace Template.Web.Application.Services
 {

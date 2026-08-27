@@ -29,7 +29,10 @@ namespace Template.Web.Infrastructure.DbContexts
             return new EfApplicationTransaction(transaction);
         }
 
-        public async Task<int> ExcuteSqlRaw(string sql, CancellationToken cancellationToken = default)
+        public async Task<int> ExcuteSqlRaw(
+            string sql,
+            CancellationToken cancellationToken = default
+        )
         {
             return await Database.ExecuteSqlRawAsync(sql, cancellationToken);
         }

@@ -1,5 +1,4 @@
 ﻿using Template.Web.Application.Dtos.Base;
-
 using Template.Web.Domain.Entities.Account;
 using Template.Web.Domain.Entities.Authority;
 

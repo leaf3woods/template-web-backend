@@ -1,9 +1,9 @@
-using Microsoft.EntityFrameworkCore;
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Template.Web.Application.Dtos;
 using Template.Web.Application.Persistence;
-using Template.Web.Application.Utilities;
 using Template.Web.Application.Services.Base;
+using Template.Web.Application.Utilities;
 using Template.Web.Core;
 using Template.Web.Core.Exceptions;
 using Template.Web.Domain.Entities.Authority;
@@ -15,9 +15,7 @@ namespace Template.Web.Application.Services
             IMenuService
     {
         public MenuService(IApplicationDbContext dbContext, IMapper mapper)
-            : base(dbContext, mapper)
-        {
-        }
+            : base(dbContext, mapper) { }
 
         public override async Task<IEnumerable<MenuReadDto>> GetListAsync(
             MenuQueryDto? queryDto = null
