@@ -1,5 +1,5 @@
 ﻿using System.Data.SqlTypes;
-using Template.Web.Core;
+using Template.Web.Domain.Shared;
 
 namespace Template.Web.WebApi.Utilities
 {

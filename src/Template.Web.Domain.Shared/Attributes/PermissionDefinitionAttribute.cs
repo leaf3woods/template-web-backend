@@ -1,4 +1,4 @@
-﻿using Template.Web.Core.Enums;
+﻿using Template.Web.Domain.Shared.Enums;
 
 namespace Template.Web.Domain.Utilities
 {

@@ -1,4 +1,4 @@
-﻿namespace Template.Web.Core.Exceptions
+﻿namespace Template.Web.Domain.Shared.Exceptions
 {
     public class ValidateException : CustomException
     {

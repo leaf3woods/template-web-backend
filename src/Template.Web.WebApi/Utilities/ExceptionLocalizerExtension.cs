@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.Extensions.Localization;
-using Template.Web.Core;
-using Template.Web.Core.Exceptions;
+using Template.Web.Domain.Shared;
+using Template.Web.Domain.Shared.Exceptions;
 using Template.Web.WebApi.Exceptions;
 
 namespace Template.Web.WebApi.Utilities

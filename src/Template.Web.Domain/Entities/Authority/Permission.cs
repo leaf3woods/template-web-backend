@@ -13,8 +13,6 @@ namespace Template.Web.Domain.Entities.Authority
 
         /// <summary>
         /// 前端组件路径
-        /// </summary>
-        /// <summary>
         /// 调用的接口地址
         /// </summary>
         public string? Route { get; set; }
@@ -28,16 +26,19 @@ namespace Template.Web.Domain.Entities.Authority
         public bool Visiable { get; set; } = true;
 
         public bool IsLink { get; set; }
+
         public string? IconUrl { get; set; }
 
         public PermissionType Type { get; set; }
 
         public int Order { get; set; }
+
         public bool State { get; set; }
 
         #region navigation
 
         public Guid? ParentId { get; set; }
+
         public Permission? Parent { get; set; }
 
         #endregion navigation
@@ -45,6 +46,7 @@ namespace Template.Web.Domain.Entities.Authority
         #region delete filter
 
         public bool SoftDeleted { get; set; } = false;
+
         public DateTime? DeleteTime { get; set; }
 
         #endregion delete filter
@@ -52,9 +54,13 @@ namespace Template.Web.Domain.Entities.Authority
         #region audit
 
         public Guid? CreatorId { get; set; }
+
         public int? CreatorLevel { get; set; }
+
         public DateTime CreationTime { get; set; }
+
         public Guid? LastModifierId { get; set; }
+
         public DateTime? LastModificationTime { get; set; }
 
         #endregion audit

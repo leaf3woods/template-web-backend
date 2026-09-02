@@ -1,4 +1,4 @@
-﻿namespace Template.Web.Core
+﻿namespace Template.Web.Domain.Shared
 {
     public class PaginatedList<T>
     {
@@ -12,9 +12,13 @@
         }
 
         public long TotalItems { get; init; }
+
         public long PageIndex { get; init; }
+
         public int PageSize { get; init; }
+
         public long TotalPages { get; init; }
+
         public IEnumerable<T> Content { get; init; }
     }
 }

@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Template.Web.Application.Persistence;
-using Template.Web.Core;
 using Template.Web.Domain.Entities.Account;
+using Template.Web.Domain.Shared;
 using Template.Web.WebApi.Auth.Requirements;
 
 namespace Template.Web.WebApi.Auth.AuthHandlers;

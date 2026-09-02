@@ -1,8 +1,8 @@
-﻿namespace Template.Web.Core.Exceptions
+﻿namespace Template.Web.Domain.Shared.Exceptions
 {
-    public class ForbiddenException : CustomException
+    public class BadRequestException : CustomException
     {
-        public ForbiddenException(string exceptionCode, params object?[] param)
+        public BadRequestException(string exceptionCode, params object?[] param)
             : base(exceptionCode)
         {
             ExceptionCode = string.Format(exceptionCode, param);

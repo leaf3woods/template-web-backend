@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Localization;
 using Template.Web.Application.Dtos;
-using Template.Web.Core.Exceptions;
-using Template.Web.Core.Utilities;
+using Template.Web.Domain.Shared.Exceptions;
+using Template.Web.Domain.Shared.Utilities;
 
 namespace Template.Web.WebApi.Exceptions
 {

@@ -14,7 +14,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Template.Web.Application\Template.Web.Application.csproj" />
-    <ProjectReference Include="..\Template.Web.Core\Template.Web.Core.csproj" />
+    <ProjectReference Include="..\Template.Web.Domain.Shared\Template.Web.Domain.Shared.csproj" />
     <ProjectReference Include="..\Template.Web.Domain\Template.Web.Domain.csproj" />
   </ItemGroup>
 </Project>

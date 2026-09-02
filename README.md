@@ -25,7 +25,7 @@
 │   ├── Template.Web.Application     # 应用服务、DTO、鉴权、验证码、AutoMapper
 │   ├── Template.Web.Domain          # 实体、值对象、领域服务接口、领域事件
 │   ├── Template.Web.Infrastructure  # EF Core DbContext、数据库初始化、领域服务实现
-│   └── Template.Web.Core            # 通用异常、分页、配置、扩展、JSON 转换器
+│   └── Template.Web.Domain.Shared            # 通用异常、分页、配置、扩展、JSON 转换器
 └── deployment                       # Docker Compose、Nginx、Redis、MQTT、SFTP 配置示例
 ```
 
@@ -227,7 +227,7 @@ docker build -f src/Template.Web.WebApi/Dockerfile -t template-web-backend .
 - 接口使用 `I` 前缀。
 - DTO 使用 `*Dto` 后缀。
 - 实体基类位于 `Domain/Entities/Base/`。
-- 通用异常优先使用 `Template.Web.Core.Exceptions` 下的自定义异常。
+- 通用异常优先使用 `Template.Web.Domain.Shared.Exceptions` 下的自定义异常。
 - 数据库表名和列名通过 EF Core 约定保持 snake_case。
 
 新增业务功能时建议按以下顺序落地：

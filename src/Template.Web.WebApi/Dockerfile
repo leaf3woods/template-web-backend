@@ -11,7 +11,7 @@ ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["src/Template.Web.WebApi/Template.Web.WebApi.csproj", "src/Template.Web.WebApi/"]
 COPY ["src/Template.Web.Application/Template.Web.Application.csproj", "src/Template.Web.Application/"]
-COPY ["src/Template.Web.Core/Template.Web.Core.csproj", "src/Template.Web.Core/"]
+COPY ["src/Template.Web.Domain.Shared/Template.Web.Domain.Shared.csproj", "src/Template.Web.Domain.Shared/"]
 COPY ["src/Template.Web.Domain/Template.Web.Domain.csproj", "src/Template.Web.Domain/"]
 COPY ["src/Template.Web.Infrastructure/Template.Web.Infrastructure.csproj", "src/Template.Web.Infrastructure/"]
 RUN dotnet restore "./src/Template.Web.WebApi/Template.Web.WebApi.csproj"

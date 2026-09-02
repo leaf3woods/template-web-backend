@@ -30,7 +30,7 @@ Template.Web.WebApi        → Controllers, middleware, Program.cs
 Template.Web.Application   → Application services, DTOs, authentication, AutoMapper profiles
 Template.Web.Domain        → Entities, domain services, value objects, interfaces
 Template.Web.Infrastructure → EF Core DbContext, repository implementations, domain service impls
-Template.Web.Core          → Shared utilities, options, exceptions, extensions
+Template.Web.Domain.Shared          → Shared utilities, options, exceptions, extensions
 ```
 
 ### Key Architectural Patterns

@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using Template.Web.Application.Dtos;
-using Template.Web.Core;
 using Template.Web.Domain.Entities.Account;
+using Template.Web.Domain.Shared;
 
 namespace Template.Web.Application.Utilities.MapperProfiles.DtoProfiles
 {

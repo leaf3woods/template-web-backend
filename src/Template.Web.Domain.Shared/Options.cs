@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Template.Web.Core
+namespace Template.Web.Domain.Shared
 {
     public static class Options
     {

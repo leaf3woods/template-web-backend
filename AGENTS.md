@@ -9,7 +9,7 @@ This repository is a .NET 8 Web API solution organized around DDD layers.
 - `src/Template.Web.Application/` contains services, DTOs, authentication, and mapping.
 - `src/Template.Web.Domain/` contains entities, domain services, events, and interfaces.
 - `src/Template.Web.Infrastructure/` contains EF Core persistence and repositories.
-- `src/Template.Web.Core/` contains shared exceptions, utilities, and extensions.
+- `src/Template.Web.Domain.Shared/` contains shared exceptions, utilities, and extensions.
 - `deployment/` and `doc/` hold deployment and project documentation assets.
 
 ## Build, Test, and Development Commands
@@ -30,7 +30,7 @@ dotnet test
 
 Use nullable reference types and implicit usings. Keep one public class per file and match file names to class names. Use `PascalCase` for classes, methods, and properties; `_camelCase` for private fields; `I` prefixes for interfaces; and `*Dto` suffixes for DTOs. Database names should remain `snake_case` through EF Core conventions.
 
-Place base entities under `Domain/Entities/Base/`. Use `Guid` IDs for universal entities and `int` IDs for auto-increment entities. Prefer custom exceptions from `Template.Web.Core.Exceptions` for API errors.
+Place base entities under `Domain/Entities/Base/`. Use `Guid` IDs for universal entities and `int` IDs for auto-increment entities. Prefer custom exceptions from `Template.Web.Domain.Shared.Exceptions` for API errors.
 
 ## Testing Guidelines
 

@@ -1,4 +1,4 @@
-﻿namespace Template.Web.Core.Enums
+﻿namespace Template.Web.Domain.Shared.Enums
 {
     public enum PermissionMethodType
     {

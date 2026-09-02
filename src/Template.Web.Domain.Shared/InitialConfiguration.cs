@@ -1,6 +1,6 @@
-﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration;
 
-namespace Template.Web.Core.Utilities
+namespace Template.Web.Domain.Shared.Utilities
 {
     public static class InitialConfiguration
     {

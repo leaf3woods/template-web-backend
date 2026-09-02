@@ -11,6 +11,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Template.Web.Core\Template.Web.Core.csproj" />
+    <ProjectReference Include="..\Template.Web.Domain.Shared\Template.Web.Domain.Shared.csproj" />
   </ItemGroup>
 </Project>

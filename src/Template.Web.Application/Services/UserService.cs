@@ -7,11 +7,11 @@ using Template.Web.Application.Dtos;
 using Template.Web.Application.Persistence;
 using Template.Web.Application.Services.Base;
 using Template.Web.Application.Utilities;
-using Template.Web.Core;
-using Template.Web.Core.Exceptions;
-using Template.Web.Core.Utilities;
 using Template.Web.Domain.Entities.Account;
 using Template.Web.Domain.Services;
+using Template.Web.Domain.Shared;
+using Template.Web.Domain.Shared.Exceptions;
+using Template.Web.Domain.Shared.Utilities;
 using Template.Web.Domain.Utilities;
 
 namespace Template.Web.Application.Services

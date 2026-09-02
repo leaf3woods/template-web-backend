@@ -10,14 +10,19 @@ namespace Template.Web.Domain.Entities.Account
         ///     用户名
         /// </summary>
         public string Username { get; set; } = null!;
+
         public string? Code { get; set; }
+
         public string? Name { get; set; }
+
         public string? Nick { get; set; }
 
         public string Passphrase { get; set; } = null!;
+
         public string Salt { get; set; } = null!;
 
         public string? Email { get; set; }
+
         public string? PhoneNumber { get; set; }
 
         public Gender Gender { get; set; } = Gender.Unknow;
@@ -30,7 +35,9 @@ namespace Template.Web.Domain.Entities.Account
         public string? Note { get; set; }
 
         public DateTime RegisterTime { get; set; }
+
         public UserSetting? Settings { get; set; }
+
         public UserDetail? Detail { get; set; }
 
         #region navigation
@@ -46,9 +53,13 @@ namespace Template.Web.Domain.Entities.Account
         #region audit
 
         public Guid? CreatorId { get; set; }
+
         public int? CreatorLevel { get; set; }
+
         public DateTime CreationTime { get; set; }
+
         public Guid? LastModifierId { get; set; }
+
         public DateTime? LastModificationTime { get; set; }
 
         #endregion audit
@@ -56,6 +67,7 @@ namespace Template.Web.Domain.Entities.Account
         #region delete filter
 
         public bool SoftDeleted { get; set; } = false;
+
         public DateTime? DeleteTime { get; set; }
 
         #endregion delete filter

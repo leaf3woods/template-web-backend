@@ -1,4 +1,4 @@
-﻿namespace Template.Web.Core
+﻿namespace Template.Web.Domain.Shared
 {
     public static class CustomClaimsType
     {

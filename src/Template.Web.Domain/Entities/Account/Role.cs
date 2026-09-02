@@ -7,7 +7,9 @@ namespace Template.Web.Domain.Entities.Account
     public class Role : UniversalEntity, ISoftDelete, IAudited, IOrder, IState
     {
         public string Name { get; set; } = null!;
+
         public string Code { get; set; } = null!;
+
         public string Description { get; set; } = null!;
 
         /// <summary>
@@ -29,9 +31,13 @@ namespace Template.Web.Domain.Entities.Account
         #region audit
 
         public Guid? CreatorId { get; set; }
+
         public int? CreatorLevel { get; set; }
+
         public DateTime CreationTime { get; set; }
+
         public Guid? LastModifierId { get; set; }
+
         public DateTime? LastModificationTime { get; set; }
 
         #endregion audit
@@ -39,6 +45,7 @@ namespace Template.Web.Domain.Entities.Account
         #region delete filter
 
         public bool SoftDeleted { get; set; } = false;
+
         public DateTime? DeleteTime { get; set; }
 
         #endregion delete filter

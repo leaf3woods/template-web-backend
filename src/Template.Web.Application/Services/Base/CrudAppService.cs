@@ -1,8 +1,8 @@
 using AutoMapper;
 using Template.Web.Application.Dtos.Base;
 using Template.Web.Application.Persistence;
-using Template.Web.Core;
 using Template.Web.Domain.Entities.Base;
+using Template.Web.Domain.Shared;
 
 namespace Template.Web.Application.Services.Base;
 

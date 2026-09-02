@@ -1,7 +1,7 @@
 ﻿using StackExchange.Redis;
-using Template.Web.Core;
 using Template.Web.Domain.Entities.Account;
 using Template.Web.Domain.Services;
+using Template.Web.Domain.Shared;
 using Template.Web.Domain.Utilities;
 
 namespace Template.Web.Infrastructure.DomainServices
