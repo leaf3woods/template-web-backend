@@ -1,4 +1,4 @@
-﻿namespace Template.Web.Application.Main.Utilities;
+﻿namespace Template.Web.Domain.Shared.Extensions;
 
 public static class StringExtension
 {

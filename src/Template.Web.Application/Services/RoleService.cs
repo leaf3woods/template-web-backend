@@ -7,6 +7,7 @@ using Template.Web.Application.Utilities;
 using Template.Web.Domain.Entities.Account;
 using Template.Web.Domain.Entities.Authority;
 using Template.Web.Domain.Shared;
+using Template.Web.Domain.Shared.Attributes;
 using Template.Web.Domain.Shared.Exceptions;
 using Template.Web.Domain.Utilities;
 

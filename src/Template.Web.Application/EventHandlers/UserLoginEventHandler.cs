@@ -1,6 +1,7 @@
 ﻿using MediatR;
+using Template.Web.Domain.Events;
 
-namespace Template.Web.Domain.Events.Handlers
+namespace Template.Web.Application.EventHandlers
 {
     public class UserLoginEventHandler : INotificationHandler<UserLoginEvent>
     {

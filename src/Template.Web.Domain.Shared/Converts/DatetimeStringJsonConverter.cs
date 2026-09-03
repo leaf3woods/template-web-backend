@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Template.Web.Domain.Shared.Convert
+namespace Template.Web.Domain.Shared.Converts
 {
     public class DatetimeStringJsonConverter : JsonConverter<DateTime>
     {

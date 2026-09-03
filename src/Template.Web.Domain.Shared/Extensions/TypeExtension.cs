@@ -1,5 +1,4 @@
-﻿using System.Xml.Linq;
-
+﻿
 namespace Template.Web.Domain.Shared.Extensions
 {
     public static class TypeExtension

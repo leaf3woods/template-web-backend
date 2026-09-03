@@ -1,6 +1,5 @@
 using System.Reflection;
 using Autofac;
-using Microsoft.Extensions.Configuration;
 using StackExchange.Redis;
 using Template.Web.Domain.Services;
 using Template.Web.Infrastructure.DbContexts;

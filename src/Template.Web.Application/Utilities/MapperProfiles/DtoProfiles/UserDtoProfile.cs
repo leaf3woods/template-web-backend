@@ -34,6 +34,7 @@ namespace Template.Web.Application.Utilities.MapperProfiles.DtoProfiles
                     dest => dest.Pixel,
                     opts => opts.MapFrom(src => new int[] { src.Pixel.Item1, src.Pixel.Item2 })
                 );
+
             CreateMap<CaptchaAnswerDto, Captcha>()
                 .ForMember(dest => dest.Image, opts => opts.Ignore())
                 .ForMember(dest => dest.Pixel, opts => opts.Ignore());

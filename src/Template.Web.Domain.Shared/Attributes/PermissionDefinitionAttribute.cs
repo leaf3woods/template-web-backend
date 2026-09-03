@@ -1,6 +1,6 @@
 ﻿using Template.Web.Domain.Shared.Enums;
 
-namespace Template.Web.Domain.Utilities
+namespace Template.Web.Domain.Shared.Attributes
 {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Method)]
     public class PermissionDefinitionAttribute : Attribute
@@ -14,7 +14,5 @@ namespace Template.Web.Domain.Utilities
         public string Code { get; private set; } = null!;
 
         public string? Description { get; private set; }
-
-        private PermissionMethodType _type;
     }
 }
