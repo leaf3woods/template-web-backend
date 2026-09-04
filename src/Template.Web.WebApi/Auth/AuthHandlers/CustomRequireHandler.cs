@@ -1,19 +1,19 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
-using Template.Web.Application.Persistence;
 using Template.Web.Domain.Entities.Account;
 using Template.Web.Domain.Shared;
+using Template.Web.Infrastructure.DbContexts;
 using Template.Web.WebApi.Auth.Requirements;
 
 namespace Template.Web.WebApi.Auth.AuthHandlers;
 
 public sealed class CustomRequireHandler : AuthorizationHandler<PermissionAuthorizationRequirement>
 {
-    private readonly IApplicationDbContext _applicationDbContext;
+    private readonly ApiDbContext _applicationDbContext;
     private readonly ILogger<CustomRequireHandler> _logger;
 
     public CustomRequireHandler(
-        IApplicationDbContext applicationDbContext,
+        ApiDbContext applicationDbContext,
         ILogger<CustomRequireHandler> logger
     )
     {
@@ -49,7 +49,7 @@ public sealed class CustomRequireHandler : AuthorizationHandler<PermissionAuthor
         }
 
         var roles = await _applicationDbContext
-            .Set<Role>()
+            .Roles
             .Include(role => role.Permissions)
             .Where(role => roleIds.Contains(role.Id))
             .ToArrayAsync();

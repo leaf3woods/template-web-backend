@@ -1,12 +1,12 @@
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Template.Web.Application.Dtos;
-using Template.Web.Application.Persistence;
 using Template.Web.Application.Services.Base;
 using Template.Web.Application.Utilities;
 using Template.Web.Domain.Entities.Authority;
 using Template.Web.Domain.Shared;
 using Template.Web.Domain.Shared.Exceptions;
+using ApiDbContext = Template.Web.Infrastructure.DbContexts.ApiDbContext;
 
 namespace Template.Web.Application.Services
 {
@@ -14,7 +14,7 @@ namespace Template.Web.Application.Services
         : CrudAppService<Permission, Guid, MenuReadDto, MenuQueryDto, MenuCreateDto, MenuUpdateDto>,
             IMenuService
     {
-        public MenuService(IApplicationDbContext dbContext, IMapper mapper)
+        public MenuService(ApiDbContext dbContext, IMapper mapper)
             : base(dbContext, mapper) { }
 
         public override async Task<IEnumerable<MenuReadDto>> GetListAsync(

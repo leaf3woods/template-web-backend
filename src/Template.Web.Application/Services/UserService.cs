@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using Template.Web.Application.Captchas;
 using Template.Web.Application.Captchas.Builder;
 using Template.Web.Application.Dtos;
-using Template.Web.Application.Persistence;
 using Template.Web.Application.Services.Base;
 using Template.Web.Application.Utilities;
 using Template.Web.Domain.Entities.Account;
@@ -14,6 +13,7 @@ using Template.Web.Domain.Shared.Attributes;
 using Template.Web.Domain.Shared.Exceptions;
 using Template.Web.Domain.Shared.Utilities;
 using Template.Web.Domain.Utilities;
+using ApiDbContext = Template.Web.Infrastructure.DbContexts.ApiDbContext;
 
 namespace Template.Web.Application.Services
 {
@@ -23,7 +23,7 @@ namespace Template.Web.Application.Services
             IUserService
     {
         public UserService(
-            IApplicationDbContext dbContext,
+            ApiDbContext dbContext,
             IMapper mapper,
             IUserDomainService userDomainService
         )

@@ -1,8 +1,8 @@
 using AutoMapper;
 using Template.Web.Application.Dtos.Base;
-using Template.Web.Application.Persistence;
 using Template.Web.Domain.Entities.Base;
 using Template.Web.Domain.Shared;
+using ApiDbContext = Template.Web.Infrastructure.DbContexts.ApiDbContext;
 
 namespace Template.Web.Application.Services.Base;
 
@@ -12,13 +12,13 @@ public abstract class CrudAppService<TEntity, TKey, TReadDto>
     where TEntity : AggregateRoot
     where TReadDto : IReadDto
 {
-    protected CrudAppService(IApplicationDbContext dbContext, IMapper mapper)
+    protected CrudAppService(ApiDbContext dbContext, IMapper mapper)
         : base(mapper)
     {
         DbContext = dbContext;
     }
 
-    protected IApplicationDbContext DbContext { get; }
+    protected ApiDbContext DbContext { get; }
 
     protected IQueryable<TEntity> Queryable
     {
@@ -66,7 +66,7 @@ public abstract class CrudAppService<TEntity, TKey, TReadDto, TQueryDto>
     where TReadDto : IReadDto
     where TQueryDto : QueryDto
 {
-    protected CrudAppService(IApplicationDbContext dbContext, IMapper mapper)
+    protected CrudAppService(ApiDbContext dbContext, IMapper mapper)
         : base(dbContext, mapper) { }
 
     /// <summary>
@@ -92,7 +92,7 @@ public abstract class CrudAppService<TEntity, TKey, TReadDto, TQueryDto, TCreate
     where TQueryDto : QueryDto
     where TCreateDto : CreateDto
 {
-    protected CrudAppService(IApplicationDbContext dbContext, IMapper mapper)
+    protected CrudAppService(ApiDbContext dbContext, IMapper mapper)
         : base(dbContext, mapper) { }
 
     /// <summary>
@@ -118,7 +118,7 @@ public abstract class CrudAppService<TEntity, TKey, TReadDto, TQueryDto, TCreate
     where TCreateDto : CreateDto
     where TUpdateDto : UpdateDto
 {
-    protected CrudAppService(IApplicationDbContext dbContext, IMapper mapper)
+    protected CrudAppService(ApiDbContext dbContext, IMapper mapper)
         : base(dbContext, mapper) { }
 
     /// <summary>

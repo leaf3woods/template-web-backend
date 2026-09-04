@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Template.Web.Application.Dtos;
-using Template.Web.Application.Persistence;
 using Template.Web.Application.Services.Base;
 using Template.Web.Application.Utilities;
 using Template.Web.Domain.Entities.Account;
@@ -10,6 +9,7 @@ using Template.Web.Domain.Shared;
 using Template.Web.Domain.Shared.Attributes;
 using Template.Web.Domain.Shared.Exceptions;
 using Template.Web.Domain.Utilities;
+using ApiDbContext = Template.Web.Infrastructure.DbContexts.ApiDbContext;
 
 namespace Template.Web.Application.Services
 {
@@ -18,7 +18,7 @@ namespace Template.Web.Application.Services
         : CrudAppService<Role, Guid, RoleReadDto, RoleQueryDto, RoleCreateDto, RoleUpdateDto>,
             IRoleService
     {
-        public RoleService(IApplicationDbContext dbContext, IMapper mapper)
+        public RoleService(ApiDbContext dbContext, IMapper mapper)
             : base(dbContext, mapper) { }
 
         public override async Task<IEnumerable<RoleReadDto>> GetListAsync(

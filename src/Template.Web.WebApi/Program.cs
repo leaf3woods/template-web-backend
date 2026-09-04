@@ -9,7 +9,6 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using Npgsql;
 using Serilog;
-using Template.Web.Application.Persistence;
 using Template.Web.Domain.Shared;
 using Template.Web.Domain.Shared.Utilities;
 using Template.Web.Domain.Utilities;
@@ -155,10 +154,6 @@ builder.Services.AddDbContextPool<ApiDbContext>(options =>
         .EnableDetailedErrors();
     options.UseSnakeCaseNamingConvention();
 });
-builder.Services.AddScoped<IApplicationDbContext>(serviceProvider =>
-    serviceProvider.GetRequiredService<ApiDbContext>()
-);
-
 // Add mapper profiles
 builder.Services.AddAutoMapper(config =>
     config.AddMaps(Assembly.Load("Template.Web." + nameof(Template.Web.Application)))
