@@ -1,60 +1,67 @@
 ﻿using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
-using Org.Product.Domain.Entities.Account;
 using Org.Product.Domain.Services;
 using Org.Product.Domain.Shared;
-using Org.Product.Infrastructure.Repositories;
 using StackExchange.Redis;
 
 namespace Org.Product.Infrastructure.DomainServices
 {
     public class RoleDomainService : IRoleDomainService
     {
-        public RoleDomainService(ApiDbContext apiDbContext, IConnectionMultiplexer connectionMultiplexer)
+        public RoleDomainService(IConnectionMultiplexer connectionMultiplexer)
         {
-            _apiDbContext = apiDbContext;
             _connectionMultiplexer = connectionMultiplexer;
         }
 
-        private readonly ApiDbContext _apiDbContext;
         private readonly IConnectionMultiplexer _connectionMultiplexer;
 
-        public async Task<IEnumerable<string>> GetPermissionsAsync(Guid roleId)
+        public async Task<IEnumerable<string>> GetPermissionsAsync(params IEnumerable<Guid> roleIds)
         {
             var database = _connectionMultiplexer.GetDatabase();
-            var key = string.Format(CacheKeyFormatter.Permissions, roleId);
-            var raw = await database.StringGetAsync(key);
-            if (!raw.HasValue)
+            var keys = roleIds
+                .Distinct()
+                .Select(roleId => new RedisKey(
+                    string.Format(CacheKeyFormatter.Permissions, roleId)
+                ))
+                .ToArray();
+
+            if (keys.Length == 0)
             {
                 return [];
             }
 
-            return JsonSerializer.Deserialize<IEnumerable<string>>(raw.ToString()) ?? [];
-        }
+            var rawValues = await database.StringGetAsync(keys);
+            var rawHasValues = rawValues.Where(raw => raw.HasValue);
 
-        public async Task<IReadOnlyDictionary<Guid, IReadOnlyCollection<string>>> GetPermissionsAsync(
-            IEnumerable<Guid> roleIds,
-            CancellationToken cancellationToken = default
-        )
-        {
-            var distinctRoleIds = roleIds.Distinct().ToArray();
-            if (distinctRoleIds.Length == 0)
+            if (keys.Length != rawHasValues.Count())
             {
-                return new Dictionary<Guid, IReadOnlyCollection<string>>();
+                return [];
             }
 
-            var roles = await _apiDbContext
-                .Roles.AsNoTracking()
-                .Include(role => role.Permissions)
-                .Where(role => distinctRoleIds.Contains(role.Id))
-                .ToArrayAsync(cancellationToken);
+            var permissions = rawHasValues
+                .Select(raw =>
+                    JsonSerializer.Deserialize<IEnumerable<string>>(raw.ToString()) ?? []
+                )
+                .SelectMany(permission => permission)
+                .Distinct();
 
-            return roles.ToDictionary(
-                role => role.Id,
-                role => (IReadOnlyCollection<string>)(role.Permissions ?? [])
-                    .Select(permission => permission.Name)
-                    .ToArray()
-            );
+            return permissions;
+        }
+
+        public async Task<bool> ExistsInCacheAsync(params IEnumerable<Guid> roleIds)
+        {
+            var database = _connectionMultiplexer.GetDatabase();
+            var scanTasks = roleIds
+                .Distinct()
+                .Select(roleId => new RedisKey(
+                    string.Format(CacheKeyFormatter.Permissions, roleId)
+                ))
+                .Select(key => database.KeyExistsAsync(key));
+            if (!scanTasks.Any())
+            {
+                return false;
+            }
+            return (await Task.WhenAll(scanTasks)).All(exists => exists);
         }
 
         public async Task CachePermissionsAsync(

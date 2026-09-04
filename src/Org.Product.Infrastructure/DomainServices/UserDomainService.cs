@@ -35,11 +35,27 @@ namespace Org.Product.Infrastructure.DomainServices
             await task;
         }
 
+        public async Task<bool> ExistsInCacheAsync(params IEnumerable<Guid> userIds)
+        {
+            var database = _connectionMultiplexer.GetDatabase();
+            var scanTasks = userIds
+                .Distinct()
+                .Select(userId => new RedisKey(
+                    string.Format(CacheKeyFormatter.Token, userId)
+                ))
+                .Select(key => database.KeyExistsAsync(key));
+            if (!scanTasks.Any())
+            {
+                return false;
+            }
+            return (await Task.WhenAll(scanTasks)).All(exists => exists);
+        }
+
         public async Task<bool> DeleteTokenAsync(Guid userId)
         {
-            var databse = _connectionMultiplexer.GetDatabase();
+            var database = _connectionMultiplexer.GetDatabase();
             var key = string.Format(CacheKeyFormatter.Token, userId);
-            return await databse.KeyDeleteAsync(key);
+            return await database.KeyDeleteAsync(key);
         }
 
         public async Task<bool> VerifyCaptchaAnswerAsync(Captcha captcha)

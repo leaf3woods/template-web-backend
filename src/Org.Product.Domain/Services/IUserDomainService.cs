@@ -8,6 +8,8 @@ namespace Org.Product.Domain.Services
 
         public Task CacheTokenAsync(Guid userId, string token, TimeSpan? expiration = null);
 
+        public Task<bool> ExistsInCacheAsync(params IEnumerable<Guid> userIds);
+
         public Task<bool> VerifyCaptchaAnswerAsync(Captcha captcha);
 
         public Task<bool> VerifyTokenAsync(Guid userId, string token);

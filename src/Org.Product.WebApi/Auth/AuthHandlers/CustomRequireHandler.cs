@@ -9,14 +9,17 @@ namespace Org.Product.WebApi.Auth.AuthHandlers;
 public sealed class CustomRequireHandler : AuthorizationHandler<PermissionAuthorizationRequirement>
 {
     private readonly IRoleDomainService _roleDomainService;
+    private readonly IUserDomainService _userDomainService;
     private readonly ILogger<CustomRequireHandler> _logger;
 
     public CustomRequireHandler(
         IRoleDomainService roleDomainService,
+        IUserDomainService userDomainService,
         ILogger<CustomRequireHandler> logger
     )
     {
         _roleDomainService = roleDomainService;
+        _userDomainService = userDomainService;
         _logger = logger;
     }
 
@@ -27,7 +30,7 @@ public sealed class CustomRequireHandler : AuthorizationHandler<PermissionAuthor
     {
         var userId = context.User.FindFirst(CustomClaimsType.UserId)?.Value;
         var roleIdsValue = context.User.FindFirst(CustomClaimsType.RoleId)?.Value;
-        if (!Guid.TryParse(userId, out _) || string.IsNullOrWhiteSpace(roleIdsValue))
+        if (!Guid.TryParse(userId, out var uid) || string.IsNullOrWhiteSpace(roleIdsValue))
         {
             _logger.LogWarning("invalid token claims");
             context.Fail(new AuthorizationFailureReason(this, "invalid claims"));
@@ -47,17 +50,15 @@ public sealed class CustomRequireHandler : AuthorizationHandler<PermissionAuthor
             return;
         }
 
-        var permissionsByRole = await _roleDomainService.GetPermissionsAsync(roleIds);
-        if (permissionsByRole.Count != roleIds.Distinct().Count())
+        if(await _userDomainService.ExistsInCacheAsync(uid))
         {
-            _logger.LogWarning("a token with invalid role");
-            context.Fail(new AuthorizationFailureReason(this, "unknown role"));
+            context.Fail(new AuthorizationFailureReason(this, "user not found"));
             return;
         }
 
-        var hasPermission = permissionsByRole.Values
-            .SelectMany(permissions => permissions)
-            .Any(permissionName => requirement.Permission.Contains(permissionName));
+        var permissions = await _roleDomainService.GetPermissionsAsync(roleIds);
+
+        var hasPermission = permissions.Any(requirement.Permission.Contains);
         if (hasPermission)
         {
             context.Succeed(requirement);

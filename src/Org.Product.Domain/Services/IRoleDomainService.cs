@@ -2,12 +2,9 @@
 {
     public interface IRoleDomainService : IDomainService
     {
-        public Task<IEnumerable<string>> GetPermissionsAsync(Guid roleId);
+        public Task<IEnumerable<string>> GetPermissionsAsync(params IEnumerable<Guid> roleIds);
 
-        public Task<IReadOnlyDictionary<Guid, IReadOnlyCollection<string>>> GetPermissionsAsync(
-            IEnumerable<Guid> roleIds,
-            CancellationToken cancellationToken = default
-        );
+        public Task<bool> ExistsInCacheAsync(params IEnumerable<Guid> roleIds);
 
         public Task CachePermissionsAsync(
             Guid roleId,
