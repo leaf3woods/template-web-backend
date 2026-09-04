@@ -4,9 +4,9 @@ namespace Org.Product.Domain.Services
 {
     public interface IUserDomainService : IDomainService
     {
-        public Task CacheCaptchaAnswerAsync(Captcha captcha, TimeSpan expiration);
+        public Task CacheCaptchaAnswerAsync(Captcha captcha, TimeSpan? expiration = null);
 
-        public Task CacheTokenAsync(Guid userId, string token, TimeSpan expiration);
+        public Task CacheTokenAsync(Guid userId, string token, TimeSpan? expiration = null);
 
         public Task<bool> VerifyCaptchaAnswerAsync(Captcha captcha);
 

@@ -1,8 +1,8 @@
-﻿using StackExchange.Redis;
-using Org.Product.Domain.Entities.Account;
+﻿using Org.Product.Domain.Entities.Account;
 using Org.Product.Domain.Services;
 using Org.Product.Domain.Shared;
 using Org.Product.Domain.Utilities;
+using StackExchange.Redis;
 
 namespace Org.Product.Infrastructure.DomainServices
 {
@@ -15,18 +15,24 @@ namespace Org.Product.Infrastructure.DomainServices
 
         private readonly IConnectionMultiplexer _connectionMultiplexer;
 
-        public async Task CacheCaptchaAnswerAsync(Captcha captcha, TimeSpan expiration)
+        public async Task CacheCaptchaAnswerAsync(Captcha captcha, TimeSpan? expiration = null)
         {
             var database = _connectionMultiplexer.GetDatabase();
             var key = string.Format(CacheKeyFormatter.Captcha, captcha.Id);
-            await database.StringSetAsync(key, captcha.Answer, expiration);
+            var task = expiration is null
+                ? database.StringSetAsync(key, captcha.Answer)
+                : database.StringSetAsync(key, captcha.Answer, expiration.Value);
+            await task;
         }
 
-        public async Task CacheTokenAsync(Guid userId, string token, TimeSpan expiration)
+        public async Task CacheTokenAsync(Guid userId, string token, TimeSpan? expiration = null)
         {
             var database = _connectionMultiplexer.GetDatabase();
             var key = string.Format(CacheKeyFormatter.Token, userId);
-            await database.StringSetAsync(key, token, expiration);
+            var task = expiration is null
+                ? database.StringSetAsync(key, token)
+                : database.StringSetAsync(key, token, expiration.Value);
+            await task;
         }
 
         public async Task<bool> DeleteTokenAsync(Guid userId)
@@ -40,7 +46,7 @@ namespace Org.Product.Infrastructure.DomainServices
         {
             var database = _connectionMultiplexer.GetDatabase();
             var key = string.Format(CacheKeyFormatter.Captcha, captcha.Id);
-            var raw = (await database.StringGetAsync(key));
+            var raw = await database.StringGetAsync(key);
             if (!raw.HasValue)
                 throw new Exception("captcha is invalid");
             return raw.ToString() == captcha.Answer;
@@ -50,7 +56,7 @@ namespace Org.Product.Infrastructure.DomainServices
         {
             var database = _connectionMultiplexer.GetDatabase();
             var key = string.Format(CacheKeyFormatter.Token, userId);
-            var raw = (await database.StringGetAsync(key));
+            var raw = await database.StringGetAsync(key);
             return !raw.HasValue || raw.ToString() == token;
         }
 

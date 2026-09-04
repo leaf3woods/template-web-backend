@@ -1,23 +1,22 @@
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.EntityFrameworkCore;
 using Org.Product.Domain.Entities.Account;
+using Org.Product.Domain.Services;
 using Org.Product.Domain.Shared;
-using Org.Product.Infrastructure.Repositories;
 using Org.Product.WebApi.Auth.Requirements;
 
 namespace Org.Product.WebApi.Auth.AuthHandlers;
 
 public sealed class CustomRequireHandler : AuthorizationHandler<PermissionAuthorizationRequirement>
 {
-    private readonly ApiDbContext _applicationDbContext;
+    private readonly IRoleDomainService _roleDomainService;
     private readonly ILogger<CustomRequireHandler> _logger;
 
     public CustomRequireHandler(
-        ApiDbContext applicationDbContext,
+        IRoleDomainService roleDomainService,
         ILogger<CustomRequireHandler> logger
     )
     {
-        _applicationDbContext = applicationDbContext;
+        _roleDomainService = roleDomainService;
         _logger = logger;
     }
 
@@ -48,20 +47,16 @@ public sealed class CustomRequireHandler : AuthorizationHandler<PermissionAuthor
             return;
         }
 
-        var roles = await _applicationDbContext
-            .Roles.Include(role => role.Permissions)
-            .Where(role => roleIds.Contains(role.Id))
-            .ToArrayAsync();
-        if (roles.Length != roleIds.Distinct().Count())
+        var permissionsByRole = await _roleDomainService.GetPermissionsAsync(roleIds);
+        if (permissionsByRole.Count != roleIds.Distinct().Count())
         {
             _logger.LogWarning("a token with invalid role");
             context.Fail(new AuthorizationFailureReason(this, "unknown role"));
             return;
         }
 
-        var hasPermission = roles
-            .SelectMany(role => role.Permissions ?? [])
-            .Select(permission => permission.Name)
+        var hasPermission = permissionsByRole.Values
+            .SelectMany(permissions => permissions)
             .Any(permissionName => requirement.Permission.Contains(permissionName));
         if (hasPermission)
         {
