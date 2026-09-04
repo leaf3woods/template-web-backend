@@ -37,7 +37,7 @@ builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
 builder.Host.ConfigureContainer<ContainerBuilder>(config =>
     config.RegisterAssemblyModules(
         Assembly.GetExecutingAssembly(),
-        Assembly.Load("Template.Web." + nameof(Template.Web.Application))
+        typeof(AccessTokenOptions).Assembly
     )
 );
 
@@ -89,20 +89,7 @@ builder
 
 builder.Services.AddLocalization();
 
-var scopes = Assembly
-    .GetExecutingAssembly()
-    .GetTypes()
-    .Where(type => type.Namespace == "Template.Web.WebApi.Controllers")
-    .SelectMany(type =>
-        type.GetMethods()
-            .Select(m => m.GetCustomAttribute<AuthorizeAttribute>())
-            .Append(type.GetCustomAttribute<AuthorizeAttribute>())
-    )
-    .Where(t => t?.Policy is not null)
-    .Select(t => t!.Policy!)
-    .ToArray();
-
-builder.Services.AddAuthorization(options => options.AddAllPolicies(scopes));
+builder.Services.AddAuthorization(options => options.AddAllPolicies());
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -163,14 +150,12 @@ builder.Services.AddDbContextPool<ApiDbContext>(options =>
 
 // Add mapper profiles
 builder.Services.AddAutoMapper(config =>
-    config.AddMaps(Assembly.Load("Template.Web." + nameof(Template.Web.Application)))
+    config.AddMaps(typeof(AccessTokenOptions).Assembly)
 );
 
 // Add mediatR
 builder.Services.AddMediatR(config =>
-    config.RegisterServicesFromAssemblies(
-        Assembly.Load("Template.Web." + nameof(Template.Web.Application))
-    )
+    config.RegisterServicesFromAssemblies(typeof(AccessTokenOptions).Assembly)
 );
 
 var app = builder.Build();

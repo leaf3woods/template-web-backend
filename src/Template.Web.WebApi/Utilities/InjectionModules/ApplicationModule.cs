@@ -1,4 +1,3 @@
-using System.Reflection;
 using Autofac;
 using Template.Web.Application.Services.Base;
 using Template.Web.Application.Utilities;
@@ -10,7 +9,7 @@ public sealed class ApplicationModule : Autofac.Module
     protected override void Load(ContainerBuilder builder)
     {
         builder
-            .RegisterAssemblyTypes(Assembly.Load("Template.Web.Application"))
+            .RegisterAssemblyTypes(typeof(IBaseService).Assembly)
             .Where(type => type.IsAssignableTo<IBaseService>())
             .AsImplementedInterfaces()
             .InstancePerLifetimeScope();

@@ -1,4 +1,3 @@
-using System.Reflection;
 using Autofac;
 using StackExchange.Redis;
 using Template.Web.Domain.Repositories;
@@ -12,7 +11,7 @@ public sealed class InfrastructureModule : Autofac.Module
     protected override void Load(ContainerBuilder builder)
     {
         builder
-            .RegisterAssemblyTypes(Assembly.Load("Template.Web.Infrastructure"))
+            .RegisterAssemblyTypes(typeof(ApiDbContext).Assembly)
             .Where(type => type.IsAssignableTo<IDomainService>())
             .AsImplementedInterfaces()
             .InstancePerLifetimeScope();
