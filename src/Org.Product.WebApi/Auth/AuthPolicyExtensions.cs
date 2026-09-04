@@ -1,5 +1,5 @@
-using Microsoft.AspNetCore.Authorization;
 using System.Reflection;
+using Microsoft.AspNetCore.Authorization;
 using Org.Product.WebApi.Auth.Requirements;
 
 namespace Org.Product.WebApi.Auth;

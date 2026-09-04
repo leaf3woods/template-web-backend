@@ -127,7 +127,11 @@ namespace Org.Product.Application.Services
             {
                 throw new ForbiddenException("user was logged in elsewhere");
             }
-            await _userDomainService.CacheTokenAsync(user.Id, token, _accessTokenOptions.Expiration);
+            await _userDomainService.CacheTokenAsync(
+                user.Id,
+                token,
+                _accessTokenOptions.Expiration
+            );
             return token;
         }
 

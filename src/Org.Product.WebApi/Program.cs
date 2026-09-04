@@ -8,7 +8,6 @@ using Microsoft.Extensions.Localization;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using Npgsql;
-using Serilog;
 using Org.Product.Application.Options;
 using Org.Product.Domain.Shared;
 using Org.Product.Domain.Utilities;
@@ -16,6 +15,7 @@ using Org.Product.Infrastructure.Repositories;
 using Org.Product.WebApi.Auth;
 using Org.Product.WebApi.Options;
 using Org.Product.WebApi.Utilities;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -149,9 +149,7 @@ builder.Services.AddDbContextPool<ApiDbContext>(options =>
 });
 
 // Add mapper profiles
-builder.Services.AddAutoMapper(config =>
-    config.AddMaps(typeof(AccessTokenOptions).Assembly)
-);
+builder.Services.AddAutoMapper(config => config.AddMaps(typeof(AccessTokenOptions).Assembly));
 
 // Add mediatR
 builder.Services.AddMediatR(config =>

@@ -1,8 +1,8 @@
 ﻿using System.Linq.Expressions;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore.Metadata;
-using StackExchange.Redis;
 using Org.Product.Domain.Entities.Base;
+using StackExchange.Redis;
 
 namespace Org.Product.Infrastructure.Repositories
 {

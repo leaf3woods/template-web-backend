@@ -1,12 +1,12 @@
 using Autofac;
-using StackExchange.Redis;
 using Org.Product.Domain.Repositories;
 using Org.Product.Domain.Services;
 using Org.Product.Infrastructure.Repositories;
+using StackExchange.Redis;
 
 namespace Org.Product.WebApi.Utilities.InjectionModules;
 
-public sealed class InfrastructureModule : Autofac.Module
+public sealed class InfrastructureModule : Module
 {
     protected override void Load(ContainerBuilder builder)
     {
