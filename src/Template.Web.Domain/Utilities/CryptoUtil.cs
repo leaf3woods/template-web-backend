@@ -27,6 +27,10 @@ namespace Template.Web.Domain.Utilities
 
             if (!File.Exists(privateKeyPath) || !File.Exists(publicKeyPath))
             {
+                if (!Directory.Exists(keyFolder))
+                {
+                    Directory.CreateDirectory(keyFolder);
+                }
                 var ecdsa = ECDsa.Create();
                 ecdsa.GenerateKey(ECCurve.NamedCurves.nistP256);
                 var privatePem = ecdsa.ExportECPrivateKeyPem();
