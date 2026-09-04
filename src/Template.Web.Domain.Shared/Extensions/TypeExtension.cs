@@ -1,5 +1,4 @@
-﻿
-namespace Template.Web.Domain.Shared.Extensions
+﻿namespace Template.Web.Domain.Shared.Extensions
 {
     public static class TypeExtension
     {

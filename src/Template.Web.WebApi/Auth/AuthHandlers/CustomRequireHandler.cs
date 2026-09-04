@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Template.Web.Domain.Entities.Account;
 using Template.Web.Domain.Shared;
-using Template.Web.Infrastructure.DbContexts;
+using Template.Web.Infrastructure.Repositories;
 using Template.Web.WebApi.Auth.Requirements;
 
 namespace Template.Web.WebApi.Auth.AuthHandlers;
@@ -49,8 +49,7 @@ public sealed class CustomRequireHandler : AuthorizationHandler<PermissionAuthor
         }
 
         var roles = await _applicationDbContext
-            .Roles
-            .Include(role => role.Permissions)
+            .Roles.Include(role => role.Permissions)
             .Where(role => roleIds.Contains(role.Id))
             .ToArrayAsync();
         if (roles.Length != roleIds.Distinct().Count())

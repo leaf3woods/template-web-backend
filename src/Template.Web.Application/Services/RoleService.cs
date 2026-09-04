@@ -5,11 +5,11 @@ using Template.Web.Application.Services.Base;
 using Template.Web.Application.Utilities;
 using Template.Web.Domain.Entities.Account;
 using Template.Web.Domain.Entities.Authority;
+using Template.Web.Domain.Repositories;
 using Template.Web.Domain.Shared;
 using Template.Web.Domain.Shared.Attributes;
 using Template.Web.Domain.Shared.Exceptions;
 using Template.Web.Domain.Utilities;
-using ApiDbContext = Template.Web.Infrastructure.DbContexts.ApiDbContext;
 
 namespace Template.Web.Application.Services
 {
@@ -18,8 +18,18 @@ namespace Template.Web.Application.Services
         : CrudAppService<Role, Guid, RoleReadDto, RoleQueryDto, RoleCreateDto, RoleUpdateDto>,
             IRoleService
     {
-        public RoleService(ApiDbContext dbContext, IMapper mapper)
-            : base(dbContext, mapper) { }
+        private readonly IRepository<Permission> _permissionRepository;
+
+        public RoleService(
+            IRepository<Role> repository,
+            IRepository<Permission> permissionRepository,
+            IUnitOfWork unitOfWork,
+            IMapper mapper
+        )
+            : base(repository, unitOfWork, mapper)
+        {
+            _permissionRepository = permissionRepository;
+        }
 
         public override async Task<IEnumerable<RoleReadDto>> GetListAsync(
             RoleQueryDto? queryDto = null
@@ -50,8 +60,8 @@ namespace Template.Web.Application.Services
             //    throw new NotAcceptableException("unsupported scope find");
             //}
             var entity = Mapper.Map<Role>(roleDto);
-            await DbContext.Set<Role>().AddAsync(entity);
-            var index = await DbContext.SaveChangesAsync();
+            await Repository.AddAsync(entity);
+            var index = await UnitOfWork.SaveChangesAsync();
             return index == 0 ? null : Mapper.Map<RoleReadDto>(entity);
         }
 
@@ -61,11 +71,10 @@ namespace Template.Web.Application.Services
         )]
         public async Task<RoleReadDto?> GetRoleAsync(Guid id)
         {
-            var role = await DbContext
-                .Set<Role>()
+            var role = await Repository
+                .Query(tracking: false)
                 .Where(r => r.Id == id)
                 .Include(r => r.Permissions)
-                .AsNoTracking()
                 .FirstOrDefaultAsync();
             return Mapper.Map<RoleReadDto>(role);
         }
@@ -73,10 +82,9 @@ namespace Template.Web.Application.Services
         [PermissionDefinition("get all roles", $"{ManagedResource.Role}.{ManagedAction.Get}.All")]
         public async Task<IEnumerable<RoleReadDto>> GetRolesAsync()
         {
-            var roles = await DbContext
-                .Set<Role>()
+            var roles = await Repository
+                .Query(tracking: false)
                 .Include(r => r.Permissions)
-                .AsNoTracking()
                 .ToArrayAsync();
             return Mapper.Map<IEnumerable<RoleReadDto>>(roles);
         }
@@ -93,18 +101,18 @@ namespace Template.Web.Application.Services
             //}
             var role =
                 (
-                    await DbContext
-                        .Set<Role>()
+                    await Repository
+                        .Query()
                         .Include(r => r.Permissions)
                         .FirstOrDefaultAsync(r => r.Id == roleId)
                 ) ?? throw new NotFoundException("role is not exist");
-            var targets = await DbContext
-                .Set<Permission>()
+            var targets = await _permissionRepository
+                .Query()
                 .Where(p => permissionNames.Contains(p.Name))
                 .ToArrayAsync();
             role.Permissions = targets;
-            DbContext.Set<Role>().Update(role);
-            var result = await DbContext.SaveChangesAsync();
+            Repository.Update(role);
+            var result = await UnitOfWork.SaveChangesAsync();
             return result;
         }
 

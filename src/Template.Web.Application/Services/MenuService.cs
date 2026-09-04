@@ -4,9 +4,9 @@ using Template.Web.Application.Dtos;
 using Template.Web.Application.Services.Base;
 using Template.Web.Application.Utilities;
 using Template.Web.Domain.Entities.Authority;
+using Template.Web.Domain.Repositories;
 using Template.Web.Domain.Shared;
 using Template.Web.Domain.Shared.Exceptions;
-using ApiDbContext = Template.Web.Infrastructure.DbContexts.ApiDbContext;
 
 namespace Template.Web.Application.Services
 {
@@ -14,8 +14,17 @@ namespace Template.Web.Application.Services
         : CrudAppService<Permission, Guid, MenuReadDto, MenuQueryDto, MenuCreateDto, MenuUpdateDto>,
             IMenuService
     {
-        public MenuService(ApiDbContext dbContext, IMapper mapper)
-            : base(dbContext, mapper) { }
+        private readonly IRepository<Permission> _permissionRepo;
+
+        public MenuService(
+            IRepository<Permission> repository,
+            IUnitOfWork unitOfWork,
+            IMapper mapper
+        )
+            : base(repository, unitOfWork, mapper)
+        {
+            _permissionRepo = repository;
+        }
 
         public override async Task<IEnumerable<MenuReadDto>> GetListAsync(
             MenuQueryDto? queryDto = null
@@ -72,41 +81,30 @@ namespace Template.Web.Application.Services
         public override async Task<int> DeleteAsync(Guid key)
         {
             var menu =
-                await DbContext.Set<Permission>().FindAsync(key)
-                ?? throw new NotFoundException("id not exist");
+                await _permissionRepo.FindAsync(key) ?? throw new NotFoundException("id not exist");
 
             if (menu.ParentId is null)
                 throw new NotAcceptableException("root menu can't delete");
 
-            if (await DbContext.Set<Permission>().AnyAsync(m => m.ParentId == key))
+            if (await _permissionRepo.Query().AnyAsync(m => m.ParentId == key))
             {
                 throw new NotAcceptableException("child menu exist");
             }
 
-            DbContext.Set<Permission>().Remove(menu);
-            return await DbContext.SaveChangesAsync();
+            _permissionRepo.Remove(menu);
+            return await UnitOfWork.SaveChangesAsync();
         }
 
         public override async Task<MenuReadDto?> UpdateAsync(Guid key, MenuUpdateDto dto)
         {
-            var entity = await DbContext.Set<Permission>().FindAsync(key);
+            var entity = await _permissionRepo.FindAsync(key);
             if (entity == null)
             {
                 return default;
             }
-            entity.Name = dto.Name;
-            entity.Code = dto.Code;
-            entity.Description = dto.Description;
-            entity.ParentId = dto.ParentId;
-            entity.Type = (PermissionType)dto.Type;
-            entity.Order = dto.Order;
-            entity.IconUrl = dto.IconUrl;
-            entity.Route = dto.Route;
-            entity.Visible = dto.Visible;
-            entity.Favorite = dto.Favorite;
-            entity.State = dto.State;
-            DbContext.Set<Permission>().Update(entity);
-            await DbContext.SaveChangesAsync();
+            Mapper.Map(dto, entity);
+            _permissionRepo.Update(entity);
+            await UnitOfWork.SaveChangesAsync();
             return Mapper.Map<MenuReadDto>(entity);
         }
     }

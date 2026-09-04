@@ -2,7 +2,7 @@
 
 namespace Template.Web.Domain.Entities.Account
 {
-    public class Captcha : UniversalEntity
+    public class Captcha : AggregateRoot<Guid>
     {
         public CaptchaType Type { get; set; }
 

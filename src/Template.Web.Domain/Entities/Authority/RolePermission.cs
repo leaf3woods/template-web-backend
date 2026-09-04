@@ -3,7 +3,7 @@ using Template.Web.Domain.Entities.Base;
 
 namespace Template.Web.Domain.Entities.Authority
 {
-    public class RolePermission : IncrementEntity
+    public class RolePermission : AggregateRoot<long>
     {
         public Guid PermissionId { get; set; }
 

@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using StackExchange.Redis;
 using Template.Web.Domain.Entities.Base;
 
-namespace Template.Web.Infrastructure.DbContexts
+namespace Template.Web.Infrastructure.Repositories
 {
     public static class SoftDeleteQueryExtension
     {
@@ -28,7 +28,7 @@ namespace Template.Web.Infrastructure.DbContexts
             bool condition,
             Expression<Func<T, bool>> predicate
         )
-            where T : AggregateRoot
+            where T : IAggregateRoot
         {
             if (condition)
                 return queryable.Where(predicate);

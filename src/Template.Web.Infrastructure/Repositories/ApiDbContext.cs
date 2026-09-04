@@ -5,7 +5,7 @@ using Template.Web.Domain.Entities.Account;
 using Template.Web.Domain.Entities.Authority;
 using Template.Web.Domain.Entities.Base;
 
-namespace Template.Web.Infrastructure.DbContexts
+namespace Template.Web.Infrastructure.Repositories
 {
     public class ApiDbContext : DbContext
     {

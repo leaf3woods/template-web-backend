@@ -12,7 +12,7 @@ public static class QueryableExtensions
         bool condition,
         Expression<Func<TEntity, bool>> predicate
     )
-        where TEntity : AggregateRoot => condition ? queryable.Where(predicate) : queryable;
+        where TEntity : IAggregateRoot => condition ? queryable.Where(predicate) : queryable;
 
     public static async Task<PaginatedList<TEntity>> ToPaginatedListAsync<TEntity>(
         this IQueryable<TEntity> entities,

@@ -7,13 +7,13 @@ using Template.Web.Application.Dtos;
 using Template.Web.Application.Services.Base;
 using Template.Web.Application.Utilities;
 using Template.Web.Domain.Entities.Account;
+using Template.Web.Domain.Repositories;
 using Template.Web.Domain.Services;
 using Template.Web.Domain.Shared;
 using Template.Web.Domain.Shared.Attributes;
 using Template.Web.Domain.Shared.Exceptions;
 using Template.Web.Domain.Shared.Utilities;
 using Template.Web.Domain.Utilities;
-using ApiDbContext = Template.Web.Infrastructure.DbContexts.ApiDbContext;
 
 namespace Template.Web.Application.Services
 {
@@ -23,15 +23,19 @@ namespace Template.Web.Application.Services
             IUserService
     {
         public UserService(
-            ApiDbContext dbContext,
+            IRepository<User> repository,
+            IRepository<Role> roleRepository,
+            IUnitOfWork unitOfWork,
             IMapper mapper,
             IUserDomainService userDomainService
         )
-            : base(dbContext, mapper)
+            : base(repository, unitOfWork, mapper)
         {
+            _roleRepository = roleRepository;
             _userDomainService = userDomainService;
         }
 
+        private readonly IRepository<Role> _roleRepository;
         private readonly IUserDomainService _userDomainService;
 
         public override async Task<IEnumerable<UserReadDto>> GetListAsync(UserQueryDto? query)
@@ -77,8 +81,8 @@ namespace Template.Web.Application.Services
         public async Task<UserReadDto?> RegisterAsync(UserRegisterDto registerDto)
         {
             var user = Mapper.Map<User>(registerDto);
-            await DbContext.Set<User>().AddAsync(user);
-            var count = await DbContext.SaveChangesAsync();
+            await Repository.AddAsync(user);
+            var count = await UnitOfWork.SaveChangesAsync();
             return count == 0 ? null : Mapper.Map<UserReadDto>(user);
         }
 
@@ -93,8 +97,7 @@ namespace Template.Web.Application.Services
             {
                 throw new NotAcceptableException("captcha not found or not correct");
             }
-            var user = await DbContext
-                .Set<User>()
+            var user = await Queryable
                 .Include(u => u.Roles)
                 .FirstOrDefaultAsync(u => u.Username == credential.Username);
             var bytes = Convert.FromBase64String(credential.Password);
@@ -133,8 +136,7 @@ namespace Template.Web.Application.Services
         )]
         public async Task<UserReadDto?> GetUserAsync(Guid id)
         {
-            var user = await DbContext
-                .Set<User>()
+            var user = await Queryable
                 .Where(u => u.Id == id)
                 .Include(u => u.Roles)
                 .FirstOrDefaultAsync();
@@ -147,8 +149,7 @@ namespace Template.Web.Application.Services
         )]
         public async Task<IEnumerable<UserReadDto>> GetUsersWhereAsync(string? name = null)
         {
-            var users = await DbContext
-                .Set<User>()
+            var users = await Queryable
                 .Where(u =>
                     string.IsNullOrEmpty(name)
                     || u.Username.Contains(name)
@@ -167,17 +168,17 @@ namespace Template.Web.Application.Services
         public async Task<UserReadDto?> ChangeRoleAsync(Guid userId, IEnumerable<Guid> roleIds)
         {
             var user =
-                (await DbContext.Set<User>().FindAsync(userId))
+                (await Repository.FindAsync(userId))
                 ?? throw new NotFoundException("user not found");
-            var roles = await DbContext
-                .Set<Role>()
+            var roles = await _roleRepository
+                .Query()
                 .Where(r => roleIds.Contains(r.Id))
                 .ToArrayAsync();
             if (roles?.Length == 0)
                 throw new NotFoundException("role not found");
             user.Roles = roles!;
-            DbContext.Set<User>().Update(user);
-            var count = await DbContext.SaveChangesAsync();
+            Repository.Update(user);
+            var count = await UnitOfWork.SaveChangesAsync();
             return count == 0 ? null : Mapper.Map<UserReadDto>(user);
         }
 
@@ -216,7 +217,7 @@ namespace Template.Web.Application.Services
                 throw new NotAcceptableException("captcha not exist or not correct");
             }
             var user =
-                await DbContext.Set<User>().FindAsync(passwordDto.Username)
+                await Repository.FindAsync(passwordDto.Username)
                 ?? throw new NotFoundException("user not found");
             var bytes = Convert.FromBase64String(passwordDto.OldPassword);
             if (!user.Verify(bytes))
@@ -225,8 +226,8 @@ namespace Template.Web.Application.Services
             }
 
             _userDomainService.WithSalt(ref user, passwordDto.NewPassword);
-            DbContext.Set<User>().Update(user);
-            return await DbContext.SaveChangesAsync();
+            Repository.Update(user);
+            return await UnitOfWork.SaveChangesAsync();
         }
 
         [PermissionDefinition(
@@ -236,12 +237,11 @@ namespace Template.Web.Application.Services
         public async Task<int> ResetPasswordAsync(Guid userId)
         {
             var user =
-                await DbContext.Set<User>().FindAsync(userId)
-                ?? throw new NotFoundException("user not found");
+                await Repository.FindAsync(userId) ?? throw new NotFoundException("user not found");
             var hash = CryptoUtil.Sha256("12345678");
             _userDomainService.WithSalt(ref user, hash);
-            DbContext.Set<User>().Update(user);
-            return await DbContext.SaveChangesAsync();
+            Repository.Update(user);
+            return await UnitOfWork.SaveChangesAsync();
         }
     }
 }

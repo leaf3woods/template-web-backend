@@ -4,7 +4,7 @@ using Template.Web.Domain.ValueObjects.UserValue;
 
 namespace Template.Web.Domain.Entities.Account
 {
-    public class User : UniversalEntity, ISoftDelete, IAudited, IOrder, IState
+    public class User : AggregateRoot<Guid>, ISoftDelete, IAudited, IOrder, IState
     {
         /// <summary>
         ///     用户名

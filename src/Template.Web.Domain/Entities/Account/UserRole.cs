@@ -2,7 +2,7 @@
 
 namespace Template.Web.Domain.Entities.Account
 {
-    public class UserRole : IncrementEntity
+    public class UserRole : AggregateRoot<long>
     {
         public Guid UserId { get; set; }
 

@@ -29,10 +29,7 @@ namespace Template.Web.Application.Captchas
             bool circle = false
         )
         {
-            if (options is null)
-            {
-                throw new ArgumentNullException("no options was set");
-            }
+            ArgumentNullException.ThrowIfNull(options);
             var random = new Random();
 
             using var image2d = new SKBitmap(

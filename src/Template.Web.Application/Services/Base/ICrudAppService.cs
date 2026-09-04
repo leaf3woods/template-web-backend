@@ -5,7 +5,7 @@ using Template.Web.Domain.Shared;
 namespace Template.Web.Application.Services.Base;
 
 public interface ICrudAppService<TEntity, TKey, TReadDto> : IBaseService
-    where TEntity : AggregateRoot
+    where TEntity : IAggregateRoot
     where TReadDto : IReadDto
 {
     Task<TReadDto?> GetAsync(TKey key);
@@ -17,7 +17,7 @@ public interface ICrudAppService<TEntity, TKey, TReadDto> : IBaseService
 
 public interface ICrudAppService<TEntity, TKey, TReadDto, TQueryDto>
     : ICrudAppService<TEntity, TKey, TReadDto>
-    where TEntity : AggregateRoot
+    where TEntity : IAggregateRoot
     where TReadDto : IReadDto
     where TQueryDto : QueryDto
 {
@@ -28,7 +28,7 @@ public interface ICrudAppService<TEntity, TKey, TReadDto, TQueryDto>
 
 public interface ICrudAppService<TEntity, TKey, TReadDto, TQueryDto, TCreateDto>
     : ICrudAppService<TEntity, TKey, TReadDto, TQueryDto>
-    where TEntity : AggregateRoot
+    where TEntity : IAggregateRoot
     where TReadDto : IReadDto
     where TQueryDto : QueryDto
     where TCreateDto : CreateDto
@@ -38,7 +38,7 @@ public interface ICrudAppService<TEntity, TKey, TReadDto, TQueryDto, TCreateDto>
 
 public interface ICrudAppService<TEntity, TKey, TReadDto, TQueryDto, TCreateDto, TUpdateDto>
     : ICrudAppService<TEntity, TKey, TReadDto, TQueryDto, TCreateDto>
-    where TEntity : AggregateRoot
+    where TEntity : IAggregateRoot
     where TReadDto : IReadDto
     where TQueryDto : QueryDto
     where TCreateDto : CreateDto

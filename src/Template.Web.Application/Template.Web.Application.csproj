@@ -18,6 +18,5 @@
   <ItemGroup>
     <ProjectReference Include="..\Template.Web.Domain.Shared\Template.Web.Domain.Shared.csproj" />
     <ProjectReference Include="..\Template.Web.Domain\Template.Web.Domain.csproj" />
-    <ProjectReference Include="..\Template.Web.Infrastructure\Template.Web.Infrastructure.csproj" />
   </ItemGroup>
 </Project>

@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Logging;
 using Template.Web.Domain.Entities;
 
-namespace Template.Web.Infrastructure.DbContexts
+namespace Template.Web.Infrastructure.Repositories
 {
     public class InitialDatabase
     {

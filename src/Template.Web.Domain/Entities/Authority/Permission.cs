@@ -3,7 +3,7 @@ using Template.Web.Domain.Entities.Base.Audited;
 
 namespace Template.Web.Domain.Entities.Authority
 {
-    public class Permission : UniversalEntity, ISoftDelete, IAudited, IOrder, IState
+    public class Permission : AggregateRoot<Guid>, ISoftDelete, IAudited, IOrder, IState
     {
         public string Name { get; set; } = null!;
 

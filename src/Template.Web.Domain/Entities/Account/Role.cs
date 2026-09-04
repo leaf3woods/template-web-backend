@@ -4,7 +4,7 @@ using Template.Web.Domain.Entities.Base.Audited;
 
 namespace Template.Web.Domain.Entities.Account
 {
-    public class Role : UniversalEntity, ISoftDelete, IAudited, IOrder, IState
+    public class Role : AggregateRoot<Guid>, ISoftDelete, IAudited, IOrder, IState
     {
         public string Name { get; set; } = null!;
 
