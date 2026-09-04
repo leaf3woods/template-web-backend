@@ -10,7 +10,8 @@ namespace Template.Web.WebApi.Utilities
     {
         public static async Task LocalizeException(
             HttpContext context,
-            IStringLocalizer stringLocalizer
+            IStringLocalizer stringLocalizer,
+            bool includeExceptionDetails
         )
         {
             context.Response.ContentType = "application/json";
@@ -24,10 +25,10 @@ namespace Template.Web.WebApi.Utilities
                     _ => StatusCodes.Status500InternalServerError,
                 };
 
-                var errDto = exception.Error.Localize(stringLocalizer);
+                var errDto = exception.Error.Localize(stringLocalizer, includeExceptionDetails);
                 await context.Response.WriteAsJsonAsync(
                     errDto,
-                    Options.CustomJsonSerializerOptions
+                    SharedOptions.CustomJsonSerializerOptions
                 );
             }
         }

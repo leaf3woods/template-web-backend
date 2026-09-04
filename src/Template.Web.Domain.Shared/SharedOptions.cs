@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace Template.Web.Domain.Shared
 {
-    public static class Options
+    public static class SharedOptions
     {
         public static JsonSerializerOptions CustomJsonSerializerOptions { get; set; } =
             new JsonSerializerOptions

@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Localization;
 using Template.Web.Application.Dtos;
 using Template.Web.Domain.Shared.Exceptions;
-using Template.Web.Domain.Shared.Utilities;
 
 namespace Template.Web.WebApi.Exceptions
 {
@@ -9,7 +8,8 @@ namespace Template.Web.WebApi.Exceptions
     {
         public static ExceptionReadDto Localize(
             this Exception exception,
-            IStringLocalizer stringLocalizer
+            IStringLocalizer stringLocalizer,
+            bool includeExceptionDetails
         )
         {
             var result = exception switch
@@ -19,25 +19,24 @@ namespace Template.Web.WebApi.Exceptions
                     {
                         Info = stringLocalizer[(exception as CustomException)!.ExceptionCode],
                     },
-                _ => InitialConfiguration.IsDevelopment
-                    ? new ExceptionReadDto
-                    {
-                        Info = exception.Message.Split("\r\n", StringSplitOptions.TrimEntries)[0],
-                        StackTrace = exception.StackTrace?.Split(
-                            "\r\n",
-                            StringSplitOptions.TrimEntries
-                        )[0],
-                        Inner = exception.InnerException?.Message.Split(
-                            "\r\n",
-                            StringSplitOptions.TrimEntries
-                        )[0],
-                    }
-                    : new ExceptionReadDto
-                    {
-                        Info = exception.Message.Split("\r\n", StringSplitOptions.TrimEntries)[0],
-                        StackTrace = null,
-                        Inner = null,
-                    },
+                _ when includeExceptionDetails => new ExceptionReadDto
+                {
+                    Info = exception.Message.Split("\r\n", StringSplitOptions.TrimEntries)[0],
+                    StackTrace = exception.StackTrace?.Split(
+                        "\r\n",
+                        StringSplitOptions.TrimEntries
+                    )[0],
+                    Inner = exception.InnerException?.Message.Split(
+                        "\r\n",
+                        StringSplitOptions.TrimEntries
+                    )[0],
+                },
+                _ => new ExceptionReadDto
+                {
+                    Info = exception.Message.Split("\r\n", StringSplitOptions.TrimEntries)[0],
+                    StackTrace = null,
+                    Inner = null,
+                },
             };
             return result;
         }

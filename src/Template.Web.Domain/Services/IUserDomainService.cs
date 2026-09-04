@@ -4,9 +4,9 @@ namespace Template.Web.Domain.Services
 {
     public interface IUserDomainService : IDomainService
     {
-        public Task CacheCaptchaAnswerAsync(Captcha captcha, int expire);
+        public Task CacheCaptchaAnswerAsync(Captcha captcha, TimeSpan expiration);
 
-        public Task CacheTokenAsync(Guid userId, string token);
+        public Task CacheTokenAsync(Guid userId, string token, TimeSpan expiration);
 
         public Task<bool> VerifyCaptchaAnswerAsync(Captcha captcha);
 

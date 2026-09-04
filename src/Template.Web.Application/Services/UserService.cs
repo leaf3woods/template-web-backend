@@ -1,9 +1,11 @@
 ﻿using System.Security.Claims;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Template.Web.Application.Captchas;
 using Template.Web.Application.Captchas.Builder;
 using Template.Web.Application.Dtos;
+using Template.Web.Application.Options;
 using Template.Web.Application.Services.Base;
 using Template.Web.Application.Utilities;
 using Template.Web.Domain.Entities.Account;
@@ -12,7 +14,6 @@ using Template.Web.Domain.Services;
 using Template.Web.Domain.Shared;
 using Template.Web.Domain.Shared.Attributes;
 using Template.Web.Domain.Shared.Exceptions;
-using Template.Web.Domain.Shared.Utilities;
 using Template.Web.Domain.Utilities;
 
 namespace Template.Web.Application.Services
@@ -27,16 +28,22 @@ namespace Template.Web.Application.Services
             IRepository<Role> roleRepository,
             IUnitOfWork unitOfWork,
             IMapper mapper,
-            IUserDomainService userDomainService
+            IUserDomainService userDomainService,
+            IOptions<AccessTokenOptions> accessTokenOptions,
+            IOptions<CaptchaOptions> captchaOptions
         )
             : base(repository, unitOfWork, mapper)
         {
             _roleRepository = roleRepository;
             _userDomainService = userDomainService;
+            _accessTokenOptions = accessTokenOptions.Value;
+            _captchaOptions = captchaOptions.Value;
         }
 
         private readonly IRepository<Role> _roleRepository;
         private readonly IUserDomainService _userDomainService;
+        private readonly AccessTokenOptions _accessTokenOptions;
+        private readonly CaptchaOptions _captchaOptions;
 
         public override async Task<IEnumerable<UserReadDto>> GetListAsync(UserQueryDto? query)
         {
@@ -91,7 +98,7 @@ namespace Template.Web.Application.Services
             var answer = Mapper.Map<Captcha>(credential.Captcha);
 
             if (
-                !InitialConfiguration.IsDevelopment
+                _captchaOptions.RequireVerification
                 && (answer is null || !await _userDomainService.VerifyCaptchaAnswerAsync(answer))
             )
             {
@@ -109,9 +116,9 @@ namespace Template.Web.Application.Services
             var rids = string.Join(",", user.Roles.Select(r => r.Id));
             var token =
                 JwtTokenUtil.GenerateJwtToken(
-                    InitialConfiguration.Jwt.Issuer,
-                    InitialConfiguration.Jwt.Audience,
-                    InitialConfiguration.Jwt.ExpireMin,
+                    _accessTokenOptions.Issuer,
+                    _accessTokenOptions.Audience,
+                    _accessTokenOptions.Expiration,
                     new Claim(CustomClaimsType.UserId, user.Id.ToString()),
                     new Claim(CustomClaimsType.RoleId, rids)
                 ) ?? throw new Exception("generate jwt token error");
@@ -120,7 +127,7 @@ namespace Template.Web.Application.Services
             {
                 throw new ForbiddenException("user was logged in elsewhere");
             }
-            await _userDomainService.CacheTokenAsync(user.Id, token);
+            await _userDomainService.CacheTokenAsync(user.Id, token, _accessTokenOptions.Expiration);
             return token;
         }
 
@@ -187,21 +194,34 @@ namespace Template.Web.Application.Services
             //var builder = CaptchaBuilder.Create<CharacterCaptchaBuilder>()
             //    .WithLowerCase()
             //    .WithUpperCase();
-            var builder = CaptchaBuilder.Create<QuestionCaptchaBuilder>();
-            var captcha = builder
+            var builder = CaptchaBuilder
+                .Create<QuestionCaptchaBuilder>()
                 .WithGenOption(
                     new CaptchaGenOptions
                     {
-                        FontFamily = "consolas",
-                        Height = 80,
-                        Width = 200,
+                        FontFamily = _captchaOptions.FontFamily,
+                        Height = _captchaOptions.Height,
+                        Width = _captchaOptions.Width,
                     }
-                )
-                .WithNoise()
-                .WithLines()
-                .WithCircles()
-                .Build();
-            await _userDomainService.CacheCaptchaAnswerAsync(captcha, 180);
+                );
+
+            if (_captchaOptions.EnableNoise)
+            {
+                builder = builder.WithNoise();
+            }
+
+            if (_captchaOptions.EnableLines)
+            {
+                builder = builder.WithLines();
+            }
+
+            if (_captchaOptions.EnableCircles)
+            {
+                builder = builder.WithCircles();
+            }
+
+            var captcha = builder.Build();
+            await _userDomainService.CacheCaptchaAnswerAsync(captcha, _captchaOptions.Expiration);
             return Mapper.Map<CaptchaReadDto>(captcha);
         }
 
@@ -210,7 +230,7 @@ namespace Template.Web.Application.Services
             var answer = Mapper.Map<Captcha>(passwordDto.Captcha);
 
             if (
-                !InitialConfiguration.IsDevelopment
+                _captchaOptions.RequireVerification
                 && (answer is null || !await _userDomainService.VerifyCaptchaAnswerAsync(answer))
             )
             {

@@ -15,18 +15,18 @@ namespace Template.Web.Infrastructure.DomainServices
 
         private readonly IConnectionMultiplexer _connectionMultiplexer;
 
-        public async Task CacheCaptchaAnswerAsync(Captcha captcha, int expire)
+        public async Task CacheCaptchaAnswerAsync(Captcha captcha, TimeSpan expiration)
         {
             var database = _connectionMultiplexer.GetDatabase();
             var key = string.Format(CacheKeyFormatter.Captcha, captcha.Id);
-            await database.StringSetAsync(key, captcha.Answer, TimeSpan.FromSeconds(expire));
+            await database.StringSetAsync(key, captcha.Answer, expiration);
         }
 
-        public async Task CacheTokenAsync(Guid userId, string token)
+        public async Task CacheTokenAsync(Guid userId, string token, TimeSpan expiration)
         {
             var database = _connectionMultiplexer.GetDatabase();
             var key = string.Format(CacheKeyFormatter.Token, userId);
-            await database.StringSetAsync(key, token);
+            await database.StringSetAsync(key, token, expiration);
         }
 
         public async Task<bool> DeleteTokenAsync(Guid userId)

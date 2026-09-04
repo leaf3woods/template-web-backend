@@ -9,22 +9,28 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using Npgsql;
 using Serilog;
+using Template.Web.Application.Options;
 using Template.Web.Domain.Shared;
-using Template.Web.Domain.Shared.Utilities;
 using Template.Web.Domain.Utilities;
-using Template.Web.Domain.ValueObjects;
 using Template.Web.Infrastructure.Repositories;
 using Template.Web.WebApi.Auth;
+using Template.Web.WebApi.Options;
 using Template.Web.WebApi.Utilities;
 
 var builder = WebApplication.CreateBuilder(args);
 
-#region util Initialize
+var jwtAuthenticationOptions =
+    builder
+        .Configuration.GetRequiredSection(JwtAuthenticationOptions.SectionName)
+        .Get<JwtAuthenticationOptions>()
+    ?? throw new InvalidOperationException("Missing Jwt configuration.");
+var openApiOptions =
+    builder.Configuration.GetRequiredSection(OpenApiOptions.SectionName).Get<OpenApiOptions>()
+    ?? throw new InvalidOperationException("Missing OpenApiInfo configuration.");
 
-InitialConfiguration.Initialize(builder.Configuration);
-CryptoUtil.Initialize(InitialConfiguration.Jwt.KeyFolder);
+CryptoUtil.Initialize(jwtAuthenticationOptions.KeyFolder);
 
-#endregion util Initialize
+builder.Services.AddAllOptions();
 
 // Change container to autoFac
 builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
@@ -50,10 +56,10 @@ builder
     .Services.AddControllers()
     .AddJsonOptions(config =>
     {
-        config.JsonSerializerOptions.DefaultIgnoreCondition = Options
+        config.JsonSerializerOptions.DefaultIgnoreCondition = SharedOptions
             .CustomJsonSerializerOptions
             .DefaultIgnoreCondition;
-        config.JsonSerializerOptions.PropertyNameCaseInsensitive = Options
+        config.JsonSerializerOptions.PropertyNameCaseInsensitive = SharedOptions
             .CustomJsonSerializerOptions
             .PropertyNameCaseInsensitive;
     });
@@ -73,9 +79,9 @@ builder
             IssuerSigningKey = new ECDsaSecurityKey(CryptoUtil.PublicECDsa), // Use ECDsa
             ValidAlgorithms = [SecurityAlgorithms.EcdsaSha256],
             ValidateIssuer = true,
-            ValidIssuer = InitialConfiguration.Jwt.Issuer,
+            ValidIssuer = jwtAuthenticationOptions.Issuer,
             ValidateAudience = true,
-            ValidAudience = InitialConfiguration.Jwt.Audience,
+            ValidAudience = jwtAuthenticationOptions.Audience,
             RequireExpirationTime = true,
             ValidateLifetime = true,
         };
@@ -108,13 +114,13 @@ builder.Services.AddSwaggerGen(option =>
         "v1",
         new OpenApiInfo
         {
-            Description = InitialConfiguration.OpenApi.Description,
-            Title = InitialConfiguration.OpenApi.Title,
+            Description = openApiOptions.Description,
+            Title = openApiOptions.Title,
             Contact = new OpenApiContact
             {
-                Name = InitialConfiguration.OpenApi.Name,
-                Email = InitialConfiguration.OpenApi.Email,
-                Url = new Uri(InitialConfiguration.OpenApi.Url),
+                Name = openApiOptions.Name,
+                Email = openApiOptions.Email,
+                Url = new Uri(openApiOptions.Url),
             },
         }
     );
@@ -168,6 +174,8 @@ builder.Services.AddMediatR(config =>
 );
 
 var app = builder.Build();
+var exceptionLocalizer = app.Services.GetRequiredService<IStringLocalizer<Exception>>();
+var includeExceptionDetails = app.Environment.IsDevelopment();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -193,7 +201,8 @@ app.UseExceptionHandler(builder =>
     builder.Run(async context =>
         await ExceptionLocalizerExtension.LocalizeException(
             context,
-            app.Services.GetService<IStringLocalizer<Exception>>()!
+            exceptionLocalizer,
+            includeExceptionDetails
         )
     )
 );
