@@ -4,12 +4,12 @@
 
 This repository is a .NET 8 Web API solution organized around DDD layers.
 
-- `TemplateWeb.sln` is the main solution file.
-- `src/Template.Web.WebApi/` contains controllers, middleware, and `Program.cs`.
-- `src/Template.Web.Application/` contains services, DTOs, authentication, and mapping.
-- `src/Template.Web.Domain/` contains entities, domain services, events, and interfaces.
-- `src/Template.Web.Infrastructure/` contains EF Core persistence and repositories.
-- `src/Template.Web.Domain.Shared/` contains shared exceptions, utilities, and extensions.
+- `Org.Product.sln` is the main solution file.
+- `src/Org.Product.WebApi/` contains controllers, middleware, and `Program.cs`.
+- `src/Org.Product.Application/` contains services, DTOs, authentication, and mapping.
+- `src/Org.Product.Domain/` contains entities, domain services, events, and interfaces.
+- `src/Org.Product.Infrastructure/` contains EF Core persistence and repositories.
+- `src/Org.Product.Domain.Shared/` contains shared exceptions, utilities, and extensions.
 - `deployment/` and `doc/` hold deployment and project documentation assets.
 
 ## Build, Test, and Development Commands
@@ -17,10 +17,10 @@ This repository is a .NET 8 Web API solution organized around DDD layers.
 Run commands from the repository root.
 
 ```bash
-dotnet build TemplateWeb.sln
-dotnet run --project src/Template.Web.WebApi/Template.Web.WebApi.csproj
-dotnet run --project src/Template.Web.WebApi/Template.Web.WebApi.csproj --launch-profile https
-dotnet publish src/Template.Web.WebApi/Template.Web.WebApi.csproj -c Release
+dotnet build Org.Product.sln
+dotnet run --project src/Org.Product.WebApi/Org.Product.WebApi.csproj
+dotnet run --project src/Org.Product.WebApi/Org.Product.WebApi.csproj --launch-profile https
+dotnet publish src/Org.Product.WebApi/Org.Product.WebApi.csproj -c Release
 dotnet test
 ```
 
@@ -30,11 +30,11 @@ dotnet test
 
 Use nullable reference types and implicit usings. Keep one public class per file and match file names to class names. Use `PascalCase` for classes, methods, and properties; `_camelCase` for private fields; `I` prefixes for interfaces; and `*Dto` suffixes for DTOs. Database names should remain `snake_case` through EF Core conventions.
 
-Place base entities under `Domain/Entities/Base/`. Use `Guid` IDs for universal entities and `int` IDs for auto-increment entities. Prefer custom exceptions from `Template.Web.Domain.Shared.Exceptions` for API errors.
+Place base entities under `Domain/Entities/Base/`. Use `Guid` IDs for universal entities and `int` IDs for auto-increment entities. Prefer custom exceptions from `Org.Product.Domain.Shared.Exceptions` for API errors.
 
 ## Testing Guidelines
 
-No test project is currently listed in `TemplateWeb.sln`. When adding tests, create or restore `src/Template.Web.Tests/`, add it to the solution, and keep test names behavior-focused, for example `CreateUser_WhenNameExists_ThrowsBadRequestException`. Run targeted tests with:
+No test project is currently listed in `Org.Product.sln`. When adding tests, create or restore `src/Org.Product.Tests/`, add it to the solution, and keep test names behavior-focused, for example `CreateUser_WhenNameExists_ThrowsBadRequestException`. Run targeted tests with:
 
 ```bash
 dotnet test --filter "FullyQualifiedName~TestMethodName"

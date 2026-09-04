@@ -1,4 +1,4 @@
-# Template Web Backend
+# Org.Product Web Backend
 
 基于 .NET 10 的 Web API 后端模板项目，采用 DDD 分层组织代码，内置用户、角色、菜单/权限、JWT 鉴权、验证码、Redis 缓存、PostgreSQL 持久化、Swagger 和 Docker 部署示例。
 
@@ -19,17 +19,33 @@
 
 ```text
 .
-├── TemplateWeb.sln
+├── Org.Product.sln
 ├── src
-│   ├── Template.Web.WebApi          # API 入口、控制器、中间件、Swagger、配置
-│   ├── Template.Web.Application     # 应用服务、DTO、鉴权、验证码、AutoMapper
-│   ├── Template.Web.Domain          # 实体、值对象、领域服务接口、领域事件
-│   ├── Template.Web.Infrastructure  # EF Core DbContext、数据库初始化、领域服务实现
-│   └── Template.Web.Domain.Shared            # 通用异常、分页、配置、扩展、JSON 转换器
+│   ├── Org.Product.WebApi          # API 入口、控制器、中间件、Swagger、配置
+│   ├── Org.Product.Application     # 应用服务、DTO、鉴权、验证码、AutoMapper
+│   ├── Org.Product.Domain          # 实体、值对象、领域服务接口、领域事件
+│   ├── Org.Product.Infrastructure  # EF Core DbContext、数据库初始化、领域服务实现
+│   └── Org.Product.Domain.Shared            # 通用异常、分页、配置、扩展、JSON 转换器
 └── deployment                       # Docker Compose、Nginx、Redis、MQTT、SFTP 配置示例
 ```
 
 ## 快速开始
+
+### 从模板创建新的业务项目
+
+在模板仓库根目录执行：
+
+```powershell
+dotnet new install .
+dotnet new org-product-web -n Org.Ordering -o D:\Code\Org.Ordering
+dotnet build D:\Code\Org.Ordering\Org.Ordering.sln
+```
+
+`-n` 必须是业务边界上下文名称，例如 `Org.Ordering`、`Org.Identity` 或
+`Org.DeviceManagement`。模板生成时会将 `Org.Product` 同时替换为该名称，覆盖 solution、
+项目目录和文件名、程序集、命名空间、项目引用及 Dockerfile 路径。
+
+模板不会复制构建产物、IDE 用户文件、密钥目录或历史 Backup csproj 文件。
 
 ### 环境要求
 
@@ -47,7 +63,7 @@ cd deployment
 docker compose up -d database cache
 ```
 
-默认连接配置位于 `src/Template.Web.WebApi/appsettings.json`：
+默认连接配置位于 `src/Org.Product.WebApi/appsettings.json`：
 
 ```json
 {
@@ -63,9 +79,9 @@ docker compose up -d database cache
 回到仓库根目录执行：
 
 ```bash
-dotnet restore TemplateWeb.sln
-dotnet build TemplateWeb.sln
-dotnet run --project src/Template.Web.WebApi/Template.Web.WebApi.csproj
+dotnet restore Org.Product.sln
+dotnet build Org.Product.sln
+dotnet run --project src/Org.Product.WebApi/Org.Product.WebApi.csproj
 ```
 
 默认开发地址：
@@ -77,12 +93,12 @@ dotnet run --project src/Template.Web.WebApi/Template.Web.WebApi.csproj
 也可以使用 HTTPS profile：
 
 ```bash
-dotnet run --project src/Template.Web.WebApi/Template.Web.WebApi.csproj --launch-profile https
+dotnet run --project src/Org.Product.WebApi/Org.Product.WebApi.csproj --launch-profile https
 ```
 
 ## 配置说明
 
-主要配置在 `src/Template.Web.WebApi/appsettings.json`。
+主要配置在 `src/Org.Product.WebApi/appsettings.json`。
 
 | 配置项 | 说明 |
 | --- | --- |
@@ -152,8 +168,8 @@ dotnet run --project src/Template.Web.WebApi/Template.Web.WebApi.csproj --launch
 
 异常由全局异常处理转换为异常 DTO。开发环境会返回更详细的错误信息；非开发环境会隐藏部分堆栈细节。异常文案支持资源文件本地化，当前资源文件位于：
 
-- `src/Template.Web.WebApi/Resources/Exception.zh-CN.resx`
-- `src/Template.Web.WebApi/Resources/Exception.en-US.resx`
+- `src/Org.Product.WebApi/Resources/Exception.zh-CN.resx`
+- `src/Org.Product.WebApi/Resources/Exception.en-US.resx`
 
 ## 数据库
 
@@ -179,16 +195,16 @@ dotnet run --project src/Template.Web.WebApi/Template.Web.WebApi.csproj --launch
 
 ```bash
 # 构建解决方案
-dotnet build TemplateWeb.sln
+dotnet build Org.Product.sln
 
 # 运行 Web API
-dotnet run --project src/Template.Web.WebApi/Template.Web.WebApi.csproj
+dotnet run --project src/Org.Product.WebApi/Org.Product.WebApi.csproj
 
 # 使用 https profile 运行
-dotnet run --project src/Template.Web.WebApi/Template.Web.WebApi.csproj --launch-profile https
+dotnet run --project src/Org.Product.WebApi/Org.Product.WebApi.csproj --launch-profile https
 
 # 发布 Release 包
-dotnet publish src/Template.Web.WebApi/Template.Web.WebApi.csproj -c Release
+dotnet publish src/Org.Product.WebApi/Org.Product.WebApi.csproj -c Release
 
 # 运行测试；当前解决方案尚未包含测试项目
 dotnet test
@@ -199,13 +215,13 @@ dotnet test
 Web API 的 Dockerfile 位于：
 
 ```text
-src/Template.Web.WebApi/Dockerfile
+src/Org.Product.WebApi/Dockerfile
 ```
 
 从仓库根目录构建镜像：
 
 ```bash
-docker build -f src/Template.Web.WebApi/Dockerfile -t template-web-backend .
+docker build -f src/Org.Product.WebApi/Dockerfile -t template-web-backend .
 ```
 
 部署示例在 `deployment/docker-compose.yaml`，包含：
@@ -227,7 +243,7 @@ docker build -f src/Template.Web.WebApi/Dockerfile -t template-web-backend .
 - 接口使用 `I` 前缀。
 - DTO 使用 `*Dto` 后缀。
 - 实体基类位于 `Domain/Entities/Base/`。
-- 通用异常优先使用 `Template.Web.Domain.Shared.Exceptions` 下的自定义异常。
+- 通用异常优先使用 `Org.Product.Domain.Shared.Exceptions` 下的自定义异常。
 - 数据库表名和列名通过 EF Core 约定保持 snake_case。
 
 新增业务功能时建议按以下顺序落地：
@@ -240,16 +256,16 @@ docker build -f src/Template.Web.WebApi/Dockerfile -t template-web-backend .
 
 ## 测试
 
-当前 `TemplateWeb.sln` 未包含测试项目。新增测试时建议创建：
+当前 `Org.Product.sln` 未包含测试项目。新增测试时建议创建：
 
 ```text
-src/Template.Web.Tests/
+src/Org.Product.Tests/
 ```
 
 并加入解决方案：
 
 ```bash
-dotnet sln TemplateWeb.sln add src/Template.Web.Tests/Template.Web.Tests.csproj
+dotnet sln Org.Product.sln add src/Org.Product.Tests/Org.Product.Tests.csproj
 dotnet test
 ```
 

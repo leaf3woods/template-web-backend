@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json.schemastore.org/template",
+  "author": "Org",
+  "classifications": [
+    "Web",
+    "DDD",
+    "ASP.NET Core"
+  ],
+  "identity": "Org.Product.WebApi.Template",
+  "name": "Org Product Layered DDD Web API",
+  "shortName": "org-product-web",
+  "description": "Creates a layered DDD ASP.NET Core Web API solution.",
+  "sourceName": "Org.Product",
+  "preferNameDirectory": true,
+  "tags": {
+    "language": "C#",
+    "type": "solution"
+  },
+  "sources": [
+    {
+      "modifiers": [
+        {
+          "exclude": [
+            "**/[Bb]in/**",
+            "**/[Oo]bj/**",
+            "**/.vs/**",
+            "**/.git/**",
+            "**/*.user",
+            "**/*Backup*",
+            "**/[Kk]eys/**"
+          ]
+        }
+      ]
+    }
+  ]
+}
