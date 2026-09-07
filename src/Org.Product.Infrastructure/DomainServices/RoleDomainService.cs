@@ -1,5 +1,4 @@
 ﻿using System.Text.Json;
-using Microsoft.EntityFrameworkCore;
 using Org.Product.Domain.Services;
 using Org.Product.Domain.Shared;
 using StackExchange.Redis;
@@ -15,7 +14,7 @@ namespace Org.Product.Infrastructure.DomainServices
 
         private readonly IConnectionMultiplexer _connectionMultiplexer;
 
-        public async Task<IEnumerable<string>> GetPermissionsAsync(params IEnumerable<Guid> roleIds)
+        public async Task<IEnumerable<string>?> GetPermissionsAsync(params IEnumerable<Guid> roleIds)
         {
             var database = _connectionMultiplexer.GetDatabase();
             var keys = roleIds

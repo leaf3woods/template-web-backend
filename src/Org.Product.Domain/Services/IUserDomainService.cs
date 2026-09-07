@@ -14,7 +14,7 @@ namespace Org.Product.Domain.Services
 
         public Task<bool> VerifyTokenAsync(Guid userId, string token);
 
-        public Task<bool> DeleteTokenAsync(Guid userId);
+        public Task<bool> DeleteTokenAsync(Guid userId, string? expectedToken = null);
 
         public void WithSalt(ref User user, string password);
     }

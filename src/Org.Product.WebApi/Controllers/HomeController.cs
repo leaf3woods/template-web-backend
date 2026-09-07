@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Org.Product.Application.Dtos;
 using Org.Product.Application.Services.Base;
 using Org.Product.WebApi.Utilities;
@@ -26,6 +28,7 @@ namespace Org.Product.WebApi.Controllers
         /// </summary>
         /// <returns>base64验证码图片</returns>
         [HttpGet]
+        [AllowAnonymous]
         [Route("captcha")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -56,7 +59,10 @@ namespace Org.Product.WebApi.Controllers
         [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task Logout() => await _userService.LogoutAsync(HttpContext.User.Claims);
+        public async Task Logout() => await _userService.LogoutAsync(
+            HttpContext.User.Claims,
+            (await HttpContext.GetTokenAsync(JwtBearerDefaults.AuthenticationScheme, "access_token"))!
+        );
 
         /// <summary>
         ///     用户注册

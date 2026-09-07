@@ -11,7 +11,7 @@ namespace Org.Product.Application.Services.Base
 
         public Task<string> LoginAsync(UserLoginDto credential);
 
-        public Task LogoutAsync(IEnumerable<Claim> claims);
+        public Task LogoutAsync(IEnumerable<Claim> claims, string token);
 
         public Task<UserReadDto?> GetUserAsync(Guid id);
 

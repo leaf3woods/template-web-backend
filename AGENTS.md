@@ -34,7 +34,7 @@ Place base entities under `Domain/Entities/Base/`. Use `Guid` IDs for universal 
 
 ## Testing Guidelines
 
-No test project is currently listed in `Org.Product.sln`. When adding tests, create or restore `src/Org.Product.Tests/`, add it to the solution, and keep test names behavior-focused, for example `CreateUser_WhenNameExists_ThrowsBadRequestException`. Run targeted tests with:
+`src/Org.Product.Tests/` is included in `Org.Product.sln` and uses xUnit, ASP.NET Core TestServer, and Moq for authentication and authorization regression tests. Redis and repositories use test doubles; these tests do not validate the production EF model or external services. Keep test names behavior-focused, for example `LoginAgain_CreatesDistinctTokenAndReplacesSession`. Run targeted tests with:
 
 ```bash
 dotnet test --filter "FullyQualifiedName~TestMethodName"

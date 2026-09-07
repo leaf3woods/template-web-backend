@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using AutoMapper;
+using System.IdentityModel.Tokens.Jwt;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Org.Product.Application.Captchas;
@@ -120,13 +121,10 @@ namespace Org.Product.Application.Services
                     _accessTokenOptions.Audience,
                     _accessTokenOptions.Expiration,
                     new Claim(CustomClaimsType.UserId, user.Id.ToString()),
-                    new Claim(CustomClaimsType.RoleId, rids)
+                    new Claim(CustomClaimsType.RoleId, rids),
+                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
                 ) ?? throw new Exception("generate jwt token error");
 
-            if (!await _userDomainService.VerifyTokenAsync(user.Id, token))
-            {
-                throw new ForbiddenException("user was logged in elsewhere");
-            }
             await _userDomainService.CacheTokenAsync(
                 user.Id,
                 token,
@@ -135,10 +133,36 @@ namespace Org.Product.Application.Services
             return token;
         }
 
-        public async Task LogoutAsync(IEnumerable<Claim> claims)
+        public async Task LogoutAsync(IEnumerable<Claim> claims, string token)
         {
-            var userId = claims.FirstOrDefault(c => c.Type == CustomClaimsType.UserId)!.Value;
-            await _userDomainService.DeleteTokenAsync(Guid.Parse(userId)!);
+            var userId = claims.FirstOrDefault(c => c.Type == CustomClaimsType.UserId)?.Value;
+            if (!Guid.TryParse(userId, out var uid) || uid == Guid.Empty || string.IsNullOrEmpty(token))
+            {
+                throw new ForbiddenException("invalid login session");
+            }
+            await _userDomainService.DeleteTokenAsync(uid, token);
+        }
+
+        public override async Task<int> DeleteAsync(Guid key)
+        {
+            var count = await base.DeleteAsync(key);
+            await _userDomainService.DeleteTokenAsync(key);
+            return count;
+        }
+
+        public override async Task<UserReadDto?> UpdateAsync(Guid key, UserUpdateDto dto)
+        {
+            var entity = await Repository.FindAsync(key);
+            if (entity is null)
+            {
+                return null;
+            }
+
+            Mapper.Map(dto, entity);
+            Repository.Update(entity);
+            await UnitOfWork.SaveChangesAsync();
+            await _userDomainService.DeleteTokenAsync(key);
+            return Mapper.Map<UserReadDto>(entity);
         }
 
         [PermissionDefinition(
@@ -178,18 +202,20 @@ namespace Org.Product.Application.Services
         )]
         public async Task<UserReadDto?> ChangeRoleAsync(Guid userId, IEnumerable<Guid> roleIds)
         {
+            var requestedRoleIds = roleIds.Distinct().ToArray();
             var user =
-                (await Repository.FindAsync(userId))
+                (await Queryable.Include(u => u.Roles).FirstOrDefaultAsync(u => u.Id == userId))
                 ?? throw new NotFoundException("user not found");
             var roles = await _roleRepository
                 .Query()
-                .Where(r => roleIds.Contains(r.Id))
+                .Where(r => requestedRoleIds.Contains(r.Id))
                 .ToArrayAsync();
-            if (roles?.Length == 0)
+            if (roles.Length == 0 || roles.Length != requestedRoleIds.Length)
                 throw new NotFoundException("role not found");
-            user.Roles = roles!;
+            user.Roles = roles;
             Repository.Update(user);
             var count = await UnitOfWork.SaveChangesAsync();
+            await _userDomainService.DeleteTokenAsync(userId);
             return count == 0 ? null : Mapper.Map<UserReadDto>(user);
         }
 
@@ -241,7 +267,7 @@ namespace Org.Product.Application.Services
                 throw new NotAcceptableException("captcha not exist or not correct");
             }
             var user =
-                await Repository.FindAsync(passwordDto.Username)
+                await Queryable.FirstOrDefaultAsync(u => u.Username == passwordDto.Username)
                 ?? throw new NotFoundException("user not found");
             var bytes = Convert.FromBase64String(passwordDto.OldPassword);
             if (!user.Verify(bytes))
@@ -251,7 +277,9 @@ namespace Org.Product.Application.Services
 
             _userDomainService.WithSalt(ref user, passwordDto.NewPassword);
             Repository.Update(user);
-            return await UnitOfWork.SaveChangesAsync();
+            var count = await UnitOfWork.SaveChangesAsync();
+            await _userDomainService.DeleteTokenAsync(user.Id);
+            return count;
         }
 
         [PermissionDefinition(
@@ -265,7 +293,9 @@ namespace Org.Product.Application.Services
             var hash = CryptoUtil.Sha256("12345678");
             _userDomainService.WithSalt(ref user, hash);
             Repository.Update(user);
-            return await UnitOfWork.SaveChangesAsync();
+            var count = await UnitOfWork.SaveChangesAsync();
+            await _userDomainService.DeleteTokenAsync(user.Id);
+            return count;
         }
     }
 }

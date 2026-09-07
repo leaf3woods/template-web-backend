@@ -9,17 +9,14 @@ namespace Org.Product.WebApi.Auth.AuthHandlers;
 public sealed class CustomRequireHandler : AuthorizationHandler<PermissionAuthorizationRequirement>
 {
     private readonly IRoleDomainService _roleDomainService;
-    private readonly IUserDomainService _userDomainService;
     private readonly ILogger<CustomRequireHandler> _logger;
 
     public CustomRequireHandler(
         IRoleDomainService roleDomainService,
-        IUserDomainService userDomainService,
         ILogger<CustomRequireHandler> logger
     )
     {
         _roleDomainService = roleDomainService;
-        _userDomainService = userDomainService;
         _logger = logger;
     }
 
@@ -30,7 +27,12 @@ public sealed class CustomRequireHandler : AuthorizationHandler<PermissionAuthor
     {
         var userId = context.User.FindFirst(CustomClaimsType.UserId)?.Value;
         var roleIdsValue = context.User.FindFirst(CustomClaimsType.RoleId)?.Value;
-        if (!Guid.TryParse(userId, out var uid) || string.IsNullOrWhiteSpace(roleIdsValue))
+        if (
+            context.User.Identity?.IsAuthenticated != true
+            || !Guid.TryParse(userId, out var uid)
+            || uid == Guid.Empty
+            || string.IsNullOrWhiteSpace(roleIdsValue)
+        )
         {
             _logger.LogWarning("invalid token claims");
             context.Fail(new AuthorizationFailureReason(this, "invalid claims"));
@@ -44,21 +46,26 @@ public sealed class CustomRequireHandler : AuthorizationHandler<PermissionAuthor
             return;
         }
 
+        if (!await _roleDomainService.ExistsInCacheAsync(roleIds))
+        {
+            context.Fail(new AuthorizationFailureReason(this, "role permissions not found"));
+            return;
+        }
+
         if (roleIds.Contains(Role.SuperRole.Id))
         {
             context.Succeed(requirement);
             return;
         }
 
-        if(await _userDomainService.ExistsInCacheAsync(uid))
-        {
-            context.Fail(new AuthorizationFailureReason(this, "user not found"));
-            return;
-        }
-
         var permissions = await _roleDomainService.GetPermissionsAsync(roleIds);
-
-        var hasPermission = permissions.Any(requirement.Permission.Contains);
+        var hasPermission = permissions.Any(permission =>
+            !string.IsNullOrWhiteSpace(permission)
+            && (
+                string.Equals(requirement.Permission, permission, StringComparison.Ordinal)
+                || requirement.Permission.StartsWith(permission + ".", StringComparison.Ordinal)
+            )
+        );
         if (hasPermission)
         {
             context.Succeed(requirement);

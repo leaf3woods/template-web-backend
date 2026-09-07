@@ -11,7 +11,7 @@ namespace Org.Product.WebApi.Controllers
     ///     用户资源
     /// </summary>
     [Route("api/[controller]")]
-    [Authorize(Policy = ManagedResource.User)]
+    [Authorize]
     [ApiController]
     public class UserController : ControllerBase
     {

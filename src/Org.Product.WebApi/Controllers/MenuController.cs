@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Org.Product.Application.Dtos;
+using Microsoft.AspNetCore.Authorization;
+using Org.Product.Domain.Utilities;
 using Org.Product.Application.Services.Base;
 using Org.Product.WebApi.Utilities;
 
@@ -10,6 +12,7 @@ namespace Org.Product.WebApi.Controllers
     /// </summary>
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class MenuController : ControllerBase
     {
         public MenuController(IMenuService menuService)
@@ -25,6 +28,7 @@ namespace Org.Product.WebApi.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet]
+        [AllowAnonymous]
         [Route("tree")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -37,6 +41,7 @@ namespace Org.Product.WebApi.Controllers
         /// <param name="id"></param>
         /// <returns></returns>
         [HttpDelete]
+        [Authorize(Policy = $"{ManagedResource.Menu}.{ManagedAction.Delete}.Id")]
         [Route("id/{id:guid}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -49,6 +54,7 @@ namespace Org.Product.WebApi.Controllers
         /// <param name="dto"></param>
         /// <returns></returns>
         [HttpPost]
+        [Authorize(Policy = $"{ManagedResource.Menu}.{ManagedAction.Add}.New")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ResponseWrapper<MenuReadDto>> CreateMenuAsync(MenuCreateDto dto) =>

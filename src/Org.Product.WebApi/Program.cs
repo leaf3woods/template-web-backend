@@ -13,6 +13,7 @@ using Org.Product.Domain.Shared;
 using Org.Product.Domain.Utilities;
 using Org.Product.Infrastructure.Repositories;
 using Org.Product.WebApi.Auth;
+using Org.Product.WebApi.Auth.AuthHandlers;
 using Org.Product.WebApi.Options;
 using Org.Product.WebApi.Utilities;
 using Serilog;
@@ -73,6 +74,8 @@ builder
     })
     .AddJwtBearer(option =>
     {
+        option.EventsType = typeof(SessionJwtBearerEvents);
+        option.SaveToken = true;
         option.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuerSigningKey = true,

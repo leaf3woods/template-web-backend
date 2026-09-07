@@ -1,5 +1,6 @@
 using System.Reflection;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Org.Product.WebApi.Auth.Requirements;
 
 namespace Org.Product.WebApi.Auth;
@@ -11,23 +12,26 @@ public static class AuthPolicyExtensions
         IEnumerable<string>? permissions = null
     )
     {
-        permissions = Assembly
+        options.FallbackPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
+
+        permissions ??= Assembly
             .GetExecutingAssembly()
             .GetTypes()
-            .Where(type => type.Namespace == "Org.Product.WebApi.Controllers")
+            .Where(type => !type.IsAbstract && typeof(ControllerBase).IsAssignableFrom(type))
             .SelectMany(type =>
                 type.GetMethods()
-                    .Select(m => m.GetCustomAttribute<AuthorizeAttribute>())
-                    .Append(type.GetCustomAttribute<AuthorizeAttribute>())
+                    .SelectMany(m => m.GetCustomAttributes<AuthorizeAttribute>(inherit: true))
+                    .Concat(type.GetCustomAttributes<AuthorizeAttribute>(inherit: true))
             )
-            .Where(t => t?.Policy is not null)
-            .Select(t => t!.Policy!)
+            .Where(t => !string.IsNullOrWhiteSpace(t.Policy))
+            .Select(t => t.Policy!)
             .ToArray();
-        foreach (var permission in permissions)
+        foreach (var permission in permissions.Distinct(StringComparer.Ordinal))
         {
             options.AddPolicy(
                 permission,
-                policy => policy.AddRequirements(new PermissionAuthorizationRequirement(permission))
+                policy => policy.RequireAuthenticatedUser()
+                    .AddRequirements(new PermissionAuthorizationRequirement(permission))
             );
         }
     }

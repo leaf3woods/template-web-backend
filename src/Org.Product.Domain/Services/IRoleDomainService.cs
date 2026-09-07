@@ -2,7 +2,8 @@
 {
     public interface IRoleDomainService : IDomainService
     {
-        public Task<IEnumerable<string>> GetPermissionsAsync(params IEnumerable<Guid> roleIds);
+        // Null means at least one requested role no longer exists.
+        public Task<IEnumerable<string>?> GetPermissionsAsync(params IEnumerable<Guid> roleIds);
 
         public Task<bool> ExistsInCacheAsync(params IEnumerable<Guid> roleIds);
 

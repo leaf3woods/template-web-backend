@@ -43,19 +43,31 @@ namespace Org.Product.Infrastructure.DomainServices
                 .Select(userId => new RedisKey(
                     string.Format(CacheKeyFormatter.Token, userId)
                 ))
-                .Select(key => database.KeyExistsAsync(key));
-            if (!scanTasks.Any())
+                .Select(key => database.KeyExistsAsync(key))
+                .ToArray();
+            if (scanTasks.Length == 0)
             {
                 return false;
             }
             return (await Task.WhenAll(scanTasks)).All(exists => exists);
         }
 
-        public async Task<bool> DeleteTokenAsync(Guid userId)
+        public async Task<bool> DeleteTokenAsync(Guid userId, string? expectedToken = null)
         {
             var database = _connectionMultiplexer.GetDatabase();
             var key = string.Format(CacheKeyFormatter.Token, userId);
-            return await database.KeyDeleteAsync(key);
+            if (expectedToken is null)
+            {
+                return await database.KeyDeleteAsync(key);
+            }
+
+            // An older in-flight logout must not delete a newer login session.
+            var result = await database.ScriptEvaluateAsync(
+                "if redis.call('GET', KEYS[1]) == ARGV[1] then return redis.call('DEL', KEYS[1]) else return 0 end",
+                [new RedisKey(key)],
+                [new RedisValue(expectedToken)]
+            );
+            return (long)result == 1;
         }
 
         public async Task<bool> VerifyCaptchaAnswerAsync(Captcha captcha)
@@ -73,7 +85,7 @@ namespace Org.Product.Infrastructure.DomainServices
             var database = _connectionMultiplexer.GetDatabase();
             var key = string.Format(CacheKeyFormatter.Token, userId);
             var raw = await database.StringGetAsync(key);
-            return !raw.HasValue || raw.ToString() == token;
+            return raw.HasValue && raw.ToString() == token;
         }
 
         public void WithSalt(ref User user, string password)

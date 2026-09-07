@@ -126,6 +126,8 @@ dotnet run --project src/Org.Product.WebApi/Org.Product.WebApi.csproj --launch-p
 
 登录密码字段在服务层会按 Base64 解码后参与校验。开发环境下验证码校验会被跳过；非开发环境需要校验验证码答案。
 
+每个用户只保留一个登录会话。新登录覆盖 Redis 中的旧 Token；每次请求在 JWT 签名校验后，还会检查 Token 是否与当前会话一致。登出只删除该请求对应的会话，较早的登出请求不会删除新登录。用户删除、更新、角色变更和密码变更会撤销当前会话，需要重新登录。此规则同样适用于 `super`。
+
 ### 权限与角色
 
 项目使用基于权限字符串的授权策略，权限命名遵循：
@@ -136,21 +138,23 @@ dotnet run --project src/Org.Product.WebApi/Org.Product.WebApi.csproj --launch-p
 
 示例：
 
-- `User.Get.Id`
-- `User.Get.Query`
-- `User.Put.Role`
-- `Role.Get.All`
-- `Role.Put.Scopes`
+- `user.get.Id`
+- `user.get.Query`
+- `user.put.Role`
+- `role.get.All`
+- `role.put.Scopes`
 
-`super` 角色拥有全部权限。其他角色会从数据库加载关联的 `Permission`，并与接口要求的 policy 匹配。
+有效会话中的 `super` 角色拥有全部权限，但仍要求角色权限缓存存在。其他角色读取 Redis 中已维护的权限代码。权限按大小写敏感的完整代码或以点号分隔的父级代码匹配：`user` 可授权 `user.get.Id`，`user.get` 可授权用户读取接口，`get` 或 `user.g` 不匹配。
+
+权限领域服务只读取已维护的缓存，不查询数据库、不自动回填或切换缓存版本；缓存缺失时拒绝授权。编辑侧的事务与缓存同步流程尚待实现。没有授权属性的接口默认要求登录，匿名接口必须显式声明 `[AllowAnonymous]`。
 
 ### 菜单与权限数据
 
 菜单数据复用 `Permission` 实体，支持树结构：
 
-- `GET /api/menu/tree` 获取树形菜单。
-- `POST /api/menu` 新增菜单。
-- `DELETE /api/menu/id/{id}` 删除菜单。
+- `GET /api/menu/tree` 匿名获取树形菜单。
+- `POST /api/menu` 新增菜单，需要 `menu.add.New` 权限。
+- `DELETE /api/menu/id/{id}` 删除菜单，需要 `menu.delete.Id` 权限。
 
 根菜单为内置种子数据，删除菜单时会阻止删除根节点，也会阻止删除仍存在子节点的菜单。
 
@@ -206,7 +210,7 @@ dotnet run --project src/Org.Product.WebApi/Org.Product.WebApi.csproj --launch-p
 # 发布 Release 包
 dotnet publish src/Org.Product.WebApi/Org.Product.WebApi.csproj -c Release
 
-# 运行测试；当前解决方案尚未包含测试项目
+# 运行测试
 dotnet test
 ```
 
@@ -256,20 +260,21 @@ docker build -f src/Org.Product.WebApi/Dockerfile -t template-web-backend .
 
 ## 测试
 
-当前 `Org.Product.sln` 未包含测试项目。新增测试时建议创建：
+`Org.Product.sln` 包含认证授权回归测试项目：
 
 ```text
 src/Org.Product.Tests/
 ```
 
-并加入解决方案：
+运行全部测试：
 
 ```bash
-dotnet sln Org.Product.sln add src/Org.Product.Tests/Org.Product.Tests.csproj
 dotnet test
 ```
 
-测试命名建议描述行为，例如：
+测试使用 ASP.NET Core TestServer 验证实际 JWT 认证、授权和 Controller 路由；Redis 与仓储使用测试替身，不连接开发数据库或 Redis。覆盖会话替换、登出、权限匹配、权限缓存只读行为、用户角色和密码变更。它们不替代完整应用启动、真实数据库模型及 Redis 集成验证。
+
+测试命名描述行为，例如：
 
 ```text
 CreateUser_WhenNameExists_ThrowsBadRequestException

@@ -12,7 +12,7 @@ namespace Org.Product.WebApi.Controllers
     /// </summary>
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Policy = ManagedResource.Role)]
+    [Authorize]
     public class RoleController : ControllerBase
     {
         /// <summary>
