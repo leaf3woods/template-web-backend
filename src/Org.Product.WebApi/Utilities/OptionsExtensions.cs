@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Org.Product.Application.Options;
-using Org.Product.WebApi.Options;
+using Org.Product.Application.Utilities.Options;
+using Org.Product.WebApi.Utilities.Options;
 
 namespace Org.Product.WebApi.Utilities
 {

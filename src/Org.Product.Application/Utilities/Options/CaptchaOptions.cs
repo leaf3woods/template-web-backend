@@ -1,4 +1,4 @@
-namespace Org.Product.Application.Options;
+namespace Org.Product.Application.Utilities.Options;
 
 public sealed class CaptchaOptions
 {

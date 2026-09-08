@@ -1,4 +1,4 @@
-namespace Org.Product.WebApi.Options;
+namespace Org.Product.WebApi.Utilities.Options;
 
 public sealed class JwtAuthenticationOptions
 {
