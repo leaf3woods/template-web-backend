@@ -4,7 +4,7 @@ using Org.Product.Application.Utilities;
 
 namespace Org.Product.WebApi.Utilities.InjectionModules;
 
-public sealed class ApplicationModule : Autofac.Module
+public sealed class ApplicationModule : Module
 {
     protected override void Load(ContainerBuilder builder)
     {

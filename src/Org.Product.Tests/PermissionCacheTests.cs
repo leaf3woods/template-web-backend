@@ -1,6 +1,6 @@
 using Moq;
 using Org.Product.Domain.Shared;
-using Org.Product.Infrastructure.DomainServices;
+using Org.Product.Infrastructure.Adapters.Security;
 using Org.Product.Tests.Support;
 using StackExchange.Redis;
 
@@ -14,10 +14,10 @@ public sealed class PermissionCacheTests
         var redis = new RedisStub();
         var roleId = Guid.NewGuid();
         redis.Values[string.Format(CacheKeyFormatter.Permissions, roleId)] = "[\"menu\",\"menu.get\"]";
-        var service = new RoleDomainService(redis.Connection.Object);
+        var service = new RedisRolePermissionStore(redis.Connection.Object);
 
         Assert.Equal(["menu", "menu.get"], await service.GetPermissionsAsync(roleId));
-        Assert.True(await service.ExistsInCacheAsync(roleId));
+        Assert.True(await service.ContainsAsync(roleId));
         AssertNoWrites(redis);
     }
 
@@ -25,11 +25,11 @@ public sealed class PermissionCacheTests
     public async Task MissingCache_ReturnsNoPermissionsWithoutFillingCache()
     {
         var redis = new RedisStub();
-        var service = new RoleDomainService(redis.Connection.Object);
+        var service = new RedisRolePermissionStore(redis.Connection.Object);
         var roleId = Guid.NewGuid();
 
         Assert.Empty(await service.GetPermissionsAsync(roleId));
-        Assert.False(await service.ExistsInCacheAsync(roleId));
+        Assert.False(await service.ContainsAsync(roleId));
         Assert.Empty(redis.Values);
         AssertNoWrites(redis);
     }
@@ -40,7 +40,7 @@ public sealed class PermissionCacheTests
         var redis = new RedisStub();
         var roleId = Guid.NewGuid();
         redis.Values[string.Format(CacheKeyFormatter.Permissions, roleId)] = "[\"menu\"]";
-        var service = new RoleDomainService(redis.Connection.Object);
+        var service = new RedisRolePermissionStore(redis.Connection.Object);
 
         Assert.Empty(await service.GetPermissionsAsync([roleId, Guid.NewGuid()]));
         Assert.Single(redis.Values);
@@ -53,10 +53,10 @@ public sealed class PermissionCacheTests
         var redis = new RedisStub();
         var roleId = Guid.NewGuid();
         redis.Values[string.Format(CacheKeyFormatter.Permissions, roleId)] = "[]";
-        var service = new RoleDomainService(redis.Connection.Object);
+        var service = new RedisRolePermissionStore(redis.Connection.Object);
 
         Assert.Empty(await service.GetPermissionsAsync(roleId));
-        Assert.True(await service.ExistsInCacheAsync(roleId));
+        Assert.True(await service.ContainsAsync(roleId));
         AssertNoWrites(redis);
     }
 

@@ -7,13 +7,6 @@ public interface IUnitOfWork
     Task<IUnitOfWorkTransaction> BeginTransactionAsync(
         CancellationToken cancellationToken = default
     );
-
-    Task<int> ExecuteSqlAsync(SqlCommand command, CancellationToken cancellationToken = default);
-
-    Task<IReadOnlyList<TResult>> QuerySqlAsync<TResult>(
-        SqlCommand command,
-        CancellationToken cancellationToken = default
-    );
 }
 
 public interface IUnitOfWorkTransaction : IAsyncDisposable

@@ -74,6 +74,7 @@ namespace Org.Product.Domain.Entities.Account
 
         public static readonly User DevUser = new()
         {
+            Id = new Guid("a8ba3a6d-c7b1-4d90-b0c9-66f1cbd66101"),
             Username = "developer",
             Passphrase = "Uh+8E9ft9jptdMzAVRKo0UYQtqn5epsbJUZQGbL/Xhk=",
             Salt = "5+fPPv0FShtKo3ed746TiuNojEZsxuPkhbU+YvF5DuQ=",
@@ -85,6 +86,7 @@ namespace Org.Product.Domain.Entities.Account
 
         public static readonly User SuperUser = new()
         {
+            Id = new Guid("a8ba3a6d-c7b1-4d90-b0c9-66f1cbd66102"),
             Username = "super",
             Passphrase = "WSAcdSAvzQFUq3iXLWXLmcuPmWHIjE8ffSBTVjJVBPQ=",
             Salt = "aY68cuKZh+LNfYczaGclgtTOYy34yvl1O/H9IX3bBtU=",
@@ -96,6 +98,7 @@ namespace Org.Product.Domain.Entities.Account
 
         public static readonly User AdminUser = new()
         {
+            Id = new Guid("a8ba3a6d-c7b1-4d90-b0c9-66f1cbd66103"),
             Username = "admin",
             Passphrase = "Lc8DL5jIpDxDfsDp6gYk2HjVIEzXZ30MJc5eW6OU6ko=",
             Salt = "JO3wh7gOTUQ5cBydCoQqnazvw5dgRoVQkNpdrIAvVgI=",

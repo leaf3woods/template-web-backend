@@ -3,19 +3,17 @@ using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
-using Npgsql;
-using Org.Product.Application.Options;
+using Org.Product.Application.Services.Base;
+using Org.Product.Infrastructure;
+using Org.Product.Infrastructure.Adapters.Security;
 using Org.Product.Domain.Shared;
-using Org.Product.Domain.Utilities;
-using Org.Product.Infrastructure.Repositories;
 using Org.Product.WebApi.Auth;
 using Org.Product.WebApi.Auth.AuthHandlers;
-using Org.Product.WebApi.Options;
 using Org.Product.WebApi.Utilities;
+using Org.Product.WebApi.Utilities.Options;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -29,7 +27,6 @@ var openApiOptions =
     builder.Configuration.GetRequiredSection(OpenApiOptions.SectionName).Get<OpenApiOptions>()
     ?? throw new InvalidOperationException("Missing OpenApiInfo configuration.");
 
-CryptoUtil.Initialize(jwtAuthenticationOptions.KeyFolder);
 
 builder.Services.AddAllOptions();
 
@@ -38,7 +35,7 @@ builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
 builder.Host.ConfigureContainer<ContainerBuilder>(config =>
     config.RegisterAssemblyModules(
         Assembly.GetExecutingAssembly(),
-        typeof(AccessTokenOptions).Assembly
+        typeof(IBaseService).Assembly
     )
 );
 
@@ -79,7 +76,6 @@ builder
         option.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new ECDsaSecurityKey(CryptoUtil.PublicECDsa), // Use ECDsa
             ValidAlgorithms = [SecurityAlgorithms.EcdsaSha256],
             ValidateIssuer = true,
             ValidIssuer = jwtAuthenticationOptions.Issuer,
@@ -138,25 +134,18 @@ builder.Services.AddSwaggerGen(option =>
     });
 });
 
-// Add dbContext pool
-builder.Services.AddDbContextPool<ApiDbContext>(options =>
-{
-    options
-        .UseNpgsql(
-            new NpgsqlDataSourceBuilder(
-                builder.Configuration.GetConnectionString("Postgres")
-            ).Build()
-        )
-        .EnableDetailedErrors();
-    options.UseSnakeCaseNamingConvention();
-});
+builder.Services.AddPersistence(builder.Configuration);
+builder.Services.AddSecurityInfrastructure(builder.Configuration);
+builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
+    .Configure<FileSigningKeyProvider>((options, keys) =>
+        options.TokenValidationParameters.IssuerSigningKey = keys.PublicKey);
 
 // Add mapper profiles
-builder.Services.AddAutoMapper(config => config.AddMaps(typeof(AccessTokenOptions).Assembly));
+builder.Services.AddAutoMapper(config => config.AddMaps(typeof(IBaseService).Assembly));
 
 // Add mediatR
 builder.Services.AddMediatR(config =>
-    config.RegisterServicesFromAssemblies(typeof(AccessTokenOptions).Assembly)
+    config.RegisterServicesFromAssemblies(typeof(IBaseService).Assembly)
 );
 
 var app = builder.Build();
@@ -176,12 +165,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-
-await using (var scope = app.Services.CreateAsyncScope())
-{
-    var initialDatabase = scope.ServiceProvider.GetRequiredService<InitialDatabase>();
-    await initialDatabase.Initialize();
-}
 
 app.UseExceptionHandler(builder =>
     builder.Run(async context =>

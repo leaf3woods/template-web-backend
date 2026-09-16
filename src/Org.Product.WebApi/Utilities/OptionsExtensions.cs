@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using Org.Product.Application.Utilities.Options;
 using Org.Product.WebApi.Utilities.Options;
 
@@ -9,27 +9,12 @@ namespace Org.Product.WebApi.Utilities
         public static void AddAllOptions(this IServiceCollection services)
         {
             services
-                .AddOptions<AccessTokenOptions>()
-                .BindConfiguration(AccessTokenOptions.SectionName)
-                .Validate(
-                    options =>
-                        !string.IsNullOrWhiteSpace(options.Issuer)
-                        && !string.IsNullOrWhiteSpace(options.Audience)
-                        && options.ExpireMin > 0,
-                    "Jwt requires a non-empty Issuer, Audience, and positive ExpireMin."
-                )
-                .ValidateOnStart();
-
-            services
                 .AddOptions<CaptchaOptions>()
                 .BindConfiguration(CaptchaOptions.SectionName)
                 .Validate(
                     options =>
-                        options.ExpireSeconds > 0
-                        && !string.IsNullOrWhiteSpace(options.FontFamily)
-                        && options.Height > 0
-                        && options.Width > 0,
-                    "Captcha requires a positive ExpireSeconds, Height, Width, and a non-empty FontFamily."
+                        options.ExpireSeconds > 0,
+                    "Captcha requires a positive ExpireSeconds."
                 )
                 .ValidateOnStart();
 

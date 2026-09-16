@@ -10,9 +10,15 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.11" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
     <PackageReference Include="StackExchange.Redis" Version="3.1.31" />
+    <PackageReference Include="EFCore.NamingConventions" Version="10.0.1" />
+    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.22.0" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.22.0" />
+    <PackageReference Include="SkiaSharp" Version="4.151.1" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.11" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Org.Product.Application\Org.Product.Application.csproj" />
     <ProjectReference Include="..\Org.Product.Domain.Shared\Org.Product.Domain.Shared.csproj" />
     <ProjectReference Include="..\Org.Product.Domain\Org.Product.Domain.csproj" />
   </ItemGroup>

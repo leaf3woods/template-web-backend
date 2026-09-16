@@ -1,0 +1,12 @@
+namespace Org.Product.Infrastructure.Adapters.Security.Options;
+
+public sealed class CaptchaRenderingOptions
+{
+    public const string SectionName = "Captcha";
+    public string FontFamily { get; set; } = "consolas";
+    public int Height { get; set; } = 80;
+    public int Width { get; set; } = 200;
+    public bool EnableNoise { get; set; } = true;
+    public bool EnableLines { get; set; } = true;
+    public bool EnableCircles { get; set; } = true;
+}

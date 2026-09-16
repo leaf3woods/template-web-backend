@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Org.Product.Domain.Entities.Account;
-using Org.Product.Domain.Services;
+using Org.Product.Application.Abstractions.Security;
 using Org.Product.Domain.Shared;
 using Org.Product.WebApi.Auth.Requirements;
 
@@ -8,15 +8,15 @@ namespace Org.Product.WebApi.Auth.AuthHandlers;
 
 public sealed class CustomRequireHandler : AuthorizationHandler<PermissionAuthorizationRequirement>
 {
-    private readonly IRoleDomainService _roleDomainService;
+    private readonly IRolePermissionStore _permissions;
     private readonly ILogger<CustomRequireHandler> _logger;
 
     public CustomRequireHandler(
-        IRoleDomainService roleDomainService,
+        IRolePermissionStore permissions,
         ILogger<CustomRequireHandler> logger
     )
     {
-        _roleDomainService = roleDomainService;
+        _permissions = permissions;
         _logger = logger;
     }
 
@@ -46,7 +46,7 @@ public sealed class CustomRequireHandler : AuthorizationHandler<PermissionAuthor
             return;
         }
 
-        if (!await _roleDomainService.ExistsInCacheAsync(roleIds))
+        if (!await _permissions.ContainsAsync(roleIds))
         {
             context.Fail(new AuthorizationFailureReason(this, "role permissions not found"));
             return;
@@ -58,7 +58,7 @@ public sealed class CustomRequireHandler : AuthorizationHandler<PermissionAuthor
             return;
         }
 
-        var permissions = await _roleDomainService.GetPermissionsAsync(roleIds);
+        var permissions = await _permissions.GetPermissionsAsync(roleIds);
         var hasPermission = permissions.Any(permission =>
             !string.IsNullOrWhiteSpace(permission)
             && (

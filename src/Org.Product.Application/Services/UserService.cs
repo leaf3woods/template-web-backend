@@ -1,21 +1,20 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using AutoMapper;
-using System.IdentityModel.Tokens.Jwt;
+using System.Security.Cryptography;
+using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using Org.Product.Application.Captchas;
-using Org.Product.Application.Captchas.Builder;
+using Org.Product.Application.Abstractions.Security;
 using Org.Product.Application.Dtos;
-using Org.Product.Application.Options;
 using Org.Product.Application.Services.Base;
 using Org.Product.Application.Utilities;
 using Org.Product.Domain.Entities.Account;
 using Org.Product.Domain.Repositories;
-using Org.Product.Domain.Services;
 using Org.Product.Domain.Shared;
 using Org.Product.Domain.Shared.Attributes;
 using Org.Product.Domain.Shared.Exceptions;
 using Org.Product.Domain.Utilities;
+using Org.Product.Application.Utilities.Options;
 
 namespace Org.Product.Application.Services
 {
@@ -29,21 +28,30 @@ namespace Org.Product.Application.Services
             IRepository<Role> roleRepository,
             IUnitOfWork unitOfWork,
             IMapper mapper,
-            IUserDomainService userDomainService,
-            IOptions<AccessTokenOptions> accessTokenOptions,
+            IUserSessionStore sessions,
+            ICaptchaChallengeStore challenges,
+            IPasswordCredentialService passwords,
+            IAccessTokenIssuer tokens,
+            ICaptchaGenerator captchaGenerator,
             IOptions<CaptchaOptions> captchaOptions
         )
             : base(repository, unitOfWork, mapper)
         {
             _roleRepository = roleRepository;
-            _userDomainService = userDomainService;
-            _accessTokenOptions = accessTokenOptions.Value;
+            _sessions = sessions;
+            _challenges = challenges;
+            _passwords = passwords;
+            _tokens = tokens;
+            _captchaGenerator = captchaGenerator;
             _captchaOptions = captchaOptions.Value;
         }
 
         private readonly IRepository<Role> _roleRepository;
-        private readonly IUserDomainService _userDomainService;
-        private readonly AccessTokenOptions _accessTokenOptions;
+        private readonly IUserSessionStore _sessions;
+        private readonly ICaptchaChallengeStore _challenges;
+        private readonly IPasswordCredentialService _passwords;
+        private readonly IAccessTokenIssuer _tokens;
+        private readonly ICaptchaGenerator _captchaGenerator;
         private readonly CaptchaOptions _captchaOptions;
 
         public override async Task<IEnumerable<UserReadDto>> GetListAsync(UserQueryDto? query)
@@ -86,9 +94,13 @@ namespace Org.Product.Application.Services
             return Mapper.Map<PaginatedList<UserReadDto>>(users);
         }
 
+        public override Task<UserReadDto?> CreateAsync(UserRegisterDto dto) => RegisterAsync(dto);
+
         public async Task<UserReadDto?> RegisterAsync(UserRegisterDto registerDto)
         {
             var user = Mapper.Map<User>(registerDto);
+            _passwords.SetPassword(user, registerDto.Password);
+            user.Roles = [Role.MemberRole];
             await Repository.AddAsync(user);
             var count = await UnitOfWork.SaveChangesAsync();
             return count == 0 ? null : Mapper.Map<UserReadDto>(user);
@@ -100,7 +112,7 @@ namespace Org.Product.Application.Services
 
             if (
                 _captchaOptions.RequireVerification
-                && (answer is null || !await _userDomainService.VerifyCaptchaAnswerAsync(answer))
+                && (answer is null || !await _challenges.VerifyAsync(answer))
             )
             {
                 throw new NotAcceptableException("captcha not found or not correct");
@@ -108,29 +120,14 @@ namespace Org.Product.Application.Services
             var user = await Queryable
                 .Include(u => u.Roles)
                 .FirstOrDefaultAsync(u => u.Username == credential.Username);
-            var bytes = Convert.FromBase64String(credential.Password);
 
-            if (user is null || !user.Verify(bytes))
+            if (user is null || !_passwords.Verify(user, credential.Password))
             {
                 throw new NotAcceptableException("user not found or password error");
             }
-            var rids = string.Join(",", user.Roles.Select(r => r.Id));
-            var token =
-                JwtTokenUtil.GenerateJwtToken(
-                    _accessTokenOptions.Issuer,
-                    _accessTokenOptions.Audience,
-                    _accessTokenOptions.Expiration,
-                    new Claim(CustomClaimsType.UserId, user.Id.ToString()),
-                    new Claim(CustomClaimsType.RoleId, rids),
-                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-                ) ?? throw new Exception("generate jwt token error");
-
-            await _userDomainService.CacheTokenAsync(
-                user.Id,
-                token,
-                _accessTokenOptions.Expiration
-            );
-            return token;
+            var token = _tokens.Issue(user.Id, user.Roles.Select(role => role.Id));
+            await _sessions.SaveAsync(user.Id, token.Value, token.Lifetime);
+            return token.Value;
         }
 
         public async Task LogoutAsync(IEnumerable<Claim> claims, string token)
@@ -140,13 +137,13 @@ namespace Org.Product.Application.Services
             {
                 throw new ForbiddenException("invalid login session");
             }
-            await _userDomainService.DeleteTokenAsync(uid, token);
+            await _sessions.RevokeAsync(uid, token);
         }
 
         public override async Task<int> DeleteAsync(Guid key)
         {
             var count = await base.DeleteAsync(key);
-            await _userDomainService.DeleteTokenAsync(key);
+            await _sessions.RevokeAsync(key);
             return count;
         }
 
@@ -161,7 +158,7 @@ namespace Org.Product.Application.Services
             Mapper.Map(dto, entity);
             Repository.Update(entity);
             await UnitOfWork.SaveChangesAsync();
-            await _userDomainService.DeleteTokenAsync(key);
+            await _sessions.RevokeAsync(key);
             return Mapper.Map<UserReadDto>(entity);
         }
 
@@ -215,43 +212,14 @@ namespace Org.Product.Application.Services
             user.Roles = roles;
             Repository.Update(user);
             var count = await UnitOfWork.SaveChangesAsync();
-            await _userDomainService.DeleteTokenAsync(userId);
+            await _sessions.RevokeAsync(userId);
             return count == 0 ? null : Mapper.Map<UserReadDto>(user);
         }
 
         public async Task<CaptchaReadDto> GenerateCaptchaAsync()
         {
-            //var builder = CaptchaBuilder.Create<CharacterCaptchaBuilder>()
-            //    .WithLowerCase()
-            //    .WithUpperCase();
-            var builder = CaptchaBuilder
-                .Create<QuestionCaptchaBuilder>()
-                .WithGenOption(
-                    new CaptchaGenOptions
-                    {
-                        FontFamily = _captchaOptions.FontFamily,
-                        Height = _captchaOptions.Height,
-                        Width = _captchaOptions.Width,
-                    }
-                );
-
-            if (_captchaOptions.EnableNoise)
-            {
-                builder = builder.WithNoise();
-            }
-
-            if (_captchaOptions.EnableLines)
-            {
-                builder = builder.WithLines();
-            }
-
-            if (_captchaOptions.EnableCircles)
-            {
-                builder = builder.WithCircles();
-            }
-
-            var captcha = builder.Build();
-            await _userDomainService.CacheCaptchaAnswerAsync(captcha, _captchaOptions.Expiration);
+            var captcha = _captchaGenerator.Generate();
+            await _challenges.SaveAsync(captcha, _captchaOptions.Expiration);
             return Mapper.Map<CaptchaReadDto>(captcha);
         }
 
@@ -261,7 +229,7 @@ namespace Org.Product.Application.Services
 
             if (
                 _captchaOptions.RequireVerification
-                && (answer is null || !await _userDomainService.VerifyCaptchaAnswerAsync(answer))
+                && (answer is null || !await _challenges.VerifyAsync(answer))
             )
             {
                 throw new NotAcceptableException("captcha not exist or not correct");
@@ -269,16 +237,15 @@ namespace Org.Product.Application.Services
             var user =
                 await Queryable.FirstOrDefaultAsync(u => u.Username == passwordDto.Username)
                 ?? throw new NotFoundException("user not found");
-            var bytes = Convert.FromBase64String(passwordDto.OldPassword);
-            if (!user.Verify(bytes))
+            if (!_passwords.Verify(user, passwordDto.OldPassword))
             {
                 throw new NotAcceptableException("password error");
             }
 
-            _userDomainService.WithSalt(ref user, passwordDto.NewPassword);
+            _passwords.SetPassword(user, passwordDto.NewPassword);
             Repository.Update(user);
             var count = await UnitOfWork.SaveChangesAsync();
-            await _userDomainService.DeleteTokenAsync(user.Id);
+            await _sessions.RevokeAsync(user.Id);
             return count;
         }
 
@@ -290,11 +257,11 @@ namespace Org.Product.Application.Services
         {
             var user =
                 await Repository.FindAsync(userId) ?? throw new NotFoundException("user not found");
-            var hash = CryptoUtil.Sha256("12345678");
-            _userDomainService.WithSalt(ref user, hash);
+            var hash = Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes("12345678")));
+            _passwords.SetPassword(user, hash);
             Repository.Update(user);
             var count = await UnitOfWork.SaveChangesAsync();
-            await _userDomainService.DeleteTokenAsync(user.Id);
+            await _sessions.RevokeAsync(user.Id);
             return count;
         }
     }

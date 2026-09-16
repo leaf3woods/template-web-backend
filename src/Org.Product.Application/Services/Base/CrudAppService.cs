@@ -112,7 +112,7 @@ public abstract class CrudAppService<TEntity, TKey, TReadDto, TQueryDto, TCreate
     /// </summary>
     /// <param name="dto"></param>
     /// <returns></returns>
-    public async Task<TReadDto?> CreateAsync(TCreateDto dto)
+    public virtual async Task<TReadDto?> CreateAsync(TCreateDto dto)
     {
         var entity = Mapper.Map<TEntity>(dto);
         await Repository.AddAsync(entity);

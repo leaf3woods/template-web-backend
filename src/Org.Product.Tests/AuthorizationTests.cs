@@ -9,12 +9,13 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Moq;
 using Org.Product.Application.Services.Base;
-using Org.Product.Domain.Services;
+using Org.Product.Application.Abstractions.Security;
 using Org.Product.Domain.Shared;
-using Org.Product.Infrastructure.DomainServices;
+using Org.Product.Infrastructure.Adapters.Security;
 using Org.Product.Tests.Support;
 using Org.Product.WebApi.Auth;
 using Org.Product.WebApi.Auth.AuthHandlers;
@@ -38,7 +39,7 @@ public sealed class AuthorizationTests
     {
         await using var host = await AuthHost.CreateAsync([permission]);
         var token = host.Token();
-        await host.Users.CacheTokenAsync(host.UserId, token, TimeSpan.FromMinutes(5));
+        await host.Users.SaveAsync(host.UserId, token, TimeSpan.FromMinutes(5));
         Assert.Equal(expected, await host.DeleteMenu(token));
     }
 
@@ -49,17 +50,17 @@ public sealed class AuthorizationTests
     {
         await using var host = await AuthHost.CreateAsync(["menu"], super);
         var first = host.Token();
-        await host.Users.CacheTokenAsync(host.UserId, first, TimeSpan.FromMinutes(5));
+        await host.Users.SaveAsync(host.UserId, first, TimeSpan.FromMinutes(5));
         Assert.Equal(HttpStatusCode.OK, await host.DeleteMenu(first));
 
         var second = host.Token();
-        await host.Users.CacheTokenAsync(host.UserId, second, TimeSpan.FromMinutes(5));
+        await host.Users.SaveAsync(host.UserId, second, TimeSpan.FromMinutes(5));
         Assert.Equal(HttpStatusCode.Unauthorized, await host.DeleteMenu(first));
         Assert.Equal(HttpStatusCode.OK, await host.DeleteMenu(second));
 
-        Assert.False(await host.Users.DeleteTokenAsync(host.UserId, first));
+        Assert.False(await host.Users.RevokeAsync(host.UserId, first));
         Assert.Equal(HttpStatusCode.OK, await host.DeleteMenu(second));
-        Assert.True(await host.Users.DeleteTokenAsync(host.UserId, second));
+        Assert.True(await host.Users.RevokeAsync(host.UserId, second));
         Assert.Equal(HttpStatusCode.Unauthorized, await host.DeleteMenu(second));
     }
 
@@ -79,7 +80,7 @@ public sealed class AuthorizationTests
     {
         await using var host = await AuthHost.CreateAsync(["user.get.Id"]);
         var token = host.Token();
-        await host.Users.CacheTokenAsync(host.UserId, token, TimeSpan.FromMinutes(5));
+        await host.Users.SaveAsync(host.UserId, token, TimeSpan.FromMinutes(5));
         using var request = new HttpRequestMessage(HttpMethod.Get, $"/api/user/{host.UserId}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
         Assert.Equal(HttpStatusCode.OK, (await host.Client.SendAsync(request)).StatusCode);
@@ -93,7 +94,7 @@ public sealed class AuthorizationTests
     {
         await using var host = await AuthHost.CreateAsync(["menu"]);
         var token = host.Token(roleClaim);
-        await host.Users.CacheTokenAsync(host.UserId, token, TimeSpan.FromMinutes(5));
+        await host.Users.SaveAsync(host.UserId, token, TimeSpan.FromMinutes(5));
         Assert.Equal(HttpStatusCode.Forbidden, await host.DeleteMenu(token));
     }
 
@@ -102,7 +103,7 @@ public sealed class AuthorizationTests
     {
         await using var host = await AuthHost.CreateAsync(null, super: true);
         var token = host.Token();
-        await host.Users.CacheTokenAsync(host.UserId, token, TimeSpan.FromMinutes(5));
+        await host.Users.SaveAsync(host.UserId, token, TimeSpan.FromMinutes(5));
         Assert.Equal(HttpStatusCode.Forbidden, await host.DeleteMenu(token));
     }
 
@@ -111,7 +112,7 @@ public sealed class AuthorizationTests
     {
         await using var host = await AuthHost.CreateAsync(["menu"]);
         var token = host.Token();
-        await host.Users.CacheTokenAsync(host.UserId, token, TimeSpan.FromMinutes(5));
+        await host.Users.SaveAsync(host.UserId, token, TimeSpan.FromMinutes(5));
         using var request = new HttpRequestMessage(HttpMethod.Post, "/api/home/logout");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
@@ -127,10 +128,10 @@ public sealed class AuthorizationTests
         private readonly ECDsa _key;
         private readonly bool _super;
         public Guid UserId { get; } = Guid.NewGuid();
-        public UserDomainService Users { get; }
+        public RedisUserSessionStore Users { get; }
         public HttpClient Client { get; }
 
-        private AuthHost(WebApplication app, ECDsa key, UserDomainService users, bool super)
+        private AuthHost(WebApplication app, ECDsa key, RedisUserSessionStore users, bool super)
         {
             _app = app;
             _key = key;
@@ -142,21 +143,22 @@ public sealed class AuthorizationTests
         public static async Task<AuthHost> CreateAsync(string[]? permissions, bool super = false)
         {
             var redis = new RedisStub();
-            var users = new UserDomainService(redis.Connection.Object);
-            var roles = new Mock<IRoleDomainService>();
-            roles.Setup(service => service.ExistsInCacheAsync(It.IsAny<IEnumerable<Guid>>()))
+            var users = new RedisUserSessionStore(redis.Connection.Object);
+            var roles = new Mock<IRolePermissionStore>();
+            roles.Setup(service => service.ContainsAsync(It.IsAny<IEnumerable<Guid>>()))
                 .ReturnsAsync(permissions is not null);
             roles.Setup(service => service.GetPermissionsAsync(It.IsAny<IEnumerable<Guid>>()))
                 .ReturnsAsync(permissions ?? []);
             var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
             var builder = WebApplication.CreateBuilder();
+            builder.Logging.ClearProviders();
             builder.WebHost.UseTestServer();
             builder.Services.AddControllers().AddApplicationPart(typeof(MenuController).Assembly);
-            builder.Services.AddSingleton<IUserDomainService>(users);
+            builder.Services.AddSingleton<IUserSessionStore>(users);
             builder.Services.AddSingleton(roles.Object);
             var userService = new Mock<IUserService>();
             userService.Setup(service => service.LogoutAsync(It.IsAny<IEnumerable<Claim>>(), It.IsAny<string>()))
-                .Returns((IEnumerable<Claim> claims, string token) => users.DeleteTokenAsync(
+                .Returns((IEnumerable<Claim> claims, string token) => users.RevokeAsync(
                     Guid.Parse(claims.Single(claim => claim.Type == CustomClaimsType.UserId).Value), token));
             builder.Services.AddSingleton(userService.Object);
             builder.Services.AddSingleton(Mock.Of<IMenuService>());

@@ -10,13 +10,11 @@
     <PackageReference Include="MediatR" Version="14.2.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.11" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="10.0.11" />
-    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.22.0" />
-    <PackageReference Include="SkiaSharp" Version="4.151.1" />
-    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.22.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Org.Product.Domain.Shared\Org.Product.Domain.Shared.csproj" />
     <ProjectReference Include="..\Org.Product.Domain\Org.Product.Domain.csproj" />
   </ItemGroup>
+
 </Project>
