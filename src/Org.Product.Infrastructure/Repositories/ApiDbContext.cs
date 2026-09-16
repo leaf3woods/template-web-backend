@@ -75,7 +75,9 @@ namespace Org.Product.Infrastructure.Repositories
                 .Entity<Role>()
                 .HasMany(r => r.Permissions)
                 .WithMany()
-                .UsingEntity<RolePermission>();
+                .UsingEntity<RolePermission>(
+                    join => join.HasOne(item => item.Permission).WithMany().HasForeignKey(item => item.PermissionId),
+                    join => join.HasOne(item => item.Role).WithMany().HasForeignKey(item => item.RoleId));
 
             #endregion role
 
@@ -85,7 +87,10 @@ namespace Org.Product.Infrastructure.Repositories
 
             modelBuilder.Entity<User>().HasIndex(u => new { u.Username, u.SoftDeleted }).IsUnique();
 
-            modelBuilder.Entity<User>().HasMany(u => u.Roles).WithMany().UsingEntity<UserRole>();
+            modelBuilder.Entity<User>().HasMany(u => u.Roles).WithMany(r => r.Users)
+                .UsingEntity<UserRole>(
+                    join => join.HasOne(item => item.Role).WithMany().HasForeignKey(item => item.RoleId),
+                    join => join.HasOne(item => item.User).WithMany().HasForeignKey(item => item.UserId));
 
             modelBuilder.Entity<User>().HasIndex(u => u.SoftDeleted);
 
@@ -121,8 +126,6 @@ namespace Org.Product.Infrastructure.Repositories
                 .HasOne(rm => rm.Role)
                 .WithMany()
                 .HasForeignKey(rm => rm.RoleId);
-
-            modelBuilder.Entity<Permission>().HasData(Permission.Seeds);
 
             #endregion
 
