@@ -1,4 +1,3 @@
-using Org.Product.Application.Abstractions.Security;
 using AutoMapper;
 using System.Security.Claims;
 using Microsoft.Extensions.Options;
@@ -9,9 +8,11 @@ using Org.Product.Domain.Entities.Account;
 using Org.Product.Domain.Repositories;
 using Org.Product.Domain.Shared;
 using Org.Product.Domain.Shared.Exceptions;
-using Org.Product.Infrastructure.Adapters.Security;
 using Org.Product.Tests.Support;
 using Org.Product.Application.Utilities.Options;
+using Org.Product.Application.Abstractions.Authentication;
+using Org.Product.Application.Abstractions.Captchas;
+using Org.Product.Infrastructure.Adapters.Authentication;
 
 namespace Org.Product.Tests;
 

@@ -4,7 +4,6 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using Org.Product.Application.Abstractions.Security;
 using Org.Product.Application.Dtos;
 using Org.Product.Application.Services.Base;
 using Org.Product.Application.Utilities;
@@ -15,6 +14,8 @@ using Org.Product.Domain.Shared.Attributes;
 using Org.Product.Domain.Shared.Exceptions;
 using Org.Product.Domain.Utilities;
 using Org.Product.Application.Utilities.Options;
+using Org.Product.Application.Abstractions.Authentication;
+using Org.Product.Application.Abstractions.Captchas;
 
 namespace Org.Product.Application.Services;
 

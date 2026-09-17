@@ -12,16 +12,16 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Moq;
 using Org.Product.Application.Services.Base;
-using Org.Product.Application.Abstractions.Security;
 using Org.Product.Domain.Shared;
 using Org.Product.Domain.Services;
 using Org.Product.Domain.Services.Base;
-using Org.Product.Infrastructure.Adapters.Security;
 using Org.Product.Tests.Support;
 using Org.Product.WebApi.Auth;
 using Org.Product.WebApi.Auth.AuthHandlers;
 using Org.Product.WebApi.Controllers;
 using Role = Org.Product.Domain.Entities.Account.Role;
+using Org.Product.Application.Abstractions.Authentication;
+using Org.Product.Infrastructure.Adapters.Authentication;
 
 namespace Org.Product.Tests;
 

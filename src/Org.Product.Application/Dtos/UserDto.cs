@@ -1,4 +1,4 @@
-using Org.Product.Application.Abstractions.Security;
+using Org.Product.Application.Abstractions.Captchas;
 using Org.Product.Application.Dtos.Base;
 using Org.Product.Domain.Entities.Account;
 using Org.Product.Domain.ValueObjects.UserValue;

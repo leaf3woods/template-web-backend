@@ -8,7 +8,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using Org.Product.Application.Services.Base;
 using Org.Product.Domain.Shared;
-using Org.Product.Infrastructure.Adapters.Security;
+using Org.Product.Infrastructure.Adapters.Authentication;
 using Org.Product.Infrastructure.Repositories;
 using Org.Product.WebApi.Auth;
 using Org.Product.WebApi.Auth.AuthHandlers;

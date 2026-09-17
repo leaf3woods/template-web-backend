@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
-using Org.Product.Application.Abstractions.Security;
+using Org.Product.Application.Abstractions.Authentication;
 using Org.Product.Domain.Services.Base;
 using Org.Product.Domain.Shared;
 using Org.Product.WebApi.Auth.Requirements;

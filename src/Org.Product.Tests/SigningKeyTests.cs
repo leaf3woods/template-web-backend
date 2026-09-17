@@ -1,8 +1,8 @@
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using Org.Product.Infrastructure.Adapters.Security;
-using Org.Product.Infrastructure.Adapters.Security.Options;
+using Org.Product.Infrastructure.Adapters.Authentication;
+using Org.Product.Infrastructure.Utilities.Options;
 
 namespace Org.Product.Tests;
 

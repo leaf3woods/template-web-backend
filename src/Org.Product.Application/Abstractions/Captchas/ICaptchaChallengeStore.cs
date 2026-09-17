@@ -1,4 +1,7 @@
-namespace Org.Product.Application.Abstractions.Security;
+
+using Org.Product.Application.Abstractions.Authentication;
+
+namespace Org.Product.Application.Abstractions.Captchas;
 
 public interface ICaptchaChallengeStore : ISecurityStore
 {

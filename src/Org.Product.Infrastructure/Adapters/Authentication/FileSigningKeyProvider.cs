@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Org.Product.Infrastructure.Adapters.Security;
+namespace Org.Product.Infrastructure.Adapters.Authentication;
 
 public sealed class FileSigningKeyProvider : IDisposable
 {

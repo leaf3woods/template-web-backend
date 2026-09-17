@@ -1,4 +1,4 @@
-namespace Org.Product.Infrastructure.Adapters.Security.Options;
+namespace Org.Product.Infrastructure.Utilities.Options;
 
 public sealed class AccessTokenOptions
 {

@@ -1,6 +1,6 @@
 using SkiaSharp;
 
-namespace Org.Product.Infrastructure.Adapters.Security.Captchas;
+namespace Org.Product.Infrastructure.Adapters.Captchas;
 
 public class CaptchaGenOptions
 {

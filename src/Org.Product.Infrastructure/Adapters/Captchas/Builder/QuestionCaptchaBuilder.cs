@@ -1,12 +1,9 @@
-using Org.Product.Application.Abstractions.Security;
+using Org.Product.Application.Abstractions.Captchas;
 
-namespace Org.Product.Infrastructure.Adapters.Security.Captchas.Builder;
+namespace Org.Product.Infrastructure.Adapters.Captchas.Builder;
 
-public class CharacterCaptchaBuilder : CaptchaBuilder
+public class QuestionCaptchaBuilder : CaptchaBuilder
 {
-    private IEnumerable<int> chars = CaptchaUtil.NumChars;
-    public int Length { get; private set; } = 4;
-
     public override Captcha Build()
     {
         if (CaptchaGenOptions is null)
@@ -14,19 +11,19 @@ public class CharacterCaptchaBuilder : CaptchaBuilder
             throw new ArgumentNullException("captcha generate options was not set");
         }
 
-        var text = chars.GenCharacterText(Length);
+        var equation = CaptchaUtil.GenEquation(out var answer);
         var captcha = new Captcha()
         {
-            Type = CaptchaType.Character,
+            Type = CaptchaType.Question,
             Image = CaptchaUtil.GenerateImage(
                 CaptchaGenOptions,
-                text,
+                equation,
                 GenNosie,
                 GenLines,
                 GenCircles
             ),
             Pixel = new(CaptchaGenOptions.Width, CaptchaGenOptions.Height),
-            Answer = new string(text),
+            Answer = answer.ToString(),
         };
         return captcha;
     }
@@ -52,18 +49,6 @@ public class CharacterCaptchaBuilder : CaptchaBuilder
     public override CaptchaBuilder WithCircles()
     {
         GenCircles = true;
-        return this;
-    }
-
-    public CharacterCaptchaBuilder WithLowerCase()
-    {
-        chars = chars.Concat(CaptchaUtil.LowerChars);
-        return this;
-    }
-
-    public CharacterCaptchaBuilder WithUpperCase()
-    {
-        chars = chars.Concat(CaptchaUtil.UpperChars);
         return this;
     }
 }

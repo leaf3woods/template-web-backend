@@ -1,8 +1,8 @@
-using Org.Product.Application.Abstractions.Security;
 using AutoMapper;
 using Org.Product.Application.Dtos;
 using Org.Product.Domain.Entities.Account;
 using Org.Product.Domain.ValueObjects.UserValue;
+using Org.Product.Application.Abstractions.Captchas;
 
 namespace Org.Product.Application.Utilities.MapperProfiles.DtoProfiles;
 

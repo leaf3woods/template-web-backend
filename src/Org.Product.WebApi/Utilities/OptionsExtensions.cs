@@ -1,5 +1,5 @@
 using Org.Product.Application.Utilities.Options;
-using Org.Product.Infrastructure.Adapters.Security.Options;
+using Org.Product.Infrastructure.Utilities.Options;
 using Org.Product.WebApi.Utilities.Options;
 
 namespace Org.Product.WebApi.Utilities;

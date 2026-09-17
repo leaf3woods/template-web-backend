@@ -2,6 +2,8 @@ using AutoMapper;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
+using Org.Product.Application.Abstractions.Authentication;
+using Org.Product.Application.Abstractions.Captchas;
 using Org.Product.Application.Abstractions.Security;
 using Org.Product.Application.Dtos;
 using Org.Product.Application.Services;

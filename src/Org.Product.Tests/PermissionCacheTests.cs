@@ -1,5 +1,6 @@
 using Moq;
 using Org.Product.Infrastructure.Adapters.Security;
+using Org.Product.Infrastructure.Utilities;
 using Org.Product.Tests.Support;
 using StackExchange.Redis;
 

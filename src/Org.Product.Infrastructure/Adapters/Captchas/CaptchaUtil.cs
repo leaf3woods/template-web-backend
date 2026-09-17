@@ -1,7 +1,7 @@
 using System.Reflection;
 using SkiaSharp;
 
-namespace Org.Product.Infrastructure.Adapters.Security.Captchas;
+namespace Org.Product.Infrastructure.Adapters.Captchas;
 
 public static class CaptchaUtil
 {

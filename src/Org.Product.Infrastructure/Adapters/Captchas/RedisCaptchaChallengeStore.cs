@@ -1,7 +1,8 @@
-using Org.Product.Application.Abstractions.Security;
+using Org.Product.Application.Abstractions.Captchas;
+using Org.Product.Infrastructure.Utilities;
 using StackExchange.Redis;
 
-namespace Org.Product.Infrastructure.Adapters.Security;
+namespace Org.Product.Infrastructure.Adapters.Captchas;
 
 public sealed class RedisCaptchaChallengeStore : ICaptchaChallengeStore
 {

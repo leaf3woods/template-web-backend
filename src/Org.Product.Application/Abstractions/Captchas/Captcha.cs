@@ -1,6 +1,6 @@
 using Org.Product.Domain.Entities.Base;
 
-namespace Org.Product.Application.Abstractions.Security;
+namespace Org.Product.Application.Abstractions.Captchas;
 
 public class Captcha : AggregateRoot<Guid>
 {

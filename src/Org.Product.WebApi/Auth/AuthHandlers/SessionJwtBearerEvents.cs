@@ -1,7 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.JsonWebTokens;
-using Org.Product.Application.Abstractions.Security;
+using Org.Product.Application.Abstractions.Authentication;
 using Org.Product.Domain.Shared;
 
 namespace Org.Product.WebApi.Auth.AuthHandlers;

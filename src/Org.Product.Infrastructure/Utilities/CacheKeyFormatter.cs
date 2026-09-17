@@ -1,4 +1,4 @@
-namespace Org.Product.Infrastructure.Adapters.Security;
+namespace Org.Product.Infrastructure.Utilities;
 
 public static class CacheKeyFormatter
 {

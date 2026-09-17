@@ -1,6 +1,6 @@
-using Org.Product.Application.Abstractions.Security;
+using Org.Product.Application.Abstractions.Captchas;
 
-namespace Org.Product.Infrastructure.Adapters.Security.Captchas.Builder;
+namespace Org.Product.Infrastructure.Adapters.Captchas.Builder;
 
 public class HanCaptchaBuilder : CaptchaBuilder
 {

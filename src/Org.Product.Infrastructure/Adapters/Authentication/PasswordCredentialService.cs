@@ -1,8 +1,8 @@
 using System.Security.Cryptography;
-using Org.Product.Application.Abstractions.Security;
+using Org.Product.Application.Abstractions.Authentication;
 using Org.Product.Domain.Entities.Account;
 
-namespace Org.Product.Infrastructure.Adapters.Security;
+namespace Org.Product.Infrastructure.Adapters.Authentication;
 
 public sealed class PasswordCredentialService : IPasswordCredentialService
 {

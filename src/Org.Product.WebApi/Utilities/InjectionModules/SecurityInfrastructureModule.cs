@@ -1,6 +1,6 @@
 using Autofac;
-using Org.Product.Application.Abstractions.Security;
-using Org.Product.Infrastructure.Adapters.Security;
+using Org.Product.Application.Abstractions.Authentication;
+using Org.Product.Infrastructure.Adapters.Authentication;
 using StackExchange.Redis;
 
 namespace Org.Product.WebApi.Utilities.InjectionModules;

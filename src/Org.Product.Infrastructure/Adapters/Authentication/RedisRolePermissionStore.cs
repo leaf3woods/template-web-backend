@@ -1,8 +1,9 @@
 using System.Text.Json;
-using Org.Product.Application.Abstractions.Security;
+using Org.Product.Application.Abstractions.Authentication;
+using Org.Product.Infrastructure.Utilities;
 using StackExchange.Redis;
 
-namespace Org.Product.Infrastructure.Adapters.Security;
+namespace Org.Product.Infrastructure.Adapters.Authentication;
 
 public class RedisRolePermissionStore : IRolePermissionStore
 {

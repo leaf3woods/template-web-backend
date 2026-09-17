@@ -2,11 +2,11 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using Org.Product.Application.Abstractions.Security;
+using Org.Product.Application.Abstractions.Authentication;
 using Org.Product.Domain.Shared;
-using Org.Product.Infrastructure.Adapters.Security.Options;
+using Org.Product.Infrastructure.Utilities.Options;
 
-namespace Org.Product.Infrastructure.Adapters.Security;
+namespace Org.Product.Infrastructure.Adapters.Authentication;
 
 public sealed class JwtAccessTokenIssuer : IAccessTokenIssuer
 {

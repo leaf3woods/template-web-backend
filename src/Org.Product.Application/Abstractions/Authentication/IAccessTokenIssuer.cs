@@ -1,4 +1,4 @@
-namespace Org.Product.Application.Abstractions.Security;
+namespace Org.Product.Application.Abstractions.Authentication;
 
 public interface IAccessTokenIssuer : ISecurityService
 {
