@@ -1,10 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Org.Product.Infrastructure;
+using Org.Product.DbMigrator;
 using Org.Product.Infrastructure.Repositories;
 
 try
@@ -40,7 +41,10 @@ try
         ContentRootPath = AppContext.BaseDirectory,
     });
     builder.Logging.ClearProviders().AddSimpleConsole();
-    builder.Services.AddPersistence(builder.Configuration);
+    var connectionString = builder.Configuration.GetConnectionString("Postgres");
+    ArgumentException.ThrowIfNullOrWhiteSpace(connectionString);
+    builder.Services.AddDbContextPool<ApiDbContext>(options =>
+        DatabaseOptions.Configure(options, connectionString));
     builder.Services.AddScoped<DatabaseMigrator>();
     using var host = builder.Build();
     await host.StartAsync();
