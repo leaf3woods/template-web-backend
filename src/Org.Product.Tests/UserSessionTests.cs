@@ -89,7 +89,9 @@ public sealed class UserSessionTests
         var newPassword = Convert.ToBase64String([4, 5, 6]);
         await fixture.Service.ChangePasswordAsync(new ChangePasswordDto
         {
-            Username = fixture.User.Username, OldPassword = fixture.Password, NewPassword = newPassword,
+            Username = fixture.User.Username,
+            OldPassword = fixture.Password,
+            NewPassword = newPassword,
         });
         Assert.True(new PasswordCredentialService().Verify(fixture.User, newPassword));
         Assert.False(await fixture.Sessions.IsValidAsync(fixture.User.Id, "session"));

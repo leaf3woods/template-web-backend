@@ -20,7 +20,9 @@ public sealed class SigningKeyTests
             {
                 var issuer = new JwtAccessTokenIssuer(keys, Options.Create(new AccessTokenOptions
                 {
-                    Issuer = "tests", Audience = "tests", ExpireMin = 5,
+                    Issuer = "tests",
+                    Audience = "tests",
+                    ExpireMin = 5,
                 }));
                 var issued = issuer.Issue(userId, [Guid.NewGuid()]);
                 Assert.Equal(TimeSpan.FromMinutes(5), issued.Lifetime);

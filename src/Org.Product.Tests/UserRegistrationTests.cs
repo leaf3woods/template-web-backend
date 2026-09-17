@@ -53,7 +53,8 @@ public sealed class UserRegistrationTests
     {
         var user = CreateMapper().Map<User>(new UserRegisterDto
         {
-            Username = "new-user", Password = Convert.ToBase64String([10, 20, 30]),
+            Username = "new-user",
+            Password = Convert.ToBase64String([10, 20, 30]),
         });
         Assert.Null(user.Passphrase);
         Assert.Null(user.Salt);
