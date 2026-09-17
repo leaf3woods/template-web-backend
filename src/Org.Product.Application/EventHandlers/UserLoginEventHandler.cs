@@ -1,13 +1,12 @@
 ﻿using MediatR;
 using Org.Product.Domain.Events;
 
-namespace Org.Product.Application.EventHandlers
+namespace Org.Product.Application.EventHandlers;
+
+public class UserLoginEventHandler : INotificationHandler<UserLoginEvent>
 {
-    public class UserLoginEventHandler : INotificationHandler<UserLoginEvent>
+    public Task Handle(UserLoginEvent notification, CancellationToken cancellationToken)
     {
-        public Task Handle(UserLoginEvent notification, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+        throw new NotImplementedException();
     }
 }

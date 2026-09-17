@@ -1,11 +1,10 @@
 using System.Text.Json.Nodes;
 
-namespace Org.Product.Infrastructure.Adapters.Protocols.Messages.Base
-{
-    public interface IAsJsonNode
-    {
-        JsonNode? AsJson();
+namespace Org.Product.Infrastructure.Adapters.Protocols.Messages.Base;
 
-        JsonNode? Node { get; set; }
-    }
+public interface IAsJsonNode
+{
+    JsonNode? AsJson();
+
+    JsonNode? Node { get; set; }
 }

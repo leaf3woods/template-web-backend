@@ -1,7 +1,6 @@
-﻿namespace Org.Product.Domain.Entities.Base
+﻿namespace Org.Product.Domain.Entities.Base;
+
+public interface IOrder
 {
-    public interface IOrder
-    {
-        public int Order { get; set; }
-    }
+    public int Order { get; set; }
 }

@@ -1,4 +1,3 @@
-﻿namespace Org.Product.Application.Dtos.Base
-{
-    public interface IReadDto { }
-}
+﻿namespace Org.Product.Application.Dtos.Base;
+
+public interface IReadDto { }

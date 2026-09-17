@@ -1,10 +1,9 @@
-﻿namespace Org.Product.Domain.Shared.Exceptions
-{
-    public abstract class CustomException : Exception
-    {
-        public CustomException(string msg)
-            : base(msg) { }
+﻿namespace Org.Product.Domain.Shared.Exceptions;
 
-        public abstract string ExceptionCode { get; protected set; }
-    }
+public abstract class CustomException : Exception
+{
+    public CustomException(string msg)
+        : base(msg) { }
+
+    public abstract string ExceptionCode { get; protected set; }
 }

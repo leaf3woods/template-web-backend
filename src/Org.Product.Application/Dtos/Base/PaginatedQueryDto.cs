@@ -1,8 +1,7 @@
-﻿namespace Org.Product.Application.Dtos.Base
+﻿namespace Org.Product.Application.Dtos.Base;
+
+public class PaginatedQueryDto : QueryDto
 {
-    public class PaginatedQueryDto : QueryDto
-    {
-        public int PageIndex { get; set; }
-        public int PageSize { get; set; }
-    }
+    public int PageIndex { get; set; }
+    public int PageSize { get; set; }
 }

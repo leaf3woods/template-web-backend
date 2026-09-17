@@ -1,8 +1,7 @@
-﻿namespace Org.Product.Domain.Entities.Base.Audited
+﻿namespace Org.Product.Domain.Entities.Base.Audited;
+
+public interface ILastModificationAudited
 {
-    public interface ILastModificationAudited
-    {
-        Guid? LastModifierId { get; set; }
-        DateTime? LastModificationTime { get; set; }
-    }
+    Guid? LastModifierId { get; set; }
+    DateTime? LastModificationTime { get; set; }
 }

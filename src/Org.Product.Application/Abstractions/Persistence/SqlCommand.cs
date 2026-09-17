@@ -1,12 +1,11 @@
 using System.Data;
 
-namespace Org.Product.Application.Abstractions.Persistence
-{
-    public sealed record SqlCommand(string Text, IReadOnlyCollection<SqlParameter> Parameters)
-    {
-        public static SqlCommand Create(string text, params SqlParameter[] parameters) =>
-            new(text, parameters);
-    }
+namespace Org.Product.Application.Abstractions.Persistence;
 
-    public sealed record SqlParameter(string Name, object? Value, DbType? DbType = null);
+public sealed record SqlCommand(string Text, IReadOnlyCollection<SqlParameter> Parameters)
+{
+    public static SqlCommand Create(string text, params SqlParameter[] parameters) =>
+        new(text, parameters);
 }
+
+public sealed record SqlParameter(string Name, object? Value, DbType? DbType = null);

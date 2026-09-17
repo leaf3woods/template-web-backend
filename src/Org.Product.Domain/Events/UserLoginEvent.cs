@@ -1,6 +1,5 @@
 ﻿using MediatR;
 
-namespace Org.Product.Domain.Events
-{
-    public class UserLoginEvent : INotification { }
-}
+namespace Org.Product.Domain.Events;
+
+public class UserLoginEvent : INotification { }

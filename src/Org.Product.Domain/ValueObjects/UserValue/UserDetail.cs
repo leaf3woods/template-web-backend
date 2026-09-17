@@ -1,23 +1,22 @@
 ﻿using Org.Product.Domain.Entities.Account;
 
-namespace Org.Product.Domain.ValueObjects.UserValue
+namespace Org.Product.Domain.ValueObjects.UserValue;
+
+public class UserDetail
 {
-    public class UserDetail
-    {
-        public Gender Gender { get; set; } = Gender.Unknow;
-        public string? AboutMe { get; set; }
+    public Gender Gender { get; set; } = Gender.Unknow;
+    public string? AboutMe { get; set; }
 
-        #region navigation
+    #region navigation
 
-        public User User { get; set; } = null!;
+    public User User { get; set; } = null!;
 
-        #endregion navigation
-    }
+    #endregion navigation
+}
 
-    public enum Gender
-    {
-        Male,
-        Female,
-        Unknow,
-    }
+public enum Gender
+{
+    Male,
+    Female,
+    Unknow,
 }

@@ -1,12 +1,11 @@
-﻿namespace Org.Product.Domain.Shared.Enums
+﻿namespace Org.Product.Domain.Shared.Enums;
+
+public enum PermissionMethodType
 {
-    public enum PermissionMethodType
-    {
-        Query,
-        List,
-        Remove,
-        Add,
-        Edit,
-        Extend,
-    }
+    Query,
+    List,
+    Remove,
+    Add,
+    Edit,
+    Extend,
 }

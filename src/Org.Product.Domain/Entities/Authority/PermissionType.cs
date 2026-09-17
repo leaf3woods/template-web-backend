@@ -1,25 +1,24 @@
-﻿namespace Org.Product.Domain.Entities.Authority
+﻿namespace Org.Product.Domain.Entities.Authority;
+
+public enum PermissionType
 {
-    public enum PermissionType
-    {
-        /// <summary>
-        /// 目录
-        /// </summary>
-        Catalogue,
+    /// <summary>
+    /// 目录
+    /// </summary>
+    Catalogue,
 
-        /// <summary>
-        /// 菜单
-        /// </summary>
-        Menu,
+    /// <summary>
+    /// 菜单
+    /// </summary>
+    Menu,
 
-        /// <summary>
-        /// 组件
-        /// </summary>
-        Button,
+    /// <summary>
+    /// 组件
+    /// </summary>
+    Button,
 
-        /// <summary>
-        /// 接口
-        /// </summary>
-        Api,
-    }
+    /// <summary>
+    /// 接口
+    /// </summary>
+    Api,
 }

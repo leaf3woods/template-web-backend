@@ -1,15 +1,14 @@
 ﻿using Org.Product.Domain.Entities.Account;
 
-namespace Org.Product.Domain.ValueObjects.UserValue
+namespace Org.Product.Domain.ValueObjects.UserValue;
+
+public class UserSetting
 {
-    public class UserSetting
-    {
-        public string Language { get; set; } = "Chinese";
+    public string Language { get; set; } = "Chinese";
 
-        #region navigation
+    #region navigation
 
-        public User User { get; set; } = null!;
+    public User User { get; set; } = null!;
 
-        #endregion navigation
-    }
+    #endregion navigation
 }

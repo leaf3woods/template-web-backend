@@ -1,6 +1,5 @@
-﻿namespace Org.Product.Application.Dtos.Base
-{
-    public abstract class UpdateDto { }
+﻿namespace Org.Product.Application.Dtos.Base;
 
-    public abstract class UpdateDto<TEntity> : UpdateDto, IEntityDto<TEntity> { }
-}
+public abstract class UpdateDto { }
+
+public abstract class UpdateDto<TEntity> : UpdateDto, IEntityDto<TEntity> { }

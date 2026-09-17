@@ -1,10 +1,9 @@
 ﻿using Org.Product.Application.Services.Base;
 
-namespace Org.Product.Application.Services
+namespace Org.Product.Application.Services;
+
+public class SettingService : BaseService, ISettingService
 {
-    public class SettingService : BaseService, ISettingService
-    {
-        public SettingService(AutoMapper.IMapper mapper)
-            : base(mapper) { }
-    }
+    public SettingService(AutoMapper.IMapper mapper)
+        : base(mapper) { }
 }

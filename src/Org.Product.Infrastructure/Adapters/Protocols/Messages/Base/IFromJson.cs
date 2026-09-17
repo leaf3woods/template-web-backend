@@ -1,7 +1,6 @@
-namespace Org.Product.Infrastructure.Adapters.Protocols.Messages.Base
+namespace Org.Product.Infrastructure.Adapters.Protocols.Messages.Base;
+
+public interface IFromJson
 {
-    public interface IFromJson
-    {
-        public void FromJson(string json);
-    }
+    public void FromJson(string json);
 }

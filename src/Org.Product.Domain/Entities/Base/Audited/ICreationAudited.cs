@@ -1,11 +1,10 @@
-﻿namespace Org.Product.Domain.Entities.Base.Audited
+﻿namespace Org.Product.Domain.Entities.Base.Audited;
+
+public interface ICreationAudited
 {
-    public interface ICreationAudited
-    {
-        Guid? CreatorId { get; set; }
+    Guid? CreatorId { get; set; }
 
-        DateTime CreationTime { get; set; }
+    DateTime CreationTime { get; set; }
 
-        int? CreatorLevel { get; set; }
-    }
+    int? CreatorLevel { get; set; }
 }

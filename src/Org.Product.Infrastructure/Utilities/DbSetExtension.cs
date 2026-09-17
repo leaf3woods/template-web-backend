@@ -1,10 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace Org.Product.Infrastructure.Utilities
+namespace Org.Product.Infrastructure.Utilities;
+
+public static class EfExtension
 {
-    public static class EfExtension
-    {
-        public static IQueryable<TEntity> WithDeleted<TEntity>(this DbSet<TEntity> entities)
-            where TEntity : class => entities.IgnoreQueryFilters();
-    }
+    public static IQueryable<TEntity> WithDeleted<TEntity>(this DbSet<TEntity> entities)
+        where TEntity : class => entities.IgnoreQueryFilters();
 }
