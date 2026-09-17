@@ -1,6 +1,6 @@
 namespace Org.Product.Application.Abstractions.Security;
 
-public interface IRolePermissionStore
+public interface IRolePermissionStore : ISecurityStore
 {
     Task<IEnumerable<string>> GetPermissionsAsync(params IEnumerable<Guid> roleIds);
     // Tests the stored permission snapshots, not the existence of database roles.

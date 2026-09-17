@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Org.Product.Application.Utilities.Options;
+using Org.Product.Infrastructure.Adapters.Security.Options;
 using Org.Product.WebApi.Utilities.Options;
 
 namespace Org.Product.WebApi.Utilities
@@ -19,6 +20,18 @@ namespace Org.Product.WebApi.Utilities
                 .ValidateOnStart();
 
             services
+                .AddOptions<CaptchaRenderingOptions>()
+                .BindConfiguration(CaptchaRenderingOptions.SectionName)
+                .Validate(
+                    options =>
+                        !string.IsNullOrWhiteSpace(options.FontFamily)
+                        && options.Height > 0
+                        && options.Width > 0,
+                    "Captcha requires FontFamily and positive dimensions."
+                )
+                .ValidateOnStart();
+
+            services
                 .AddOptions<JwtAuthenticationOptions>()
                 .BindConfiguration(JwtAuthenticationOptions.SectionName)
                 .Validate(
@@ -27,6 +40,18 @@ namespace Org.Product.WebApi.Utilities
                         && !string.IsNullOrWhiteSpace(options.Issuer)
                         && !string.IsNullOrWhiteSpace(options.Audience),
                     "Jwt requires a non-empty KeyFolder, Issuer, and Audience."
+                )
+                .ValidateOnStart();
+
+            services
+                .AddOptions<AccessTokenOptions>()
+                .BindConfiguration(AccessTokenOptions.SectionName)
+                .Validate(
+                    options =>
+                        !string.IsNullOrWhiteSpace(options.Issuer)
+                        && !string.IsNullOrWhiteSpace(options.Audience)
+                        && options.ExpireMin > 0,
+                    "Jwt requires Issuer, Audience and a positive ExpireMin."
                 )
                 .ValidateOnStart();
 

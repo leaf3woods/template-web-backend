@@ -1,6 +1,6 @@
 namespace Org.Product.Application.Abstractions.Security;
 
-public interface ICaptchaGenerator
+public interface ICaptchaGenerator : ISecurityService
 {
     Captcha Generate();
 }

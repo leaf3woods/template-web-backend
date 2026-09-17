@@ -1,6 +1,6 @@
 namespace Org.Product.Application.Abstractions.Security;
 
-public interface IAccessTokenIssuer
+public interface IAccessTokenIssuer : ISecurityService
 {
     IssuedAccessToken Issue(Guid userId, IEnumerable<Guid> roleIds);
 }

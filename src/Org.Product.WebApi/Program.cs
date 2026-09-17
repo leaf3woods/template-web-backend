@@ -2,14 +2,14 @@ using System.Reflection;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using Org.Product.Application.Services.Base;
-using Org.Product.Infrastructure;
-using Org.Product.Infrastructure.Adapters.Security;
 using Org.Product.Domain.Shared;
+using Org.Product.Infrastructure.Adapters.Security;
+using Org.Product.Infrastructure.Repositories;
 using Org.Product.WebApi.Auth;
 using Org.Product.WebApi.Auth.AuthHandlers;
 using Org.Product.WebApi.Utilities;
@@ -30,10 +30,18 @@ var openApiOptions =
 
 builder.Services.AddAllOptions();
 
-// Change container to autoFac
+var postgresConnectionString = builder.Configuration.GetConnectionString("Postgres");
+ArgumentException.ThrowIfNullOrWhiteSpace(postgresConnectionString);
+builder.Services.AddDbContextPool<ApiDbContext>(options =>
+    options
+        .UseNpgsql(postgresConnectionString)
+        .UseSnakeCaseNamingConvention()
+        .EnableDetailedErrors());
+
+// WebApi is the composition root for the HTTP host.
 builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
-builder.Host.ConfigureContainer<ContainerBuilder>(config =>
-    config.RegisterAssemblyModules(
+builder.Host.ConfigureContainer<ContainerBuilder>(container =>
+    container.RegisterAssemblyModules(
         Assembly.GetExecutingAssembly(),
         typeof(IBaseService).Assembly
     )
@@ -134,8 +142,6 @@ builder.Services.AddSwaggerGen(option =>
     });
 });
 
-builder.Services.AddPersistence(builder.Configuration);
-builder.Services.AddSecurityInfrastructure(builder.Configuration);
 builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
     .Configure<FileSigningKeyProvider>((options, keys) =>
         options.TokenValidationParameters.IssuerSigningKey = keys.PublicKey);
