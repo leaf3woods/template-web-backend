@@ -1,37 +1,63 @@
 root = true
 
 [*]
+# Valid values: lf, crlf, or cr.
 end_of_line = lf
+# Valid values: true or false.
 insert_final_newline = true
+# Valid values: true or false.
 trim_trailing_whitespace = true
 
 [*.cs]
+# For style options below, append a severity suffix: none disables the rule; silent
+# enables it for code cleanup without editor feedback; suggestion, warning, and error
+# control its displayed severity. `default` uses the analyzer's built-in severity.
+# Valid values: space or tab.
 indent_style = space
+# Set a positive number of spaces, or tab when indent_style is tab.
 indent_size = 4
 
 # Use `var` for every local variable declaration with an inferred type.
-csharp_style_var_for_built_in_types = true:silent
-csharp_style_var_when_type_is_apparent = true:silent
-csharp_style_var_elsewhere = true:silent
+# Each option accepts true (prefer var) or false (prefer an explicit type).
+# - built_in_types: declarations such as int, string, and bool.
+# - when_type_is_apparent: the type is evident from the right-hand side.
+# - elsewhere: every other declaration whose type can be inferred.
+csharp_style_var_for_built_in_types = true:warning
+csharp_style_var_when_type_is_apparent = true:warning
+csharp_style_var_elsewhere = true:warning
 
-# Make accessibility visible at every declaration.
-dotnet_style_require_accessibility_modifiers = always:silent
+# Require access modifiers on types and non-interface members.
+# Valid values:
+# - always: require modifiers on every declaration, including interface members.
+# - for_non_interface_members: require modifiers everywhere except interface members.
+# - never: do not require modifiers on any declaration.
+dotnet_style_require_accessibility_modifiers = for_non_interface_members:warning
 
 # Prefer braces for every control-flow body.
-csharp_prefer_braces = true:suggestion
+# Valid values: true (require braces) or false (allow a single unbraced statement).
+csharp_prefer_braces = true:warning
 
 # Mark private fields readonly when their values are assigned only during initialization.
-dotnet_style_readonly_field = true:silent
+# Valid values: true (prefer readonly) or false (allow a mutable field).
+dotnet_style_readonly_field = true:warning
 
 # Remove imports that do not contribute to the compiled source.
-dotnet_diagnostic.IDE0005.severity = silent
+# Diagnostic severities: default, none, silent, suggestion, warning, or error.
+# warning is intentional so the default `dotnet format .` command fixes this rule.
+dotnet_diagnostic.IDE0005.severity = warning
 
 # Use `namespace Example;` when the file can use a file-scoped namespace.
-csharp_style_namespace_declarations = file_scoped:suggestion
+# Valid values:
+# - file_scoped: prefer `namespace Example;`.
+# - block_scoped: prefer `namespace Example { ... }`.
+csharp_style_namespace_declarations = file_scoped:warning
 
 # EF Core migrations are versioned generated artifacts. Preserve their generated source shape.
 [**/Repositories/Migrations/*.cs]
+# Valid values: true (treat files as generated) or false (analyze them normally).
 generated_code = true
+# `none` disables a diagnostic for generated migrations. The other severity values are
+# default, none, silent, suggestion, warning, and error.
 dotnet_diagnostic.IDE0005.severity = none
 dotnet_diagnostic.IDE0007.severity = none
 dotnet_diagnostic.IDE0011.severity = none
@@ -42,7 +68,9 @@ dotnet_diagnostic.IDE0161.severity = none
 
 # Keep these structural transformations disabled until the template adopts a team-wide style.
 # To opt in later, replace each disable with the commented setting below.
+# Valid values: true (prefer top-level statements) or false (prefer an explicit Program type).
 # csharp_style_prefer_top_level_statements = true:suggestion
 dotnet_diagnostic.IDE0210.severity = none
+# Valid values: true (prefer primary constructors) or false (prefer regular constructors).
 # csharp_style_prefer_primary_constructors = true:suggestion
 dotnet_diagnostic.IDE0290.severity = none
