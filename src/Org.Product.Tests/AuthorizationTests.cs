@@ -15,6 +15,8 @@ using Moq;
 using Org.Product.Application.Services.Base;
 using Org.Product.Application.Abstractions.Security;
 using Org.Product.Domain.Shared;
+using Org.Product.Domain.Services;
+using Org.Product.Domain.Services.Base;
 using Org.Product.Infrastructure.Adapters.Security;
 using Org.Product.Tests.Support;
 using Org.Product.WebApi.Auth;
@@ -163,6 +165,7 @@ public sealed class AuthorizationTests
             builder.Services.AddSingleton(userService.Object);
             builder.Services.AddSingleton(Mock.Of<IMenuService>());
             builder.Services.AddSingleton(Mock.Of<IRoleService>());
+            builder.Services.AddSingleton<IAuthorizationDomainService, AuthorizationDomainService>();
             builder.Services.AddScoped<SessionJwtBearerEvents>();
             builder.Services.AddScoped<IAuthorizationHandler, CustomRequireHandler>();
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>

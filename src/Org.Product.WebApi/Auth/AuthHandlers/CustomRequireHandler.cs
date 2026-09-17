@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
-using Org.Product.Domain.Entities.Account;
 using Org.Product.Application.Abstractions.Security;
+using Org.Product.Domain.Services.Base;
 using Org.Product.Domain.Shared;
 using Org.Product.WebApi.Auth.Requirements;
 
@@ -9,14 +9,17 @@ namespace Org.Product.WebApi.Auth.AuthHandlers;
 public sealed class CustomRequireHandler : AuthorizationHandler<PermissionAuthorizationRequirement>
 {
     private readonly IRolePermissionStore _permissions;
+    private readonly IAuthorizationDomainService _authorization;
     private readonly ILogger<CustomRequireHandler> _logger;
 
     public CustomRequireHandler(
         IRolePermissionStore permissions,
+        IAuthorizationDomainService authorization,
         ILogger<CustomRequireHandler> logger
     )
     {
         _permissions = permissions;
+        _authorization = authorization;
         _logger = logger;
     }
 
@@ -52,21 +55,14 @@ public sealed class CustomRequireHandler : AuthorizationHandler<PermissionAuthor
             return;
         }
 
-        if (roleIds.Contains(Role.SuperRole.Id))
+        if (_authorization.HasGlobalAccess(roleIds))
         {
             context.Succeed(requirement);
             return;
         }
 
         var permissions = await _permissions.GetPermissionsAsync(roleIds);
-        var hasPermission = permissions.Any(permission =>
-            !string.IsNullOrWhiteSpace(permission)
-            && (
-                string.Equals(requirement.Permission, permission, StringComparison.Ordinal)
-                || requirement.Permission.StartsWith(permission + ".", StringComparison.Ordinal)
-            )
-        );
-        if (hasPermission)
+        if (_authorization.HasPermission(permissions, requirement.Permission))
         {
             context.Succeed(requirement);
             return;
