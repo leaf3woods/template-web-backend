@@ -1,4 +1,3 @@
-using Org.Product.Application.Abstractions.Security;
 using SkiaSharp;
 
 namespace Org.Product.Infrastructure.Adapters.Security.Captchas;

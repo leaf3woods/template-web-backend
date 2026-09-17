@@ -208,7 +208,10 @@ public class UserService
             .Where(r => requestedRoleIds.Contains(r.Id))
             .ToArrayAsync();
         if (roles.Length == 0 || roles.Length != requestedRoleIds.Length)
+        {
             throw new NotFoundException("role not found");
+        }
+
         user.Roles = roles;
         Repository.Update(user);
         var count = await UnitOfWork.SaveChangesAsync();

@@ -9,7 +9,6 @@ using Org.Product.Domain.Entities.Account;
 using Org.Product.Domain.Repositories;
 using Org.Product.Domain.Shared;
 using Org.Product.Domain.Shared.Exceptions;
-using Org.Product.Domain.Utilities;
 using Org.Product.Infrastructure.Adapters.Security;
 using Org.Product.Tests.Support;
 using Org.Product.Application.Utilities.Options;

@@ -1,4 +1,3 @@
-using Org.Product.Infrastructure.Adapters.Protocols;
 using Org.Product.Infrastructure.Adapters.Protocols.Messages.Base;
 
 namespace Org.Product.Infrastructure.Adapters.Protocols.Messages;

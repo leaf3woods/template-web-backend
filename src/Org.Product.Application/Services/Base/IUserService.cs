@@ -7,21 +7,21 @@ namespace Org.Product.Application.Services.Base;
 public interface IUserService
     : ICrudAppService<User, Guid, UserReadDto, UserQueryDto, UserRegisterDto, UserUpdateDto>
 {
-    public Task<UserReadDto?> RegisterAsync(UserRegisterDto registerDto);
+    Task<UserReadDto?> RegisterAsync(UserRegisterDto registerDto);
 
-    public Task<string> LoginAsync(UserLoginDto credential);
+    Task<string> LoginAsync(UserLoginDto credential);
 
-    public Task LogoutAsync(IEnumerable<Claim> claims, string token);
+    Task LogoutAsync(IEnumerable<Claim> claims, string token);
 
-    public Task<UserReadDto?> GetUserAsync(Guid id);
+    Task<UserReadDto?> GetUserAsync(Guid id);
 
-    public Task<IEnumerable<UserReadDto>> GetUsersWhereAsync(string? username = null);
+    Task<IEnumerable<UserReadDto>> GetUsersWhereAsync(string? username = null);
 
-    public Task<UserReadDto?> ChangeRoleAsync(Guid userId, IEnumerable<Guid> roleIds);
+    Task<UserReadDto?> ChangeRoleAsync(Guid userId, IEnumerable<Guid> roleIds);
 
-    public Task<CaptchaReadDto> GenerateCaptchaAsync();
+    Task<CaptchaReadDto> GenerateCaptchaAsync();
 
-    public Task<int> ChangePasswordAsync(ChangePasswordDto passwordDto);
+    Task<int> ChangePasswordAsync(ChangePasswordDto passwordDto);
 
-    public Task<int> ResetPasswordAsync(Guid userId);
+    Task<int> ResetPasswordAsync(Guid userId);
 }

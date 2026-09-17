@@ -2,5 +2,5 @@
 
 public interface IState
 {
-    public bool State { get; set; }
+    bool State { get; set; }
 }

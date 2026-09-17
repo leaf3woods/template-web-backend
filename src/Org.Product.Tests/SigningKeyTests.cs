@@ -37,7 +37,10 @@ public sealed class SigningKeyTests
         {
             File.Delete(Path.Combine(folder, "private-key.pem"));
             File.Delete(Path.Combine(folder, "public-key.pem"));
-            if (Directory.Exists(folder)) Directory.Delete(folder);
+            if (Directory.Exists(folder))
+            {
+                Directory.Delete(folder);
+            }
         }
     }
 

@@ -1,5 +1,4 @@
 using Moq;
-using Org.Product.Domain.Shared;
 using Org.Product.Infrastructure.Adapters.Security;
 using Org.Product.Tests.Support;
 using StackExchange.Redis;

@@ -1,5 +1,4 @@
 using Org.Product.Application.Abstractions.Security;
-using Org.Product.Domain.Entities.Account;
 
 namespace Org.Product.Infrastructure.Adapters.Security.Captchas.Builder;
 

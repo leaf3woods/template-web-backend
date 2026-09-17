@@ -39,8 +39,14 @@ public sealed class UserRegistrationTests
             Password = Convert.ToBase64String([10, 20, 30]),
         };
 
-        if (genericCreate) await service.CreateAsync(dto);
-        else await service.RegisterAsync(dto);
+        if (genericCreate)
+        {
+            await service.CreateAsync(dto);
+        }
+        else
+        {
+            await service.RegisterAsync(dto);
+        }
 
         Assert.NotNull(inserted);
         Assert.True(passwords.Verify(inserted, dto.Password));

@@ -1,4 +1,3 @@
-using Org.Product.Application.Abstractions.Security;
 using System.Reflection;
 using SkiaSharp;
 
@@ -55,7 +54,7 @@ public static class CaptchaUtil
             var count = random.Next(_circleCountRange.Item1, _circleCountRange.Item2);
             drawStyle.Style = SKPaintStyle.Stroke;
             drawStyle.StrokeWidth = 2;
-            for (int i = 0; i < count; i++)
+            for (var i = 0; i < count; i++)
             {
                 drawStyle.Color = Colors[random.Next(0, Colors.Length - 1)];
                 canvas.DrawCircle(
@@ -79,7 +78,7 @@ public static class CaptchaUtil
         float py = (options.Height) / 2;
         var offset = fontSize / 2;
         var offsetY = fontSize * (float)(3 / 8);
-        for (int i = 0; i < text.Length; i++)
+        for (var i = 0; i < text.Length; i++)
         {
             float px = i * fontSize;
             float angle = random.Next(-_angleRange, _angleRange);
@@ -93,7 +92,7 @@ public static class CaptchaUtil
 
         if (noise)
         {
-            for (int i = 0; i < options.Width * 2; i++)
+            for (var i = 0; i < options.Width * 2; i++)
             {
                 drawStyle.Color = Colors[random.Next(0, Colors.Length - 1)];
                 canvas.DrawRect(
@@ -109,7 +108,7 @@ public static class CaptchaUtil
         if (line)
         {
             var lineCount = random.Next(_lineCountRange.Item1, _lineCountRange.Item2);
-            for (int i = 0; i < lineCount; i++)
+            for (var i = 0; i < lineCount; i++)
             {
                 drawStyle.Color = Colors[random.Next(0, Colors.Length - 1)];
                 drawStyle.StrokeWidth = _lineWidth;
@@ -133,7 +132,7 @@ public static class CaptchaUtil
         var random = new Random();
         var result = new char[length];
         var array = chars.ToArray();
-        for (int i = 0; i < length; i++)
+        for (var i = 0; i < length; i++)
         {
             var index = random.Next(0, array.Length - 1);
             result[i] = (char)array[index];

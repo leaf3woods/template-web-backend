@@ -1,5 +1,4 @@
 using Org.Product.Application.Abstractions.Security;
-using Org.Product.Domain.Entities.Account;
 
 namespace Org.Product.Infrastructure.Adapters.Security.Captchas.Builder;
 
@@ -11,7 +10,10 @@ public class CharacterCaptchaBuilder : CaptchaBuilder
     public override Captcha Build()
     {
         if (CaptchaGenOptions is null)
+        {
             throw new ArgumentNullException("captcha generate options was not set");
+        }
+
         var text = chars.GenCharacterText(Length);
         var captcha = new Captcha()
         {

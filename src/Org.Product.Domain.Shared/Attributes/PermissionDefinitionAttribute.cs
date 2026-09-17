@@ -1,6 +1,4 @@
-﻿using Org.Product.Domain.Shared.Enums;
-
-namespace Org.Product.Domain.Shared.Attributes;
+﻿namespace Org.Product.Domain.Shared.Attributes;
 
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Method)]
 public class PermissionDefinitionAttribute : Attribute

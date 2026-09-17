@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Org.Product.Infrastructure.Repositories;
 
 namespace Org.Product.DbMigrator;
 

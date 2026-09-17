@@ -10,7 +10,9 @@ public static class TypeExtension
     public static string GetServiceTypeScopeDefine(this Type type)
     {
         if (type.FullName == null || !type.FullName.Contains("Services"))
+        {
             throw new ArgumentException("not service type");
+        }
         // var indexes = type.Name.ToCharArray()
         //     .Select((c, i) => (ch: c, index: i))
         //     .Where(tu => char.IsUpper(tu.ch))

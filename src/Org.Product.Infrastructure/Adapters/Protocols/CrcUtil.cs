@@ -285,7 +285,9 @@ public static class CrcUtil
         var crc = 0xFFFFFFFF;
 
         for (uint i = 0; i < iCount; i++)
+        {
             crc = (crc << 8) ^ CrcTable[(crc >> 24) ^ bytes[i]];
+        }
 
         return BitConverter.GetBytes(crc);
     }

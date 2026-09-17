@@ -24,9 +24,21 @@ public sealed class SkiaCaptchaGenerator : ICaptchaGenerator
                 Height = _options.Height,
                 Width = _options.Width,
             });
-        if (_options.EnableNoise) builder = builder.WithNoise();
-        if (_options.EnableLines) builder = builder.WithLines();
-        if (_options.EnableCircles) builder = builder.WithCircles();
+        if (_options.EnableNoise)
+        {
+            builder = builder.WithNoise();
+        }
+
+        if (_options.EnableLines)
+        {
+            builder = builder.WithLines();
+        }
+
+        if (_options.EnableCircles)
+        {
+            builder = builder.WithCircles();
+        }
+
         return builder.Build();
     }
 }

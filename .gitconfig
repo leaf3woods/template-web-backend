@@ -1,0 +1,15 @@
+[alias]
+    st = status
+    co = checkout
+    sw = switch
+    br = branch
+    ci = commit
+    cm = commit -m
+    amend = commit --amend
+    staged = diff --cached
+    unstaged = diff
+    lg = log --graph --decorate --oneline --all
+    up = pull --ff-only
+
+[core]
+    editor = code --wait

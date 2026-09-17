@@ -1,5 +1,4 @@
 using Autofac;
-using Microsoft.Extensions.Configuration;
 using Org.Product.Application.Abstractions.Security;
 using Org.Product.Infrastructure.Adapters.Security;
 using StackExchange.Redis;

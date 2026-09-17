@@ -1,6 +1,5 @@
 ﻿using CaseExtensions;
 using Microsoft.EntityFrameworkCore;
-using Org.Product.Domain.Entities;
 using Org.Product.Domain.Entities.Account;
 using Org.Product.Domain.Entities.Authority;
 using Org.Product.Domain.Entities.Base;

@@ -84,7 +84,9 @@ public class MenuService
             await _permissionRepo.FindAsync(key) ?? throw new NotFoundException("id not exist");
 
         if (menu.ParentId is null)
+        {
             throw new NotAcceptableException("root menu can't delete");
+        }
 
         if (await _permissionRepo.Query().AnyAsync(m => m.ParentId == key))
         {

@@ -2,7 +2,6 @@
 using System.Reflection;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Org.Product.Domain.Entities.Base;
-using StackExchange.Redis;
 
 namespace Org.Product.Infrastructure.Repositories;
 
@@ -31,8 +30,12 @@ public static class SoftDeleteQueryExtension
         where T : IAggregateRoot
     {
         if (condition)
+        {
             return queryable.Where(predicate);
+        }
         else
+        {
             return queryable;
+        }
     }
 }

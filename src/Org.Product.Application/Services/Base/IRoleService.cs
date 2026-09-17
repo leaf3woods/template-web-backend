@@ -6,13 +6,13 @@ namespace Org.Product.Application.Services.Base;
 public interface IRoleService
     : ICrudAppService<Role, Guid, RoleReadDto, RoleQueryDto, RoleCreateDto, RoleUpdateDto>
 {
-    public Task<RoleReadDto?> GetRoleAsync(Guid id);
+    Task<RoleReadDto?> GetRoleAsync(Guid id);
 
-    public Task<IEnumerable<RoleReadDto>> GetRolesAsync();
+    Task<IEnumerable<RoleReadDto>> GetRolesAsync();
 
-    public Task<RoleReadDto?> CreateRoleAsync(RoleCreateDto roleDto);
+    Task<RoleReadDto?> CreateRoleAsync(RoleCreateDto roleDto);
 
-    public Task<int> ModifyRoleScopeAsync(Guid roleId, List<string> scopeName);
+    Task<int> ModifyRoleScopeAsync(Guid roleId, List<string> scopeName);
 
     //public IEnumerable<RoleScopeReadDto> GetScopes();
 }
