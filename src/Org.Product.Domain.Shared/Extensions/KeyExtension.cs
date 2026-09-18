@@ -1,4 +1,4 @@
-﻿namespace Org.Product.Domain.Shared.Utilities;
+﻿namespace Org.Product.Domain.Shared.Extensions;
 
 public static class KeyExtension
 {
