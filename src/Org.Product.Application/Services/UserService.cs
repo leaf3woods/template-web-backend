@@ -220,9 +220,9 @@ public class UserService
         return count == 0 ? null : Mapper.Map<UserReadDto>(user);
     }
 
-    public async Task<CaptchaReadDto> GenerateCaptchaAsync()
+    public async Task<CaptchaReadDto> GenerateCaptchaAsync(CaptchaType? type = null)
     {
-        var captcha = _captchaGenerator.Generate();
+        var captcha = _captchaGenerator.Generate(new CaptchaGenSettings { Type = type });
         await _challenges.SaveAsync(captcha, _captchaOptions.Expiration);
         return Mapper.Map<CaptchaReadDto>(captcha);
     }

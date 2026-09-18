@@ -1,4 +1,5 @@
 ﻿using System.Security.Claims;
+using Org.Product.Application.Abstractions.Captchas;
 using Org.Product.Application.Dtos;
 using Org.Product.Domain.Entities.Account;
 
@@ -19,7 +20,7 @@ public interface IUserService
 
     Task<UserReadDto?> ChangeRoleAsync(Guid userId, IEnumerable<Guid> roleIds);
 
-    Task<CaptchaReadDto> GenerateCaptchaAsync();
+    Task<CaptchaReadDto> GenerateCaptchaAsync(CaptchaType? type = null);
 
     Task<int> ChangePasswordAsync(ChangePasswordDto passwordDto);
 

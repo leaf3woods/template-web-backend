@@ -6,9 +6,9 @@ public class QuestionCaptchaBuilder : CaptchaBuilder
 {
     public override Captcha Build()
     {
-        if (CaptchaGenOptions is null)
+        if (CaptchaGenSettings is null)
         {
-            throw new ArgumentNullException("captcha generate options was not set");
+            throw new InvalidOperationException("Captcha generation settings were not set.");
         }
 
         var equation = CaptchaUtil.GenEquation(out var answer);
@@ -16,21 +16,21 @@ public class QuestionCaptchaBuilder : CaptchaBuilder
         {
             Type = CaptchaType.Question,
             Image = CaptchaUtil.GenerateImage(
-                CaptchaGenOptions,
+                CaptchaGenSettings,
                 equation,
                 GenNosie,
                 GenLines,
                 GenCircles
             ),
-            Pixel = new(CaptchaGenOptions.Width, CaptchaGenOptions.Height),
+            Pixel = new(CaptchaGenSettings.Width, CaptchaGenSettings.Height),
             Answer = answer.ToString(),
         };
         return captcha;
     }
 
-    public override CaptchaBuilder WithGenOption(CaptchaGenOptions options)
+    public override CaptchaBuilder WithGenSettings(CaptchaGenSettings settings)
     {
-        CaptchaGenOptions = options;
+        CaptchaGenSettings = settings;
         return this;
     }
 

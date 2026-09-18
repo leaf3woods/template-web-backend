@@ -12,9 +12,9 @@ public class HanCaptchaBuilder : CaptchaBuilder
         return captcha;
     }
 
-    public override CaptchaBuilder WithGenOption(CaptchaGenOptions options)
+    public override CaptchaBuilder WithGenSettings(CaptchaGenSettings settings)
     {
-        CaptchaGenOptions = options;
+        CaptchaGenSettings = settings;
         return this;
     }
 

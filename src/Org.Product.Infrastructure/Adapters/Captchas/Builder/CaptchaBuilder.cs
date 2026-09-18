@@ -7,7 +7,7 @@ public abstract class CaptchaBuilder
     protected bool GenLines { get; set; } = false;
     protected bool GenNosie { get; set; } = false;
     protected bool GenCircles { get; set; } = false;
-    protected CaptchaGenOptions? CaptchaGenOptions { get; set; }
+    protected CaptchaGenSettings? CaptchaGenSettings { get; set; }
 
     public abstract CaptchaBuilder WithNoise();
 
@@ -15,7 +15,7 @@ public abstract class CaptchaBuilder
 
     public abstract CaptchaBuilder WithCircles();
 
-    public abstract CaptchaBuilder WithGenOption(CaptchaGenOptions options);
+    public abstract CaptchaBuilder WithGenSettings(CaptchaGenSettings settings);
 
     public static TBuilder Create<TBuilder>()
         where TBuilder : CaptchaBuilder, new()

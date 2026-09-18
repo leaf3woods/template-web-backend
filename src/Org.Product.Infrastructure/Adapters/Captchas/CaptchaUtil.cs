@@ -24,32 +24,32 @@ public static class CaptchaUtil
     private static (int, int) _circleCountRange = new(4, 8);
 
     public static byte[] GenerateImage(
-        CaptchaGenOptions options,
+        CaptchaGenSettings settings,
         char[] text,
         bool noise = false,
         bool line = false,
         bool circle = false
     )
     {
-        ArgumentNullException.ThrowIfNull(options);
+        ArgumentNullException.ThrowIfNull(settings);
         var random = new Random();
 
         using var image2d = new SKBitmap(
-            options.Width,
-            options.Height,
+            settings.Width,
+            settings.Height,
             SKColorType.Bgra8888,
             SKAlphaType.Premul
         );
         using var canvas = new SKCanvas(image2d);
 
-        var background = options.Background.ToSkColor() ?? SKColors.WhiteSmoke;
+        var background = settings.Background.ToSkColor() ?? SKColors.WhiteSmoke;
         canvas.Clear(background);
 
-        var fontSize = (options.Width) / (text.Length + 1);
+        var fontSize = (settings.Width) / (text.Length + 1);
         using var drawStyle = new SKPaint { IsAntialias = true };
 
-        var limitHeigtStart = (int)(options.Height * (1 - _drawPositionLimit)) / 2;
-        var limitHeightEnd = options.Height - limitHeigtStart;
+        var limitHeigtStart = (int)(settings.Height * (1 - _drawPositionLimit)) / 2;
+        var limitHeightEnd = settings.Height - limitHeigtStart;
 
         if (circle)
         {
@@ -60,7 +60,7 @@ public static class CaptchaUtil
             {
                 drawStyle.Color = Colors[random.Next(0, Colors.Length - 1)];
                 canvas.DrawCircle(
-                    random.Next(options.Width),
+                    random.Next(settings.Width),
                     random.Next(limitHeigtStart, limitHeightEnd),
                     random.Next(_circleRadiusRange.Item1, _circleRadiusRange.Item2),
                     drawStyle
@@ -71,13 +71,13 @@ public static class CaptchaUtil
         }
 
         using var font = SKTypeface.FromFamilyName(
-            options.FontFamily,
+            settings.FontFamily,
             SKFontStyleWeight.SemiBold,
             SKFontStyleWidth.ExtraCondensed,
             SKFontStyleSlant.Upright
         );
         using var textFont = new SKFont(font, fontSize);
-        float py = (options.Height) / 2;
+        float py = (settings.Height) / 2;
         var offset = fontSize / 2;
         var offsetY = fontSize * (float)(3 / 8);
         for (var i = 0; i < text.Length; i++)
@@ -94,12 +94,12 @@ public static class CaptchaUtil
 
         if (noise)
         {
-            for (var i = 0; i < options.Width * 2; i++)
+            for (var i = 0; i < settings.Width * 2; i++)
             {
                 drawStyle.Color = Colors[random.Next(0, Colors.Length - 1)];
                 canvas.DrawRect(
-                    random.Next(options.Width),
-                    random.Next(options.Height),
+                    random.Next(settings.Width),
+                    random.Next(settings.Height),
                     _noiseSize,
                     _noiseSize,
                     drawStyle
@@ -115,9 +115,9 @@ public static class CaptchaUtil
                 drawStyle.Color = Colors[random.Next(0, Colors.Length - 1)];
                 drawStyle.StrokeWidth = _lineWidth;
                 canvas.DrawLine(
-                    random.Next(0, options.Width),
+                    random.Next(0, settings.Width),
                     random.Next(limitHeigtStart, limitHeightEnd),
-                    random.Next(0, options.Width),
+                    random.Next(0, settings.Width),
                     random.Next(limitHeigtStart, limitHeightEnd),
                     drawStyle
                 );

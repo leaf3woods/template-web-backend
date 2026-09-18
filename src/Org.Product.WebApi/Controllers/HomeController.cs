@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Org.Product.Application.Dtos;
 using Org.Product.Application.Services.Base;
 using Org.Product.WebApi.Utilities;
+using Org.Product.Application.Abstractions.Captchas;
 
 namespace Org.Product.WebApi.Controllers;
 
@@ -32,8 +33,8 @@ public class HomeController : ControllerBase
     [Route("captcha")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ResponseWrapper<CaptchaReadDto?>> GetCaptcha() =>
-        (await _userService.GenerateCaptchaAsync()).Wrap();
+    public async Task<ResponseWrapper<CaptchaReadDto?>> GetCaptcha(CaptchaType? type = null) =>
+        (await _userService.GenerateCaptchaAsync(type)).Wrap();
 
     /// <summary>
     ///     用户登录

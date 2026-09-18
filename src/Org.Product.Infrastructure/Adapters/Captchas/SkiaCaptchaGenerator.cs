@@ -14,16 +14,33 @@ public sealed class SkiaCaptchaGenerator : ICaptchaGenerator
         _options = options.Value;
     }
 
-    public Captcha Generate(CaptchaGenOptions? options = null)
+    public Captcha Generate(CaptchaGenSettings? settings = null)
     {
-        var genOptions = options ?? new CaptchaGenOptions
+        var height = settings?.Height;
+        var width = settings?.Width;
+        var resolvedSettings = new CaptchaGenSettings
         {
-            FontFamily = _options.FontFamily,
-            Height = _options.Height,
-            Width = _options.Width,
+            FontFamily = settings?.FontFamily ?? _options.FontFamily,
+            Height = height is null or 0 ? _options.Height : height.Value,
+            Width = width is null or 0 ? _options.Width : width.Value,
+            Background = settings?.Background ?? _options.Background
         };
-        var builder = CaptchaBuilder.Create<QuestionCaptchaBuilder>()
-            .WithGenOption(genOptions);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(resolvedSettings.Height);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(resolvedSettings.Width);
+
+        CaptchaBuilder builder = settings?.Type switch
+        {
+            CaptchaType.Question => CaptchaBuilder.Create<QuestionCaptchaBuilder>(),
+            null or CaptchaType.Character => CaptchaBuilder.Create<CharacterCaptchaBuilder>(),
+            CaptchaType.Han => throw new NotSupportedException("Han captcha type is not supported"),
+            _ => throw new ArgumentOutOfRangeException(
+                nameof(CaptchaGenSettings.Type),
+                settings.Type,
+                "Unsupported captcha type."
+            )
+        };
+
+        builder = builder.WithGenSettings(resolvedSettings);
         if (_options.EnableNoise)
         {
             builder = builder.WithNoise();

@@ -4,5 +4,5 @@ namespace Org.Product.Application.Abstractions.Captchas;
 
 public interface ICaptchaGenerator : ISecurityService
 {
-    Captcha Generate(CaptchaGenOptions? options = null);
+    Captcha Generate(CaptchaGenSettings? settings = null);
 }
