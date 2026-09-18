@@ -1,4 +1,6 @@
+using System.Drawing;
 using System.Reflection;
+using Org.Product.Application.Abstractions.Captchas;
 using SkiaSharp;
 
 namespace Org.Product.Infrastructure.Adapters.Captchas;
@@ -40,7 +42,7 @@ public static class CaptchaUtil
         );
         using var canvas = new SKCanvas(image2d);
 
-        var background = options.Background ?? SKColors.WhiteSmoke;
+        var background = options.Background.ToSkColor() ?? SKColors.WhiteSmoke;
         canvas.Clear(background);
 
         var fontSize = (options.Width) / (text.Length + 1);
@@ -177,6 +179,9 @@ public static class CaptchaUtil
             f.Alpha != 0 && ((0.299 * f.Red + 0.587 * f.Green + 0.114 * f.Blue) / 255.0) <= 0.6
         )
         .ToArray();
+
+    public static SKColor? ToSkColor(this Color? color) =>
+        color is null ? null : new SKColor(color.Value.R, color.Value.G, color.Value.B, color.Value.A);
 
     public static readonly IEnumerable<int> NumChars = Enumerable.Range(48, 10);
     public static readonly IEnumerable<int> LowerChars = Enumerable.Range(65, 26);

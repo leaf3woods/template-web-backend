@@ -14,15 +14,16 @@ public sealed class SkiaCaptchaGenerator : ICaptchaGenerator
         _options = options.Value;
     }
 
-    public Captcha Generate()
+    public Captcha Generate(CaptchaGenOptions? options = null)
     {
+        var genOptions = options ?? new CaptchaGenOptions
+        {
+            FontFamily = _options.FontFamily,
+            Height = _options.Height,
+            Width = _options.Width,
+        };
         var builder = CaptchaBuilder.Create<QuestionCaptchaBuilder>()
-            .WithGenOption(new CaptchaGenOptions
-            {
-                FontFamily = _options.FontFamily,
-                Height = _options.Height,
-                Width = _options.Width,
-            });
+            .WithGenOption(genOptions);
         if (_options.EnableNoise)
         {
             builder = builder.WithNoise();
