@@ -16,13 +16,11 @@ public sealed class SkiaCaptchaGenerator : ICaptchaGenerator
 
     public Captcha Generate(CaptchaGenSettings? settings = null)
     {
-        var height = settings?.Height;
-        var width = settings?.Width;
         var resolvedSettings = new CaptchaGenSettings
         {
             FontFamily = settings?.FontFamily ?? _options.FontFamily,
-            Height = height is null or 0 ? _options.Height : height.Value,
-            Width = width is null or 0 ? _options.Width : width.Value,
+            Height = settings?.Height is null or 0 ? _options.Height : settings!.Height,
+            Width = settings?.Width is null or 0 ? _options.Width : settings!.Width,
             Background = settings?.Background ?? _options.Background
         };
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(resolvedSettings.Height);
@@ -33,11 +31,7 @@ public sealed class SkiaCaptchaGenerator : ICaptchaGenerator
             CaptchaType.Question => CaptchaBuilder.Create<QuestionCaptchaBuilder>(),
             null or CaptchaType.Character => CaptchaBuilder.Create<CharacterCaptchaBuilder>(),
             CaptchaType.Han => throw new NotSupportedException("Han captcha type is not supported"),
-            _ => throw new ArgumentOutOfRangeException(
-                nameof(CaptchaGenSettings.Type),
-                settings.Type,
-                "Unsupported captcha type."
-            )
+            _ => throw new ArgumentOutOfRangeException("Unsupported captcha type.")
         };
 
         builder = builder.WithGenSettings(resolvedSettings);

@@ -160,7 +160,7 @@ No caller in the current application populates snapshots through `IRolePermissio
 
 ## 8. Other adapters and event boundaries
 
-`ICaptchaGenerator` is implemented by `SkiaCaptchaGenerator`. Application owns verification/expiry decisions; Infrastructure owns fonts, dimensions, rendering, and image bytes. The current generator uses the question-captcha builder. The store does not implement attempt limits or one-time consumption.
+`ICaptchaGenerator` is implemented by `SkiaCaptchaGenerator`. Application owns verification/expiry decisions and passes runtime generation settings; Infrastructure merges those settings with configured renderer defaults and owns fonts, dimensions, rendering, and image bytes. Character captcha is the default, callers can select Character or Question, and Han currently throws `NotSupportedException` because its builder is not implemented. The store does not implement attempt limits or one-time consumption.
 
 `Infrastructure/Adapters/Protocols` contains binary frame, CRC, and JSON message examples. These are wire-format adapters, not domain entities or a running device-message ingestion service. The Compose MQTT service does not establish an application MQTT consumer or publisher.
 
