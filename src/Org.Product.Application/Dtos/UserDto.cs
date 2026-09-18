@@ -29,7 +29,7 @@ public class UserUpdateDto : UpdateDto<User>
     public string? Email { get; set; }
     public string? Phone { get; set; }
     public IEnumerable<Guid>? RoleIds { get; set; }
-    public bool State { get; set; }
+    public bool IsEnabled { get; set; }
     public Guid? DeptId { get; set; }
     public Gender? Gender { get; set; }
 }
@@ -41,7 +41,7 @@ public class UserQueryDto : PaginatedQueryDto
     public string? Name { get; set; }
     public string? Phone { get; set; }
     public string? UserCardNo { get; set; }
-    public bool? State { get; set; }
+    public bool? IsEnabled { get; set; }
     public string? Filter { get; set; }
 }
 

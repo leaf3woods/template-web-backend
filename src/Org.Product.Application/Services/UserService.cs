@@ -68,7 +68,10 @@ public class UserService
                 u => u.Username.Contains(query!.UserName!)
             )
             .WhereIf(!string.IsNullOrEmpty(query?.Name), u => u.Name!.Contains(query!.Name!))
-            .WhereIf(query?.State != null, u => u.State == query!.State)
+            .WhereIf(
+                query?.IsEnabled != null,
+                u => u.IsEnabled == query!.IsEnabled
+            )
             .Where(u => !defaultIds.Contains(u.Id))
             .Include(u => u.Roles)
             .ToListAsync();
@@ -88,7 +91,7 @@ public class UserService
                 string.IsNullOrEmpty(query.UserName) || u.Username.Contains(query.UserName)
             )
             .Where(u => string.IsNullOrEmpty(query.Name) || u.Name!.Contains(query.Name))
-            .Where(u => query.State == null || u.State == query.State)
+            .Where(u => query.IsEnabled == null || u.IsEnabled == query.IsEnabled)
             .Where(u => u.Roles.Count() == 1 && u.Roles.Any(r => r.Id == Role.MemberRole.Id))
             .Include(u => u.Roles)
             .ToPaginatedListAsync(query.PageIndex, query.PageSize);

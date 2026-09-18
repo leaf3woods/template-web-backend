@@ -44,7 +44,10 @@ public class MenuService
             .WhereIf(queryDto.ParentId != null, x => x.ParentId == queryDto.ParentId)
             .WhereIf(queryDto.Type != null, x => x.Type == (PermissionType)queryDto.Type!.Value)
             .WhereIf(queryDto.Visible != null, x => x.Visible == queryDto.Visible)
-            .WhereIf(queryDto.State != null, x => x.State == queryDto.State)
+            .WhereIf(
+                queryDto.IsEnabled != null,
+                x => x.IsEnabled == queryDto.IsEnabled
+            )
             .ToPaginatedListAsync(queryDto.PageIndex, queryDto.PageSize);
         return Mapper.Map<PaginatedList<MenuReadDto>>(permissions);
     }
@@ -66,7 +69,7 @@ public class MenuService
         {
             parent.Children = menus
                 .Where(m => m.ParentId == parent.Id)
-                .OrderBy(m => m.Order)
+                .OrderBy(m => m.SortOrder)
                 .ThenBy(m => m.Level)
                 .Select(m => AsTree(m));
             return parent;

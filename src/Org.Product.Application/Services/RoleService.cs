@@ -46,7 +46,10 @@ public class RoleService
         var roles = await Queryable
             .WhereIf(!string.IsNullOrEmpty(queryDto.Name), x => x.Name.Contains(queryDto.Name!))
             .WhereIf(!string.IsNullOrEmpty(queryDto.Code), x => x.Code.Contains(queryDto.Code!))
-            .WhereIf(queryDto.State != null, x => x.State == queryDto.State)
+            .WhereIf(
+                queryDto.IsEnabled != null,
+                x => x.IsEnabled == queryDto.IsEnabled
+            )
             .Include(r => r.Permissions)
             .ToPaginatedListAsync(queryDto.PageIndex, queryDto.PageSize);
         return Mapper.Map<PaginatedList<RoleReadDto>>(roles);

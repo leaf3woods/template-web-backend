@@ -46,7 +46,7 @@ public abstract class CrudAppService<TEntity, TKey, TReadDto>
         return await UnitOfWork.SaveChangesAsync();
     }
 
-    public Task<TReadDto?> UpdateStateAsync(TKey key, bool state)
+    public Task<TReadDto?> UpdateEnabledAsync(TKey key, bool isEnabled)
     {
         throw new NotImplementedException();
     }

@@ -101,7 +101,7 @@ public class ApiDbContext : DbContext
 
         #region permission
 
-        modelBuilder.Entity<Permission>().HasIndex(m => m.Order);
+        modelBuilder.Entity<Permission>().HasIndex(m => m.SortOrder);
 
         modelBuilder
             .Entity<Permission>()

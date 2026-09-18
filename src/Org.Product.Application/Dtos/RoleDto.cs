@@ -24,7 +24,7 @@ public class RoleQueryDto : PaginatedQueryDto
     public string? Name { get; set; }
     public string? Code { get; set; }
 
-    public bool? State { get; set; }
+    public bool? IsEnabled { get; set; }
 }
 
 public class RoleUpdateDto : UpdateDto<Role>

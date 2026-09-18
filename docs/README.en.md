@@ -323,8 +323,9 @@ Use `dotnet format` within the changed scope. The EF tool manifest is `.config/d
 | Role permission snapshots | Read from Redis; missing snapshots deny permission authorization. Automatic population, database fallback, and synchronization after role changes are not implemented |
 | Initial accounts and roles | Migrations include built-in data but no user-role assignments; applications need their own provisioning and credential management |
 | Database/Redis consistency | User mutations save first and revoke sessions afterward; no cross-store transaction or compensation worker |
+| Generic cache queries | `ICacheQuery<TKey, TQuery, TItem>`, the convention-mapped cache base, and safe cache projections are defined, but no adapter is implemented or registered |
 | Domain events | MediatR is registered, but login does not publish its event and the handler is a placeholder |
-| Example services | `UpdateStateAsync` and `SetMenuRouteAsync` are unimplemented; `SettingService` is empty |
+| Example services | `UpdateEnabledAsync` and `SetMenuRouteAsync` are unimplemented; `SettingService` is empty |
 | Deployment verification | Compose requires customization. No application health endpoint is registered; container captcha rendering and other runtime behaviors need verification |
 
 Detailed behavior and source locations are recorded in [Architecture](architecture.md). Keep these documents aligned when extending the template.

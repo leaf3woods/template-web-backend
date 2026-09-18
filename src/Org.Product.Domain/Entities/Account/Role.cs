@@ -4,7 +4,7 @@ using Org.Product.Domain.Entities.Base.Audited;
 
 namespace Org.Product.Domain.Entities.Account;
 
-public class Role : AggregateRoot<Guid>, ISoftDelete, IAudited, IOrder, IState
+public class Role : AggregateRoot<Guid>, ISoftDelete, IAudited, IHasSortOrder, IEnableable
 {
     public string Name { get; set; } = null!;
 
@@ -24,9 +24,9 @@ public class Role : AggregateRoot<Guid>, ISoftDelete, IAudited, IOrder, IState
 
     #endregion navigation
 
-    public int Order { get; set; }
+    public int SortOrder { get; set; }
 
-    public bool State { get; set; }
+    public bool IsEnabled { get; set; }
 
     #region audit
 

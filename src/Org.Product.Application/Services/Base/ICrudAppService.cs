@@ -12,7 +12,7 @@ public interface ICrudAppService<TEntity, TKey, TReadDto> : IBaseService
 
     Task<int> DeleteAsync(TKey key);
 
-    Task<TReadDto?> UpdateStateAsync(TKey key, bool state);
+    Task<TReadDto?> UpdateEnabledAsync(TKey key, bool isEnabled);
 }
 
 public interface ICrudAppService<TEntity, TKey, TReadDto, TQueryDto>

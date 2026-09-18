@@ -94,7 +94,7 @@ The exception handler writes `ExceptionReadDto`. Its current status mapping is `
 | `Role` | Role metadata; many-to-many users through `UserRole`, and permissions through `RolePermission` |
 | `Permission` | Shared catalogue/menu/button/API model, identified by `PermissionType`; `ParentId` represents its tree |
 | `AggregateRoot<TKey>` | Identity and repository eligibility; currently no domain-event collection or automatic dispatch |
-| `ISoftDelete`, `IAudited`, `IState`, `IOrder` | Entity capabilities; implementing an interface does not itself enforce a business rule or populate audit fields |
+| `ISoftDelete`, `IAudited`, `IEnableable`, `IHasSortOrder` | Entity capabilities; implementing an interface does not itself enforce a business rule or populate audit fields |
 
 Domain entities currently expose mutable state, while much of the orchestration and validation lives in Application services. For example, `MenuService` rejects deleting the root or a node with children, and `UserService.ChangeRoleAsync` requires every requested role to exist before saving.
 
@@ -136,7 +136,7 @@ Mapping should transform data without database access, role assignment, credenti
 
 Logout supplies the authenticated token to `RevokeAsync`. The Redis adapter uses an atomic Lua compare-and-delete so an older in-flight logout cannot remove a newer session. User update/delete, role reassignment, and password change/reset revoke the current session after saving.
 
-[PasswordCredentialService](../src/Org.Product.Infrastructure/Adapters/Security/PasswordCredentialService.cs) currently expects Base64-encoded password bytes and stores a salted SHA-256 result, with fixed-time comparison during verification. This describes the existing credential format; changing it requires an explicit compatibility/migration design. State fields alone do not constitute an account-disable policy: the current login path does not check `User.State`.
+[PasswordCredentialService](../src/Org.Product.Infrastructure/Adapters/Security/PasswordCredentialService.cs) currently expects Base64-encoded password bytes and stores a salted SHA-256 result, with fixed-time comparison during verification. This describes the existing credential format; changing it requires an explicit compatibility/migration design. `IsEnabled` alone does not constitute an account-disable policy: the current login path does not check `User.IsEnabled`.
 
 ### Endpoint permission evaluation
 
@@ -147,6 +147,8 @@ The handler validates user/role GUID claims and requires Redis snapshots for eve
 ### Redis semantics and consistency limits
 
 Contracts live in `Application/Abstractions/Security`; implementations live in `Infrastructure/Adapters/Security`.
+
+Application also defines the strongly typed `ICacheQuery<TKey, TQuery, TItem>` contract for ordinary cache-backed list/read scenarios. Its key, query DTO, and result projection are fixed together at the interface level. `CacheItem<TEntity, TKey>` reuses the existing read-DTO convention to register entity-to-cache-item mappings automatically, while `ICacheItem<TKey>` provides the query constraint. `UserCacheItem` and `RoleCacheItem` expose only query-safe fields; domain aggregates do not implement cache contracts, and the user projection excludes credentials and navigation properties. No adapter currently implements or registers this generic query contract.
 
 | Capability | Redis key | Current behavior |
 | --- | --- | --- |
@@ -164,7 +166,7 @@ No caller in the current application populates snapshots through `IRolePermissio
 
 `Infrastructure/Adapters/Protocols` contains binary frame, CRC, and JSON message examples. These are wire-format adapters, not domain entities or a running device-message ingestion service. The Compose MQTT service does not establish an application MQTT consumer or publisher.
 
-MediatR scans Application handlers, and Domain declares `UserLoginEvent`. The login use case does not publish it; `UserLoginEventHandler.Handle` currently throws `NotImplementedException`. There is no implemented durable event bus, aggregate event dispatch, or outbox. Other explicit placeholders include `CrudAppService.UpdateStateAsync`, `MenuService.SetMenuRouteAsync`, and the empty `SettingService`.
+MediatR scans Application handlers, and Domain declares `UserLoginEvent`. The login use case does not publish it; `UserLoginEventHandler.Handle` currently throws `NotImplementedException`. There is no implemented durable event bus, aggregate event dispatch, or outbox. Other explicit placeholders include `CrudAppService.UpdateEnabledAsync`, `MenuService.SetMenuRouteAsync`, and the empty `SettingService`.
 
 ## 9. Configuration and runtime assets
 

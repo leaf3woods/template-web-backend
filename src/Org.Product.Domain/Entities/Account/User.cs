@@ -4,7 +4,7 @@ using Org.Product.Domain.ValueObjects.UserValue;
 
 namespace Org.Product.Domain.Entities.Account;
 
-public class User : AggregateRoot<Guid>, ISoftDelete, IAudited, IOrder, IState
+public class User : AggregateRoot<Guid>, ISoftDelete, IAudited, IHasSortOrder, IEnableable
 {
     /// <summary>
     ///     用户名
@@ -46,9 +46,9 @@ public class User : AggregateRoot<Guid>, ISoftDelete, IAudited, IOrder, IState
 
     #endregion navigation
 
-    public int Order { get; set; }
+    public int SortOrder { get; set; }
 
-    public bool State { get; set; }
+    public bool IsEnabled { get; set; }
 
     #region audit
 

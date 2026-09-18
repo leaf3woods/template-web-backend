@@ -15,7 +15,7 @@ public class MenuReadDto : ReadDto<Permission>
 
     public int Type { get; set; }
 
-    public int Order { get; set; }
+    public int SortOrder { get; set; }
 
     public int Level { get; set; }
 
@@ -44,7 +44,7 @@ public class MenuCreateDto : CreateDto<Permission>
 
     public int Type { get; set; }
 
-    public int Order { get; set; }
+    public int SortOrder { get; set; }
 
     public string Path { get; set; } = null!;
 
@@ -69,7 +69,7 @@ public class MenuUpdateDto : UpdateDto<Permission>
 
     public int Type { get; set; }
 
-    public int Order { get; set; }
+    public int SortOrder { get; set; }
 
     public string Path { get; set; } = null!;
 
@@ -81,7 +81,7 @@ public class MenuUpdateDto : UpdateDto<Permission>
 
     public bool Favorite { get; set; }
 
-    public bool State { get; set; }
+    public bool IsEnabled { get; set; }
 }
 
 public class MenuQueryDto : PaginatedQueryDto
@@ -96,5 +96,5 @@ public class MenuQueryDto : PaginatedQueryDto
 
     public bool? Visible { get; set; }
 
-    public bool? State { get; set; }
+    public bool? IsEnabled { get; set; }
 }
