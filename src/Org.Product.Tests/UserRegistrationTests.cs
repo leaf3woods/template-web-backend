@@ -4,14 +4,13 @@ using Microsoft.Extensions.Options;
 using Moq;
 using Org.Product.Application.Abstractions.Authentication;
 using Org.Product.Application.Abstractions.Captchas;
-using Org.Product.Application.Abstractions.Security;
 using Org.Product.Application.Dtos;
 using Org.Product.Application.Services;
 using Org.Product.Application.Utilities.MapperProfiles.DtoProfiles;
 using Org.Product.Application.Utilities.Options;
 using Org.Product.Domain.Entities.Account;
 using Org.Product.Domain.Repositories;
-using Org.Product.Infrastructure.Adapters.Security;
+using Org.Product.Infrastructure.Adapters.Authentication;
 
 namespace Org.Product.Tests;
 
