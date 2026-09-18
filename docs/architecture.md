@@ -183,6 +183,20 @@ WebApi uses standard ASP.NET Core configuration sources, including environment-s
 
 Required JWT, captcha, and OpenAPI options have startup validation; this does not prove database/Redis connectivity or rendering support. Swagger is enabled in Development. No readiness/health endpoint is registered in the current startup.
 
+### Options and settings naming
+
+The `Options` suffix is reserved for values loaded from an executable host's configuration sources and consumed through the .NET options pattern. A configuration options type declares its configuration section, is bound explicitly by the composition root, and validates required values at startup. For example, `CaptchaRenderingOptions` represents renderer defaults supplied by `appsettings.json`, environment variables, user secrets, or another registered configuration provider.
+
+Use the `Settings` suffix for equivalent runtime or per-call values created by application code and passed directly to a component. Settings do not declare a configuration section, are not registered with `AddOptions<T>`, and are not injected through `IOptions<T>`. Names such as `Request`, `Command`, `Dto`, `Policy`, or `Preferences` remain preferable when they describe a more specific transport or domain role; the convention does not rename every non-configuration object to `Settings`.
+
+When runtime settings selectively override configured defaults, the adapter that owns the behavior merges options and settings exactly once, validates the resolved values, and passes a complete result to lower-level code. Prefer nullable members when omission must be distinguished from valid default values. A documented sentinel such as zero is also acceptable when the value cannot be valid and the resolved result is still validated. Avoid ambiguous sentinels when zero, an empty string, or `false` can be a meaningful override. A settings object should make its default and override semantics clear to callers.
+
+```text
+host configuration -> *Options --+
+                                +-> owning adapter -> validated effective settings
+runtime caller ----> *Settings -+
+```
+
 `FileSigningKeyProvider` loads `private-key.pem` and `public-key.pem` from `Jwt:KeyFolder`, generating both if either is missing. It holds them for its lifetime; there is no rotation protocol. Persist and provision a consistent pair across API instances. A fresh instance needs write access to generate them; the example Compose key mount is read-only and therefore needs pre-provisioned files. Do not commit keys or real connection credentials.
 
 ## 10. Database and container deployment
