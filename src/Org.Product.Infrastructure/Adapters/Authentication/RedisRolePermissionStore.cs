@@ -1,6 +1,6 @@
 using System.Text.Json;
 using Org.Product.Application.Abstractions.Authentication;
-using Org.Product.Infrastructure.Utilities;
+using Org.Product.Application.Abstractions.CacheStore;
 using StackExchange.Redis;
 
 namespace Org.Product.Infrastructure.Adapters.Authentication;
@@ -20,7 +20,7 @@ public class RedisRolePermissionStore : IRolePermissionStore
         var keys = roleIds
             .Distinct()
             .Select(roleId => new RedisKey(
-                string.Format(CacheKeyFormatter.Permissions, roleId)
+                CacheKeys.Permissions(roleId)
             ))
             .ToArray();
 
@@ -53,7 +53,7 @@ public class RedisRolePermissionStore : IRolePermissionStore
         var scanTasks = roleIds
             .Distinct()
             .Select(roleId => new RedisKey(
-                string.Format(CacheKeyFormatter.Permissions, roleId)
+                CacheKeys.Permissions(roleId)
             ))
             .Select(key => database.KeyExistsAsync(key));
         if (!scanTasks.Any())
@@ -70,7 +70,7 @@ public class RedisRolePermissionStore : IRolePermissionStore
     )
     {
         var database = _connectionMultiplexer.GetDatabase();
-        var key = string.Format(CacheKeyFormatter.Permissions, roleId);
+        var key = CacheKeys.Permissions(roleId);
         var json = JsonSerializer.Serialize(permissions);
         var task = expiration is null
             ? database.StringSetAsync(key, json)

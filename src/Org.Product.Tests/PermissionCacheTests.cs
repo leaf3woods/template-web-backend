@@ -1,6 +1,6 @@
 using Moq;
-using Org.Product.Infrastructure.Adapters.Security;
-using Org.Product.Infrastructure.Utilities;
+using Org.Product.Application.Abstractions.CacheStore;
+using Org.Product.Infrastructure.Adapters.Authentication;
 using Org.Product.Tests.Support;
 using StackExchange.Redis;
 
@@ -13,7 +13,7 @@ public sealed class PermissionCacheTests
     {
         var redis = new RedisStub();
         var roleId = Guid.NewGuid();
-        redis.Values[string.Format(CacheKeyFormatter.Permissions, roleId)] = "[\"menu\",\"menu.get\"]";
+        redis.Values[CacheKeys.Permissions(roleId)] = "[\"menu\",\"menu.get\"]";
         var service = new RedisRolePermissionStore(redis.Connection.Object);
 
         Assert.Equal(["menu", "menu.get"], await service.GetPermissionsAsync(roleId));
@@ -39,7 +39,7 @@ public sealed class PermissionCacheTests
     {
         var redis = new RedisStub();
         var roleId = Guid.NewGuid();
-        redis.Values[string.Format(CacheKeyFormatter.Permissions, roleId)] = "[\"menu\"]";
+        redis.Values[CacheKeys.Permissions(roleId)] = "[\"menu\"]";
         var service = new RedisRolePermissionStore(redis.Connection.Object);
 
         Assert.Empty(await service.GetPermissionsAsync([roleId, Guid.NewGuid()]));
@@ -52,7 +52,7 @@ public sealed class PermissionCacheTests
     {
         var redis = new RedisStub();
         var roleId = Guid.NewGuid();
-        redis.Values[string.Format(CacheKeyFormatter.Permissions, roleId)] = "[]";
+        redis.Values[CacheKeys.Permissions(roleId)] = "[]";
         var service = new RedisRolePermissionStore(redis.Connection.Object);
 
         Assert.Empty(await service.GetPermissionsAsync(roleId));
