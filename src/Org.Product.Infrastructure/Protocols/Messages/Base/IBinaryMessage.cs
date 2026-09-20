@@ -1,4 +1,4 @@
-namespace Org.Product.Infrastructure.Adapters.Protocols.Messages.Base;
+namespace Org.Product.Infrastructure.Protocols.Messages.Base;
 
 public interface IBinaryMessage : IMessage
 {

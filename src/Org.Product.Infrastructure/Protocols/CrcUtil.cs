@@ -1,11 +1,11 @@
-namespace Org.Product.Infrastructure.Adapters.Protocols;
+namespace Org.Product.Infrastructure.Protocols;
 
 public static class CrcUtil
 {
     public const int CrcCount = 4;
 
     private static readonly uint[] CrcTable =
-    {
+    [
         0x00000000,
         0x04c11db7,
         0x09823b6e,
@@ -262,7 +262,7 @@ public static class CrcUtil
         0xb8757bda,
         0xb5365d03,
         0xb1f740b4,
-    };
+    ];
 
     public static bool CheckCrc32(this byte[] bytes)
     {
