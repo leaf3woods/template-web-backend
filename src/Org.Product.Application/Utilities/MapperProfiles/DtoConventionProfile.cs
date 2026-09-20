@@ -16,6 +16,7 @@ public sealed class DtoConventionProfile : Profile
             var dtoType in dtoAssembly
                 .GetTypes()
                 .Where(type => type is { IsAbstract: false, IsClass: true })
+                .Where(type => type.IsAssignableTo(typeof(IEntityDto)))
                 .Where(type => !typeof(IManualDtoMapping).IsAssignableFrom(type))
         )
         {
@@ -28,7 +29,10 @@ public sealed class DtoConventionProfile : Profile
             var genericDefinition = dtoBaseType.GetGenericTypeDefinition();
             var entityType = dtoBaseType.GetGenericArguments()[0];
 
-            if (genericDefinition == typeof(ReadDto<>) || genericDefinition == typeof(ReadDto<,>))
+            if (genericDefinition == typeof(ReadDto<>)
+                || genericDefinition == typeof(ReadDto<,>)
+                || genericDefinition == typeof(CacheItem<,>)
+            )
             {
                 CreateMap(entityType, dtoType);
             }
@@ -57,6 +61,7 @@ public sealed class DtoConventionProfile : Profile
                 || genericDefinition == typeof(ReadDto<,>)
                 || genericDefinition == typeof(CreateDto<>)
                 || genericDefinition == typeof(UpdateDto<>)
+                || genericDefinition == typeof(CacheItem<,>)
             )
             {
                 return type;

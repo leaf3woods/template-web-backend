@@ -45,7 +45,7 @@ public class UserQueryDto : PaginatedQueryDto
     public string? Filter { get; set; }
 }
 
-public class UserReadDto : ReadDto<User>
+public class UserReadDto : ReadDto<User, Guid>
 {
     public string Username { get; set; } = null!;
     public string DisplayName { get; set; } = null!;
@@ -75,7 +75,7 @@ public class UserDetailReadDto : ReadDto
     public string? AboutMe { get; set; }
 }
 
-public class CaptchaReadDto : ReadDto<Captcha>, IManualDtoMapping
+public class CaptchaReadDto : ReadDto<Captcha, Guid>, IManualDtoMapping
 {
     public string Type { get; set; } = null!;
     public int[] Pixel { get; set; } = null!;

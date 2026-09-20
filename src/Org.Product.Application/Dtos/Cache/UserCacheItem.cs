@@ -3,7 +3,7 @@ using Org.Product.Domain.Entities.Account;
 
 namespace Org.Product.Application.Dtos.Cache;
 
-public sealed class UserCacheItem : CacheItem<User>
+public sealed class UserCacheItem : CacheItem<User, Guid>
 {
     public string Username { get; set; } = null!;
 

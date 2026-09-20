@@ -12,7 +12,7 @@ public class RoleCreateDto : CreateDto<Role>, IManualDtoMapping
     public IEnumerable<string> ScopeNames { get; set; } = null!;
 }
 
-public class RoleReadDto : ReadDto<Role>
+public class RoleReadDto : ReadDto<Role, Guid>
 {
     public string Name { get; set; } = null!;
     public string Description { get; set; } = null!;
@@ -36,7 +36,7 @@ public class RoleUpdateDto : UpdateDto<Role>
     public IEnumerable<Guid>? UserIds { get; set; } = null!;
 }
 
-public class RoleScopeReadDto : ReadDto<Permission>
+public class RoleScopeReadDto : ReadDto<Permission, Guid>
 {
     public string Name { get; set; } = null!;
     public string? Description { get; set; }

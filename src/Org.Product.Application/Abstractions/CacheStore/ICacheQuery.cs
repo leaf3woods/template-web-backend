@@ -5,7 +5,7 @@ namespace Org.Product.Application.Abstractions.CacheStore;
 public interface ICacheQuery<TKey, in TQuery, TItem>
     where TKey : notnull
     where TQuery : QueryDto
-    where TItem : ICacheItem<TKey>
+    where TItem : ICacheItem
 {
     Task<TItem?> GetByIdAsync(
         TKey id,

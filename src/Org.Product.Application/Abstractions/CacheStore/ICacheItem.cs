@@ -1,9 +1,15 @@
+using Org.Product.Application.Dtos.Base;
 using Org.Product.Domain.Entities.Base;
 
 namespace Org.Product.Application.Abstractions.CacheStore;
 
-public interface ICacheItem<TKey> : IHasSortOrder, IEnableable
-    where TKey : notnull
+
+public interface ICacheItem
 {
-    TKey Id { get; }
+    string CacheKey { get; set; }
+}
+
+public interface ICacheItem<TEntity> : ICacheItem, IEntityDto<TEntity>, IHasSortOrder, IEnableable
+    where TEntity : IAggregateRoot
+{
 }
