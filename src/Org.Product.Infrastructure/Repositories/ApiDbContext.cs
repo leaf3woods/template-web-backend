@@ -19,23 +19,6 @@ public class ApiDbContext : DbContext
 
     #endregion db sets
 
-    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
-    {
-        foreach (var entityEntry in ChangeTracker.Entries())
-        {
-            if (
-                entityEntry.State == EntityState.Deleted
-                && entityEntry.Entity is ISoftDelete delete
-            )
-            {
-                entityEntry.State = EntityState.Unchanged;
-                delete.SoftDeleted = true;
-                delete.DeleteTime = DateTime.UtcNow;
-            }
-        }
-        return base.SaveChangesAsync(cancellationToken);
-    }
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         #region table prefix

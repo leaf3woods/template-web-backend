@@ -3,7 +3,7 @@ using Org.Product.Domain.Entities.Base;
 
 namespace Org.Product.Application.Dtos.Base;
 
-public abstract class CacheItem : ICacheItem {}
+public abstract class CacheItem : ICacheItem { }
 
 public class CacheItem<TEntity, TKey> : CacheItem, ICacheItem<TEntity, TKey>
     where TEntity : IAggregateRoot

@@ -1,5 +1,6 @@
 using AutoMapper;
 using Org.Product.Application.Dtos.Base;
+using Org.Product.Domain.Shared;
 
 namespace Org.Product.Application.Utilities.MapperProfiles;
 
@@ -10,6 +11,8 @@ public sealed class DtoConventionProfile : Profile
 {
     public DtoConventionProfile()
     {
+        CreateMap(typeof(PaginatedList<>), typeof(PaginatedList<>))
+            .ConvertUsing(typeof(PaginatedListConverter<,>));
         var dtoAssembly = typeof(ReadDto).Assembly;
 
         foreach (

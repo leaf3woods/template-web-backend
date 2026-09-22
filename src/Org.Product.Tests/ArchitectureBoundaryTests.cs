@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
+using Org.Product.Application.Abstractions.CacheStore;
 using Org.Product.Application.Abstractions.Persistence;
 using Org.Product.Application.Services;
 using Org.Product.Domain.Entities.Account;
@@ -66,6 +68,7 @@ public sealed class ArchitectureBoundaryTests
         var factory = new AutofacServiceProviderFactory();
         var container = factory.CreateBuilder(services);
         container.RegisterAssemblyModules(typeof(PersistenceModule).Assembly);
+        container.RegisterInstance(Mock.Of<ICacheInvalidator>()).As<ICacheInvalidator>();
 
         var serviceProvider = factory.CreateServiceProvider(container);
         try

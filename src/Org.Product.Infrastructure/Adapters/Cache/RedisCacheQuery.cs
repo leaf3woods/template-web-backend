@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Org.Product.Application.Abstractions.CacheStore;
@@ -78,10 +79,11 @@ public sealed class RedisCacheQuery<TEntity, TKey, TCacheItem> : ICacheQuery<TEn
         Expression<Func<TEntity, bool>> predicate,
         CancellationToken cancellationToken)
     {
-        var entities = await _repository
+        var cacheItems = await _repository
             .Query(tracking: false)
             .Where(predicate)
+            .ProjectTo<TCacheItem>(_mapper.ConfigurationProvider)
             .ToListAsync(cancellationToken);
-        return _mapper.Map<TCacheItem[]>(entities);
+        return [.. cacheItems];
     }
 }

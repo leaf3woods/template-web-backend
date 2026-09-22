@@ -32,8 +32,13 @@ internal sealed class AsyncQueryProvider : IAsyncQueryProvider
 {
     private readonly IQueryProvider _inner;
     public AsyncQueryProvider(IQueryProvider inner) => _inner = inner;
-    public IQueryable CreateQuery(Expression expression) =>
-        throw new NotSupportedException();
+    public IQueryable CreateQuery(Expression expression)
+    {
+        var elementType = expression.Type.GetGenericArguments().Single();
+        return (IQueryable)Activator.CreateInstance(
+            typeof(AsyncQuery<>).MakeGenericType(elementType),
+            expression)!;
+    }
     public IQueryable<TElement> CreateQuery<TElement>(Expression expression) => new AsyncQuery<TElement>(expression);
     public object? Execute(Expression expression) => _inner.Execute(expression);
     public TResult Execute<TResult>(Expression expression) => _inner.Execute<TResult>(expression);

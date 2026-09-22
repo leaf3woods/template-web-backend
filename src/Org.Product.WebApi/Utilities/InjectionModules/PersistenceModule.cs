@@ -23,6 +23,11 @@ public sealed class PersistenceModule : Module
             .InstancePerLifetimeScope();
 
         builder
+            .RegisterType<RedisCacheInvalidator>()
+            .As<ICacheInvalidator>()
+            .InstancePerLifetimeScope();
+
+        builder
             .RegisterGeneric(typeof(RedisCacheQuery<,,>))
             .As(typeof(ICacheQuery<,,>))
             .InstancePerLifetimeScope();

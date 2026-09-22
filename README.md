@@ -323,7 +323,7 @@ dotnet test "$projectName.sln" --filter FullyQualifiedName~AuthorizationTests
 | 角色权限快照 | 从 Redis 读取；缺失时拒绝权限授权。尚无自动填充、数据库回源或角色修改后的同步流程 |
 | 初始账号与角色 | 迁移含内置数据，但不创建用户角色分配；新业务需设计自己的初始化和凭据管理 |
 | 数据库与 Redis 一致性 | 用户修改先保存数据库，再撤销会话；没有跨存储事务或失败补偿任务 |
-| 通用缓存查询 | `ICacheQuery<TKey, TQuery, TItem>`、自动映射缓存基类与安全缓存投影已定义，尚无适配器实现或注册 |
+| 通用缓存查询 | `ICacheQuery<TEntity, TKey, TCacheItem>` 与 Redis 适配器已注册；`ICacheInvalidator` 在数据库提交后删除精确实体 key，也支持显式 Store key 失效；条件列表仍依赖 TTL |
 | 领域事件 | MediatR 已注册，登录事件未发布，事件处理器仍为占位实现 |
 | 部分示例服务 | `UpdateEnabledAsync`、`SetMenuRouteAsync` 尚未实现，`SettingService` 为空 |
 | 部署验证 | Compose 为待定制示例；当前没有应用健康检查端点，验证码容器渲染等需要运行验证 |
