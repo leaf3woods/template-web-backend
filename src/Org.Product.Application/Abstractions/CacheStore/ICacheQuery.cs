@@ -1,19 +1,21 @@
-﻿using Org.Product.Application.Dtos.Base;
+using Org.Product.Application.Dtos.Base;
+using Org.Product.Domain.Entities.Base;
+using System.Linq.Expressions;
 
 namespace Org.Product.Application.Abstractions.CacheStore;
 
-public interface ICacheQuery<TKey, in TQuery, TItem>
+public interface ICacheQuery<TEntity, TKey, TCacheItem>
+    where TEntity : IAggregateRoot
     where TKey : notnull
-    where TQuery : QueryDto
-    where TItem : ICacheItem
+    where TCacheItem : CacheItem<TEntity, TKey>
 {
-    Task<TItem?> GetByIdAsync(
+    Task<TCacheItem?> FindAsync(
         TKey id,
         CancellationToken cancellationToken = default
     );
 
-    Task<IReadOnlyList<TItem>> ListAsync(
-        TQuery query,
+    Task<IReadOnlyList<TCacheItem>> WhereAsync(
+        Expression<Func<TEntity, bool>> predicate,
         CancellationToken cancellationToken = default
     );
 }

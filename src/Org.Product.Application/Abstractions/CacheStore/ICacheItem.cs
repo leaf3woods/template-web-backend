@@ -4,12 +4,10 @@ using Org.Product.Domain.Entities.Base;
 namespace Org.Product.Application.Abstractions.CacheStore;
 
 
-public interface ICacheItem
-{
-    string CacheKey { get; set; }
-}
+public interface ICacheItem {}
 
-public interface ICacheItem<TEntity> : ICacheItem, IEntityDto<TEntity>, IHasSortOrder, IEnableable
+public interface ICacheItem<TEntity, TKey> : ICacheItem, IEntityDto<TEntity>, IHasSortOrder, IEnableable
     where TEntity : IAggregateRoot
+    where TKey : notnull
 {
 }

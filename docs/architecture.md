@@ -50,7 +50,7 @@ Registration remains divided by responsibility:
 | `AuthorizationModule` | Discovers pure Domain services through `IDomainService`, authorization handlers through `IAuthorizationHandler`, and JWT event types through their framework base class |
 | `AddAllOptions` | Binds and validates application captcha policy, JWT validation/issuance, captcha rendering, and OpenAPI configuration through the host `IServiceCollection` |
 | `AddDbContextPool<ApiDbContext>` | Native EF Core pooled request-scoped context registration in WebApi; Autofac imports it from the host service collection |
-| `PersistenceModule` | Generic `IRepository<>` mapping plus scanned scoped `IUnitOfWork` and `ISqlExecutor` implementations |
+| `PersistenceModule` | Generic `IRepository<>` and `ICacheQuery<,,>` mappings plus scanned scoped `IUnitOfWork` and `ISqlExecutor` implementations |
 | `SecurityInfrastructureModule` | Scanned `ISecurityStore` implementations per scope; scanned stateless `ISecurityService` implementations as singletons; explicit Redis connection and signing-key infrastructure |
 | `DbMigrator` `Program` | Its own pooled `ApiDbContext` and `DatabaseMigrator`; it does not register HTTP, Redis, JWT, or captcha components |
 
@@ -148,7 +148,9 @@ The handler validates user/role GUID claims and requires Redis snapshots for eve
 
 Contracts live in `Application/Abstractions/Security`; implementations live in `Infrastructure/Adapters/Security`.
 
-Application also defines the strongly typed `ICacheQuery<TKey, TQuery, TItem>` contract for ordinary cache-backed list/read scenarios. Its key, query DTO, and result projection are fixed together at the interface level. `CacheItem<TEntity, TKey>` reuses the existing read-DTO convention to register entity-to-cache-item mappings automatically, while `ICacheItem<TKey>` provides the query constraint. `UserCacheItem` and `RoleCacheItem` expose only query-safe fields; domain aggregates do not implement cache contracts, and the user projection excludes credentials and navigation properties. No adapter currently implements or registers this generic query contract.
+Application defines the strongly typed `ICacheQuery<TEntity, TKey, TCacheItem>` contract for ordinary cache-backed entity and filtered-list reads. `RedisCacheQuery` implements cache-aside reads in Infrastructure and is registered as an open generic by WebApi. `WhereAsync` accepts an expression predicate and builds a SHA-256 fingerprint from node/result types, member and method identities, and length-prefixed culture-invariant scalar values. Parameter names do not affect the key, while predicate structure and captured values do. Filtered-list keys carry their own fingerprint-format version so changing the algorithm does not invalidate unrelated session, captcha, or permission entries. Predicates containing static member access or unsupported complex captured values bypass Redis rather than risk an incorrect cache hit. The original predicate is used for the database query, so callers must not mutate captured values concurrently while `WhereAsync` is running.
+
+`CacheItem<TEntity, TKey>` reuses the existing DTO convention to register entity-to-cache-item mappings automatically. `UserCacheItem` and `RoleCacheItem` expose only query-safe fields; domain aggregates do not implement cache contracts, and the user projection excludes credentials and navigation properties. The generic cache query currently has no mutation or invalidation contract, so entity and list entries can remain stale until `Cache:ExpireSeconds` elapses. It also does not coordinate Redis writes with database transactions.
 
 | Capability | Redis key | Current behavior |
 | --- | --- | --- |
@@ -180,6 +182,7 @@ WebApi uses standard ASP.NET Core configuration sources, including environment-s
 | `Jwt:ExpireMin` | Security module's token issuer and resulting session TTL |
 | `Captcha:RequireVerification`, `ExpireSeconds` | Application captcha policy |
 | `Captcha:FontFamily`, dimensions, decoration flags | Security module's Infrastructure-backed image renderer |
+| `Cache:ExpireSeconds` | Generic Redis entity and filtered-list cache lifetime |
 | `OpenApiInfo` | WebApi Swagger document metadata |
 | `Serilog` | WebApi logging configuration |
 
@@ -231,6 +234,7 @@ Tests use xUnit, Moq, ASP.NET Core TestHost, and local doubles under `Tests/Supp
 | `UserSessionTests` | Replacement login, token-specific logout, post-save revocation, invalid role assignment, and failed-save ordering |
 | `UserRegistrationTests` | Shared registration/create initialization and side-effect-free credential/role mapping |
 | `PermissionCacheTests` | Read-only snapshot lookup, missing/partial snapshots, and existing empty permission sets |
+| `ExpressionFingerprintTests` / `RedisCacheQueryTests` | Stable predicate fingerprints, captured values, member/method distinctions, culture independence, unsupported-predicate bypass, and filtered-list cache miss/hit behavior |
 | `SigningKeyTests` | Token validation after key generation and reload using temporary files |
 
 Run `dotnet test Org.Product.sln`; narrow a run with `--filter FullyQualifiedName~ArchitectureBoundaryTests` when appropriate. No coverage percentage is configured.

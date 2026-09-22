@@ -67,5 +67,14 @@ public static class OptionsExtensions
                 "OpenApiInfo requires Description, Title, Name, Email, and an absolute Url."
             )
             .ValidateOnStart();
+
+        services
+            .AddOptions<CacheOptions>()
+            .BindConfiguration(CacheOptions.SectionName)
+            .Validate(
+                options => options.ExpireSeconds > 0,
+                "Cache requires a positive ExpireSeconds."
+            )
+            .ValidateOnStart();
     }
 }

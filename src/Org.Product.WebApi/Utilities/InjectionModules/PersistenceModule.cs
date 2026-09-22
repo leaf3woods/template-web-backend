@@ -1,6 +1,8 @@
 using Autofac;
+using Org.Product.Application.Abstractions.CacheStore;
 using Org.Product.Application.Abstractions.Persistence;
 using Org.Product.Domain.Repositories;
+using Org.Product.Infrastructure.Adapters.Cache;
 using Org.Product.Infrastructure.Repositories;
 
 namespace Org.Product.WebApi.Utilities.InjectionModules;
@@ -18,6 +20,11 @@ public sealed class PersistenceModule : Module
             .RegisterAssemblyTypes(typeof(UnitOfWork).Assembly)
             .Where(type => type.IsAssignableTo<IUnitOfWork>() || type.IsAssignableTo<ISqlExecutor>())
             .AsImplementedInterfaces()
+            .InstancePerLifetimeScope();
+
+        builder
+            .RegisterGeneric(typeof(RedisCacheQuery<,,>))
+            .As(typeof(ICacheQuery<,,>))
             .InstancePerLifetimeScope();
     }
 }

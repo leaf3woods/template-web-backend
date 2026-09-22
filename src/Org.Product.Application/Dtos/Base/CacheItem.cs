@@ -3,12 +3,9 @@ using Org.Product.Domain.Entities.Base;
 
 namespace Org.Product.Application.Dtos.Base;
 
-public abstract class CacheItem : ICacheItem
-{
-    public string CacheKey { get; set; } = null!;
-}
+public abstract class CacheItem : ICacheItem {}
 
-public abstract class CacheItem<TEntity, TKey> : CacheItem, ICacheItem<TEntity>
+public class CacheItem<TEntity, TKey> : CacheItem, ICacheItem<TEntity, TKey>
     where TEntity : IAggregateRoot
     where TKey : notnull
 {
