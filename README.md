@@ -197,6 +197,7 @@ WebApi 使用 `appsettings.json`、环境配置文件、Development user secrets
 | `Jwt:KeyFolder` | ES256 公私钥目录 |
 | `Captcha:RequireVerification` / `ExpireSeconds` | 验证码校验开关和有效期 |
 | `Captcha:FontFamily`、尺寸和装饰选项 | SkiaSharp 验证码渲染 |
+| `Cache:ExpireSeconds` / `MaxCollectionItems` | 通用 Redis 缓存有效期，以及完整集合缓存允许的最大条目数 |
 | `OpenApiInfo` | Swagger 元数据；启动时仍要求该节存在且有效 |
 | `Serilog` | 控制台、文件日志及日志级别 |
 
@@ -323,7 +324,7 @@ dotnet test "$projectName.sln" --filter FullyQualifiedName~AuthorizationTests
 | 角色权限快照 | 从 Redis 读取；缺失时拒绝权限授权。尚无自动填充、数据库回源或角色修改后的同步流程 |
 | 初始账号与角色 | 迁移含内置数据，但不创建用户角色分配；新业务需设计自己的初始化和凭据管理 |
 | 数据库与 Redis 一致性 | 用户修改先保存数据库，再撤销会话；没有跨存储事务或失败补偿任务 |
-| 通用缓存查询 | `ICacheQuery<TEntity, TKey, TCacheItem>` 与 Redis 适配器已注册；`ICacheInvalidator` 在数据库提交后删除精确实体 key，也支持显式 Store key 失效；条件列表仍依赖 TTL |
+| 通用缓存查询 | `ICacheQuery<TEntity, TKey, TCacheItem>` 与 Redis 适配器已注册；条件列表只缓存受支持的比较/逻辑表达式，方法调用绕过 Redis，超过 `Cache:MaxCollectionItems` 时拒绝完整集合查询；`ICacheInvalidator` 支持精确实体、Store key 失效，以及通过实体类型 generation 使列表缓存失效；旧列表按 TTL 过期 |
 | 领域事件 | MediatR 已注册，登录事件未发布，事件处理器仍为占位实现 |
 | 部分示例服务 | `UpdateEnabledAsync`、`SetMenuRouteAsync` 尚未实现，`SettingService` 为空 |
 | 部署验证 | Compose 为待定制示例；当前没有应用健康检查端点，验证码容器渲染等需要运行验证 |

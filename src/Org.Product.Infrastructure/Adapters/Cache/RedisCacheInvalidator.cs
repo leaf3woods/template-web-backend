@@ -12,7 +12,7 @@ public sealed class RedisCacheInvalidator : ICacheInvalidator
 
     private readonly IConnectionMultiplexer _connectionMultiplexer;
 
-    public Task<int> InvalidateEntityCacheAsync(
+    public async Task<int> InvalidateEntityCacheAsync(
         string entityName,
         IReadOnlyCollection<object> ids
     )
@@ -27,7 +27,13 @@ public sealed class RedisCacheInvalidator : ICacheInvalidator
             ArgumentNullException.ThrowIfNull(id);
             keys[index++] = CacheKeys.Entity(entityName, id);
         }
-        return InvalidateStoreCacheAsync(keys);
+        return await InvalidateStoreCacheAsync(keys);
+    }
+
+    public async Task InvalidateEntityListCacheAsync(string entityName)
+    {
+        var database = _connectionMultiplexer.GetDatabase();
+        await database.StringIncrementAsync(CacheKeys.EntitiesGeneration(entityName));
     }
 
     public async Task<int> InvalidateStoreCacheAsync(IReadOnlyCollection<string> keys)

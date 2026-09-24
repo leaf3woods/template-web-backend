@@ -72,8 +72,11 @@ public static class OptionsExtensions
             .AddOptions<CacheOptions>()
             .BindConfiguration(CacheOptions.SectionName)
             .Validate(
-                options => options.ExpireSeconds > 0,
-                "Cache requires a positive ExpireSeconds."
+                options =>
+                    options.ExpireSeconds > 0
+                    && options.MaxCollectionItems is > 0 and < int.MaxValue,
+                "Cache requires a positive ExpireSeconds and a MaxCollectionItems value "
+                    + "between 1 and Int32.MaxValue - 1."
             )
             .ValidateOnStart();
     }

@@ -18,6 +18,9 @@ internal sealed class RedisStub
             .ReturnsAsync((RedisKey key, CommandFlags _) => Values.GetValueOrDefault(key, RedisValue.Null));
         Database.Setup(database => database.StringGetAsync(It.IsAny<RedisKey[]>(), It.IsAny<CommandFlags>()))
             .ReturnsAsync((RedisKey[] keys, CommandFlags _) => keys.Select(key => Values.GetValueOrDefault(key, RedisValue.Null)).ToArray());
+        Database.Setup(database => database.StringIncrementAsync(It.IsAny<RedisKey>(), It.IsAny<long>(), It.IsAny<CommandFlags>()))
+            .ReturnsAsync((RedisKey key, long increment, CommandFlags _) =>
+                (long)Values.AddOrUpdate(key, increment, (_, current) => (long)current + increment));
         Database.Setup(database => database.StringSetAsync(It.IsAny<RedisKey>(), It.IsAny<RedisValue>(),
                 It.IsAny<Expiration>(), It.IsAny<ValueCondition>(), It.IsAny<CommandFlags>()))
             .ReturnsAsync((RedisKey key, RedisValue value, Expiration expiry, ValueCondition when, CommandFlags flags) =>

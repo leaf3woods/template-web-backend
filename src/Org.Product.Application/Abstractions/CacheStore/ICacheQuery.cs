@@ -14,7 +14,7 @@ public interface ICacheQuery<TEntity, TKey, TCacheItem>
         CancellationToken cancellationToken = default
     );
 
-    Task<IReadOnlyList<TCacheItem>> WhereAsync(
+    Task<IReadOnlyList<TCacheItem>> GetFilteredListAsync(
         Expression<Func<TEntity, bool>> predicate,
         CancellationToken cancellationToken = default
     );

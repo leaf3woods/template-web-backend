@@ -197,6 +197,7 @@ WebApi reads `appsettings.json`, environment-specific configuration, Development
 | `Jwt:KeyFolder` | ES256 public/private key directory |
 | `Captcha:RequireVerification` / `ExpireSeconds` | Captcha validation policy and expiry |
 | `Captcha:FontFamily`, dimensions, decoration flags | SkiaSharp captcha rendering |
+| `Cache:ExpireSeconds` / `MaxCollectionItems` | Generic Redis cache lifetime and the maximum item count allowed for a complete cached collection |
 | `OpenApiInfo` | Swagger metadata; startup requires this section to exist and be valid |
 | `Serilog` | Console/file logging and levels |
 
@@ -323,7 +324,7 @@ Use `dotnet format` within the changed scope. The EF tool manifest is `.config/d
 | Role permission snapshots | Read from Redis; missing snapshots deny permission authorization. Automatic population, database fallback, and synchronization after role changes are not implemented |
 | Initial accounts and roles | Migrations include built-in data but no user-role assignments; applications need their own provisioning and credential management |
 | Database/Redis consistency | User mutations save first and revoke sessions afterward; no cross-store transaction or compensation worker |
-| Generic cache queries | `ICacheQuery<TEntity, TKey, TCacheItem>` and its Redis adapter are registered; `ICacheInvalidator` removes exact entity keys after database commit and also accepts explicit store keys; filtered lists still rely on TTL |
+| Generic cache queries | `ICacheQuery<TEntity, TKey, TCacheItem>` and its Redis adapter are registered; filtered lists cache only supported comparison/logical expressions, method calls bypass Redis, and complete collections above `Cache:MaxCollectionItems` are rejected; `ICacheInvalidator` supports exact entity and store-key invalidation plus per-entity-type generation invalidation for lists; old lists expire by TTL |
 | Domain events | MediatR is registered, but login does not publish its event and the handler is a placeholder |
 | Example services | `UpdateEnabledAsync` and `SetMenuRouteAsync` are unimplemented; `SettingService` is empty |
 | Deployment verification | Compose requires customization. No application health endpoint is registered; container captcha rendering and other runtime behaviors need verification |

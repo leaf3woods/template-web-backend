@@ -49,4 +49,17 @@ public sealed class RedisCacheInvalidatorTests
         Assert.DoesNotContain(tokenKey, redis.Values.Keys);
         Assert.DoesNotContain(permissionsKey, redis.Values.Keys);
     }
+
+    [Fact]
+    public async Task EntityListCache_GenerationIncrementsWithoutExistingListKeys()
+    {
+        var redis = new RedisStub();
+        var invalidator = new RedisCacheInvalidator(redis.Connection.Object);
+        var generationKey = CacheKeys.EntitiesGeneration<User>();
+
+        await invalidator.InvalidateEntityListCacheAsync(nameof(User));
+        await invalidator.InvalidateEntityListCacheAsync(nameof(User));
+
+        Assert.Equal("2", redis.Values[generationKey].ToString());
+    }
 }

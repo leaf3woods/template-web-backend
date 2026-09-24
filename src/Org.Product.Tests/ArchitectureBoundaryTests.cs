@@ -62,6 +62,7 @@ public sealed class ArchitectureBoundaryTests
             )
             .Build();
         var services = new ServiceCollection();
+        services.AddHttpContextAccessor();
         services.AddDbContextPool<ApiDbContext>(options =>
             options.UseNpgsql(configuration.GetConnectionString("Postgres"))
                 .UseSnakeCaseNamingConvention());

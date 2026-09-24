@@ -7,5 +7,7 @@ public interface ICacheInvalidator : ICacheStore
         IReadOnlyCollection<object> ids
     );
 
+    Task InvalidateEntityListCacheAsync(string entityName);
+
     Task<int> InvalidateStoreCacheAsync(IReadOnlyCollection<string> keys);
 }

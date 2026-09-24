@@ -37,6 +37,12 @@ public class FingerprintVisitor : ExpressionVisitor
             return null;
         }
 
+        if (!IsSupportedNodeType(node.NodeType))
+        {
+            _isSupported = false;
+            return node;
+        }
+
         _fingerprintbuffer.Add(1);
         AddInt32((int)node.NodeType);
         AddType(node.Type);
@@ -97,11 +103,22 @@ public class FingerprintVisitor : ExpressionVisitor
         return base.VisitUnary(node);
     }
 
-    protected override Expression VisitMethodCall(MethodCallExpression node)
-    {
-        AddMethod(node.Method);
-        return base.VisitMethodCall(node);
-    }
+    private static bool IsSupportedNodeType(ExpressionType nodeType) => nodeType is
+        ExpressionType.Lambda
+        or ExpressionType.Parameter
+        or ExpressionType.Constant
+        or ExpressionType.MemberAccess
+        or ExpressionType.Equal
+        or ExpressionType.NotEqual
+        or ExpressionType.GreaterThan
+        or ExpressionType.GreaterThanOrEqual
+        or ExpressionType.LessThan
+        or ExpressionType.LessThanOrEqual
+        or ExpressionType.AndAlso
+        or ExpressionType.OrElse
+        or ExpressionType.Not
+        or ExpressionType.Convert
+        or ExpressionType.ConvertChecked;
 
     private static bool TryGetCapturedValue(MemberExpression expression, out object? value)
     {

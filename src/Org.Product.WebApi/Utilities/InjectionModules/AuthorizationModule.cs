@@ -1,6 +1,8 @@
 using Autofac;
 using Microsoft.AspNetCore.Authorization;
+using Org.Product.Application.Abstractions.Authentication;
 using Org.Product.Domain.Services.Base;
+using Org.Product.Infrastructure.Adapters.Authentication;
 using Org.Product.WebApi.Auth.AuthHandlers;
 
 namespace Org.Product.WebApi.Utilities.InjectionModules;
@@ -23,6 +25,11 @@ public sealed class AuthorizationModule : Module
             .RegisterAssemblyTypes(typeof(SessionJwtBearerEvents).Assembly)
             .AssignableTo<SessionJwtBearerEvents>()
             .AsSelf()
+            .InstancePerLifetimeScope();
+
+        builder
+            .RegisterType<HttpCurrentUser>()
+            .As<ICurrentUser>()
             .InstancePerLifetimeScope();
     }
 }

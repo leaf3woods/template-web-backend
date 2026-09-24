@@ -1,21 +1,26 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using Org.Product.Application.Abstractions.Authentication;
 using Org.Product.Application.Abstractions.CacheStore;
-using Org.Product.Domain.Entities.Base;
 using Org.Product.Domain.Repositories;
+using Org.Product.Infrastructure.Utilities;
 
 namespace Org.Product.Infrastructure.Repositories;
 
 public class UnitOfWork : IUnitOfWork
 {
-    public UnitOfWork(ApiDbContext dbContext, ICacheInvalidator cacheInvalidator)
+    public UnitOfWork(ApiDbContext dbContext,
+        ICacheInvalidator cacheInvalidator,
+        ICurrentUser currentUser)
     {
         _dbContext = dbContext;
         _cacheInvalidator = cacheInvalidator;
+        _currentUser = currentUser;
     }
 
     private readonly ApiDbContext _dbContext;
     private readonly ICacheInvalidator _cacheInvalidator;
+    private readonly ICurrentUser _currentUser;
 
     private readonly Dictionary<string, HashSet<object>> _pendingInvalidations = [];
 
@@ -23,32 +28,10 @@ public class UnitOfWork : IUnitOfWork
     {
         foreach (var entityEntry in _dbContext.ChangeTracker.Entries())
         {
-            if (entityEntry.State is EntityState.Deleted or EntityState.Modified)
-            {
-                var primaryKey = entityEntry.Metadata.FindPrimaryKey();
-                var entityName = entityEntry.Metadata.ClrType.Name;
-                if (primaryKey is not null)
-                {
-                    var key = entityEntry.Property(primaryKey.Properties[0].Name).CurrentValue;
-                    if (_pendingInvalidations.TryGetValue(entityName, out var list))
-                    {
-                        list.Add(key!);
-                    }
-                    else
-                    {
-                        _pendingInvalidations.Add(entityName, [key!]);
-                    }
-                }
-            }
-            if (
-                entityEntry.State == EntityState.Deleted
-                && entityEntry.Entity is ISoftDelete delete
-            )
-            {
-                entityEntry.State = EntityState.Unchanged;
-                delete.SoftDeleted = true;
-                delete.DeleteTime = DateTime.UtcNow;
-            }
+            var _ = entityEntry
+                .ApplyPendingInvalidations(_pendingInvalidations)
+                .ApplyAuditedData(_currentUser.UserId)
+                .ApplySoftDelete();
         }
         var count = await _dbContext.SaveChangesAsync(cancellationToken);
         if (_dbContext.Database.CurrentTransaction is null)
@@ -75,14 +58,15 @@ public class UnitOfWork : IUnitOfWork
         );
     }
 
-    private async Task<int> InvalidateCacheAsync()
+    private async Task InvalidateCacheAsync()
     {
-        var tasks = _pendingInvalidations.Select(entry =>
-            _cacheInvalidator.InvalidateEntityCacheAsync(entry.Key, entry.Value)
-        );
-        var result = await Task.WhenAll(tasks);
+        var tasks = _pendingInvalidations.Select(async entry =>
+        {
+            await _cacheInvalidator.InvalidateEntityCacheAsync(entry.Key, entry.Value);
+            await _cacheInvalidator.InvalidateEntityListCacheAsync(entry.Key);
+        });
+        await Task.WhenAll(tasks);
         _pendingInvalidations.Clear();
-        return result.Sum(c => c);
     }
 
     private class EfUnitOfWorkTransaction

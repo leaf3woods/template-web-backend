@@ -32,15 +32,21 @@ public sealed class ExpressionFingerprintTests
     }
 
     [Fact]
-    public void MethodDiffers_DifferentFingerprint()
+    public void MethodCalls_AreNotSupported()
     {
-        Expression<Func<User, bool>> first = user => user.Username.StartsWith("a");
-        Expression<Func<User, bool>> second = user => user.Username.EndsWith("a");
+        Expression<Func<User, bool>> startsWith = user => user.Username.StartsWith("a");
+        Expression<Func<User, bool>> contains = user => user.Username.Contains("a");
 
-        Assert.NotEqual(
-            CreateFingerprint(first),
-            CreateFingerprint(second)
-        );
+        Assert.False(FingerprintVisitor.TryCreate(startsWith, out _));
+        Assert.False(FingerprintVisitor.TryCreate(contains, out _));
+    }
+
+    [Fact]
+    public void UnlistedOperator_IsNotSupported()
+    {
+        Expression<Func<User, bool>> predicate = user => user.SortOrder + 1 > 2;
+
+        Assert.False(FingerprintVisitor.TryCreate(predicate, out _));
     }
 
     [Fact]

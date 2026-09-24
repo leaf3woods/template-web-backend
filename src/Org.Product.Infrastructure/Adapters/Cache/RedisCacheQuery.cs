@@ -10,6 +10,7 @@ using Org.Product.Domain.Shared.Exceptions;
 using Org.Product.Domain.Shared.Expressions;
 using Org.Product.Infrastructure.Utilities.Options;
 using StackExchange.Redis;
+using System.Globalization;
 using System.Linq.Expressions;
 using System.Text.Json;
 
@@ -54,7 +55,7 @@ public sealed class RedisCacheQuery<TEntity, TKey, TCacheItem> : ICacheQuery<TEn
         return cacheItem;
     }
 
-    public async Task<IReadOnlyList<TCacheItem>> WhereAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<TCacheItem>> GetFilteredListAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default)
     {
         if (!FingerprintVisitor.TryCreate(predicate, out var fingerprint))
         {
@@ -62,11 +63,16 @@ public sealed class RedisCacheQuery<TEntity, TKey, TCacheItem> : ICacheQuery<TEn
         }
 
         var database = _connectionMultiplexer.GetDatabase();
-        var key = CacheKeys.Entities<TEntity>(fingerprint);
+        var generationValue = await database.StringGetAsync(CacheKeys.EntitiesGeneration<TEntity>());
+        var generation = generationValue.HasValue
+            ? long.Parse(generationValue.ToString(), CultureInfo.InvariantCulture)
+            : 0;
+        var key = CacheKeys.Entities<TEntity>(generation, fingerprint);
         var raw = await database.StringGetAsync(key);
         if (raw.HasValue)
         {
-            return JsonSerializer.Deserialize<TCacheItem[]>(raw.ToString()) ?? [];
+            var cachedItems = JsonSerializer.Deserialize<TCacheItem[]>(raw.ToString()) ?? [];
+            return cachedItems;
         }
 
         var cacheItems = await QueryAsync(predicate, cancellationToken);
@@ -79,11 +85,21 @@ public sealed class RedisCacheQuery<TEntity, TKey, TCacheItem> : ICacheQuery<TEn
         Expression<Func<TEntity, bool>> predicate,
         CancellationToken cancellationToken)
     {
+        var queryLimit = checked(_options.MaxCollectionItems + 1);
         var cacheItems = await _repository
             .Query(tracking: false)
             .Where(predicate)
+            .Take(queryLimit)
             .ProjectTo<TCacheItem>(_mapper.ConfigurationProvider)
             .ToListAsync(cancellationToken);
+
+        if (cacheItems.Count > _options.MaxCollectionItems)
+        {
+            throw new CacheQueryResultTooLargeException(
+                typeof(TEntity),
+                _options.MaxCollectionItems
+            );
+        }
         return [.. cacheItems];
     }
 }
