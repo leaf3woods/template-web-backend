@@ -1,6 +1,5 @@
 namespace Org.Product.Application.Dtos.Base;
 
-
 public interface IEntityDto { }
 
 /// <summary>

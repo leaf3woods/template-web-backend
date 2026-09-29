@@ -1,5 +1,3 @@
 ﻿namespace Org.Product.Application.Abstractions.CacheStore;
 
-public interface ICacheStore
-{
-}
+public interface ICacheStore { }

@@ -1,8 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Org.Product.Application.Dtos;
-using Microsoft.AspNetCore.Authorization;
-using Org.Product.Domain.Utilities;
 using Org.Product.Application.Services.Base;
+using Org.Product.Domain.Utilities;
 using Org.Product.WebApi.Utilities;
 
 namespace Org.Product.WebApi.Controllers;

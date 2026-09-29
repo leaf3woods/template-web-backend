@@ -8,7 +8,6 @@ public class RoleDtoProfile : Profile
 {
     public RoleDtoProfile()
     {
-        CreateMap<RoleCreateDto, Role>()
-            .ForMember(dest => dest.Permissions, opt => opt.Ignore());
+        CreateMap<RoleCreateDto, Role>().ForMember(dest => dest.Permissions, opt => opt.Ignore());
     }
 }

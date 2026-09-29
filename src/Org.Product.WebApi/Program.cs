@@ -27,7 +27,6 @@ var openApiOptions =
     builder.Configuration.GetRequiredSection(OpenApiOptions.SectionName).Get<OpenApiOptions>()
     ?? throw new InvalidOperationException("Missing OpenApiInfo configuration.");
 
-
 builder.Services.AddAllOptions();
 
 var postgresConnectionString = builder.Configuration.GetConnectionString("Postgres");
@@ -36,7 +35,8 @@ builder.Services.AddDbContextPool<ApiDbContext>(options =>
     options
         .UseNpgsql(postgresConnectionString)
         .UseSnakeCaseNamingConvention()
-        .EnableDetailedErrors());
+        .EnableDetailedErrors()
+);
 
 // WebApi is the composition root for the HTTP host.
 builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
@@ -142,9 +142,11 @@ builder.Services.AddSwaggerGen(option =>
     });
 });
 
-builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
-    .Configure<FileSigningKeyProvider>((options, keys) =>
-        options.TokenValidationParameters.IssuerSigningKey = keys.PublicKey);
+builder
+    .Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
+    .Configure<FileSigningKeyProvider>(
+        (options, keys) => options.TokenValidationParameters.IssuerSigningKey = keys.PublicKey
+    );
 
 // Add mapper profiles
 builder.Services.AddAutoMapper(config => config.AddMaps(typeof(IBaseService).Assembly));

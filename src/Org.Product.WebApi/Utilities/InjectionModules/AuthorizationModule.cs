@@ -27,9 +27,6 @@ public sealed class AuthorizationModule : Module
             .AsSelf()
             .InstancePerLifetimeScope();
 
-        builder
-            .RegisterType<HttpCurrentUser>()
-            .As<ICurrentUser>()
-            .InstancePerLifetimeScope();
+        builder.RegisterType<HttpCurrentUser>().As<ICurrentUser>().InstancePerLifetimeScope();
     }
 }

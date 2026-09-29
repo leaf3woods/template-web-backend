@@ -25,10 +25,7 @@ public sealed class ExpressionFingerprintTests
         Expression<Func<User, bool>> first = user => user.Username == "operator";
         Expression<Func<User, bool>> second = user => user.Name == "operator";
 
-        Assert.NotEqual(
-            CreateFingerprint(first),
-            CreateFingerprint(second)
-        );
+        Assert.NotEqual(CreateFingerprint(first), CreateFingerprint(second));
     }
 
     [Fact]
@@ -56,10 +53,7 @@ public sealed class ExpressionFingerprintTests
         var second = CreateUsernamePredicate("administrator");
 
         Assert.Equal(first.ToString(), second.ToString());
-        Assert.NotEqual(
-            CreateFingerprint(first),
-            CreateFingerprint(second)
-        );
+        Assert.NotEqual(CreateFingerprint(first), CreateFingerprint(second));
     }
 
     [Fact]
@@ -80,10 +74,7 @@ public sealed class ExpressionFingerprintTests
         Expression<Func<User, bool>> first = user => user.Username == "operator";
         Expression<Func<User, bool>> second = user => user.Username != "operator";
 
-        Assert.NotEqual(
-            CreateFingerprint(first),
-            CreateFingerprint(second)
-        );
+        Assert.NotEqual(CreateFingerprint(first), CreateFingerprint(second));
     }
 
     [Fact]

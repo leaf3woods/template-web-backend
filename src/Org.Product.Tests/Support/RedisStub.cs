@@ -12,37 +12,95 @@ internal sealed class RedisStub
 
     public RedisStub()
     {
-        Connection.Setup(connection => connection.GetDatabase(It.IsAny<int>(), It.IsAny<object>()))
+        Connection
+            .Setup(connection => connection.GetDatabase(It.IsAny<int>(), It.IsAny<object>()))
             .Returns(Database.Object);
-        Database.Setup(database => database.StringGetAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>()))
-            .ReturnsAsync((RedisKey key, CommandFlags _) => Values.GetValueOrDefault(key, RedisValue.Null));
-        Database.Setup(database => database.StringGetAsync(It.IsAny<RedisKey[]>(), It.IsAny<CommandFlags>()))
-            .ReturnsAsync((RedisKey[] keys, CommandFlags _) => keys.Select(key => Values.GetValueOrDefault(key, RedisValue.Null)).ToArray());
-        Database.Setup(database => database.StringIncrementAsync(It.IsAny<RedisKey>(), It.IsAny<long>(), It.IsAny<CommandFlags>()))
-            .ReturnsAsync((RedisKey key, long increment, CommandFlags _) =>
-                (long)Values.AddOrUpdate(key, increment, (_, current) => (long)current + increment));
-        Database.Setup(database => database.StringSetAsync(It.IsAny<RedisKey>(), It.IsAny<RedisValue>(),
-                It.IsAny<Expiration>(), It.IsAny<ValueCondition>(), It.IsAny<CommandFlags>()))
-            .ReturnsAsync((RedisKey key, RedisValue value, Expiration expiry, ValueCondition when, CommandFlags flags) =>
-            {
-                if (when.Equals((ValueCondition)When.NotExists))
+        Database
+            .Setup(database =>
+                database.StringGetAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>())
+            )
+            .ReturnsAsync(
+                (RedisKey key, CommandFlags _) => Values.GetValueOrDefault(key, RedisValue.Null)
+            );
+        Database
+            .Setup(database =>
+                database.StringGetAsync(It.IsAny<RedisKey[]>(), It.IsAny<CommandFlags>())
+            )
+            .ReturnsAsync(
+                (RedisKey[] keys, CommandFlags _) =>
+                    keys.Select(key => Values.GetValueOrDefault(key, RedisValue.Null)).ToArray()
+            );
+        Database
+            .Setup(database =>
+                database.StringIncrementAsync(
+                    It.IsAny<RedisKey>(),
+                    It.IsAny<long>(),
+                    It.IsAny<CommandFlags>()
+                )
+            )
+            .ReturnsAsync(
+                (RedisKey key, long increment, CommandFlags _) =>
+                    (long)
+                        Values.AddOrUpdate(
+                            key,
+                            increment,
+                            (_, current) => (long)current + increment
+                        )
+            );
+        Database
+            .Setup(database =>
+                database.StringSetAsync(
+                    It.IsAny<RedisKey>(),
+                    It.IsAny<RedisValue>(),
+                    It.IsAny<Expiration>(),
+                    It.IsAny<ValueCondition>(),
+                    It.IsAny<CommandFlags>()
+                )
+            )
+            .ReturnsAsync(
+                (
+                    RedisKey key,
+                    RedisValue value,
+                    Expiration expiry,
+                    ValueCondition when,
+                    CommandFlags flags
+                ) =>
                 {
-                    return Values.TryAdd(key, value);
+                    if (when.Equals((ValueCondition)When.NotExists))
+                    {
+                        return Values.TryAdd(key, value);
+                    }
+                    Values[key] = value;
+                    return true;
                 }
-                Values[key] = value;
-                return true;
-            });
-        Database.Setup(database => database.KeyDeleteAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>()))
+            );
+        Database
+            .Setup(database =>
+                database.KeyDeleteAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>())
+            )
             .ReturnsAsync((RedisKey key, CommandFlags _) => Values.TryRemove(key, out var _));
-        Database.Setup(database => database.KeyExistsAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>()))
+        Database
+            .Setup(database =>
+                database.KeyExistsAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>())
+            )
             .ReturnsAsync((RedisKey key, CommandFlags _) => Values.ContainsKey(key));
-        Database.Setup(database => database.ScriptEvaluateAsync(It.IsAny<string>(), It.IsAny<RedisKey[]>(),
-                It.IsAny<RedisValue[]>(), It.IsAny<CommandFlags>()))
-            .ReturnsAsync((string script, RedisKey[] keys, RedisValue[] values, CommandFlags _) =>
-            {
-                var removed = ((ICollection<KeyValuePair<RedisKey, RedisValue>>)Values)
-                    .Remove(new KeyValuePair<RedisKey, RedisValue>(keys.Single(), values.Single()));
-                return RedisResult.Create((RedisValue)(removed ? 1 : 0));
-            });
+        Database
+            .Setup(database =>
+                database.ScriptEvaluateAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<RedisKey[]>(),
+                    It.IsAny<RedisValue[]>(),
+                    It.IsAny<CommandFlags>()
+                )
+            )
+            .ReturnsAsync(
+                (string script, RedisKey[] keys, RedisValue[] values, CommandFlags _) =>
+                {
+                    var removed = ((ICollection<KeyValuePair<RedisKey, RedisValue>>)Values).Remove(
+                        new KeyValuePair<RedisKey, RedisValue>(keys.Single(), values.Single())
+                    );
+                    return RedisResult.Create((RedisValue)(removed ? 1 : 0));
+                }
+            );
     }
 }

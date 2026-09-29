@@ -22,10 +22,7 @@ public static class ExceptionExtension
             _ when includeExceptionDetails => new ExceptionReadDto
             {
                 Info = exception.Message.Split("\r\n", StringSplitOptions.TrimEntries)[0],
-                StackTrace = exception.StackTrace?.Split(
-                    "\r\n",
-                    StringSplitOptions.TrimEntries
-                )[0],
+                StackTrace = exception.StackTrace?.Split("\r\n", StringSplitOptions.TrimEntries)[0],
                 Inner = exception.InnerException?.Message.Split(
                     "\r\n",
                     StringSplitOptions.TrimEntries

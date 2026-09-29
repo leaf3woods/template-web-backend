@@ -19,9 +19,7 @@ public class RedisRolePermissionStore : IRolePermissionStore
         var database = _connectionMultiplexer.GetDatabase();
         var keys = roleIds
             .Distinct()
-            .Select(roleId => new RedisKey(
-                CacheKeys.Permissions(roleId)
-            ))
+            .Select(roleId => new RedisKey(CacheKeys.Permissions(roleId)))
             .ToArray();
 
         if (keys.Length == 0)
@@ -38,9 +36,7 @@ public class RedisRolePermissionStore : IRolePermissionStore
         }
 
         var permissions = rawHasValues
-            .Select(raw =>
-                JsonSerializer.Deserialize<IEnumerable<string>>(raw.ToString()) ?? []
-            )
+            .Select(raw => JsonSerializer.Deserialize<IEnumerable<string>>(raw.ToString()) ?? [])
             .SelectMany(permission => permission)
             .Distinct();
 
@@ -52,9 +48,7 @@ public class RedisRolePermissionStore : IRolePermissionStore
         var database = _connectionMultiplexer.GetDatabase();
         var scanTasks = roleIds
             .Distinct()
-            .Select(roleId => new RedisKey(
-                CacheKeys.Permissions(roleId)
-            ))
+            .Select(roleId => new RedisKey(CacheKeys.Permissions(roleId)))
             .Select(key => database.KeyExistsAsync(key));
         if (!scanTasks.Any())
         {

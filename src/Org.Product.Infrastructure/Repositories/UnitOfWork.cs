@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Org.Product.Application.Abstractions.Authentication;
 using Org.Product.Application.Abstractions.CacheStore;
@@ -9,9 +8,11 @@ namespace Org.Product.Infrastructure.Repositories;
 
 public class UnitOfWork : IUnitOfWork
 {
-    public UnitOfWork(ApiDbContext dbContext,
+    public UnitOfWork(
+        ApiDbContext dbContext,
         ICacheInvalidator cacheInvalidator,
-        ICurrentUser currentUser)
+        ICurrentUser currentUser
+    )
     {
         _dbContext = dbContext;
         _cacheInvalidator = cacheInvalidator;
@@ -69,13 +70,13 @@ public class UnitOfWork : IUnitOfWork
         _pendingInvalidations.Clear();
     }
 
-    private class EfUnitOfWorkTransaction
-        : IUnitOfWorkTransaction
+    private class EfUnitOfWorkTransaction : IUnitOfWorkTransaction
     {
         public EfUnitOfWorkTransaction(
             IDbContextTransaction transaction,
             Func<CancellationToken, Task>? commitFun = null,
-            Action? rollbackFun = null)
+            Action? rollbackFun = null
+        )
         {
             _transaction = transaction;
             _commitFun = commitFun;

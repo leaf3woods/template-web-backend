@@ -27,7 +27,10 @@ public sealed class FileSigningKeyProvider : IDisposable
             _publicKey.ImportFromPem(File.ReadAllText(publicPath));
             // A reloaded key must not reuse cached providers holding a disposed ECDsa.
             var cryptoProvider = new CryptoProviderFactory();
-            PrivateKey = new ECDsaSecurityKey(_privateKey) { CryptoProviderFactory = cryptoProvider };
+            PrivateKey = new ECDsaSecurityKey(_privateKey)
+            {
+                CryptoProviderFactory = cryptoProvider,
+            };
             PublicKey = new ECDsaSecurityKey(_publicKey) { CryptoProviderFactory = cryptoProvider };
         }
         catch

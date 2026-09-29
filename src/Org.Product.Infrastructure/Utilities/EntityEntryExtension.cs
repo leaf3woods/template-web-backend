@@ -9,10 +9,7 @@ public static class EntityEntryExtension
 {
     public static EntityEntry ApplySoftDelete(this EntityEntry entry)
     {
-        if (
-            entry.State == EntityState.Deleted
-            && entry.Entity is ISoftDelete delete
-        )
+        if (entry.State == EntityState.Deleted && entry.Entity is ISoftDelete delete)
         {
             entry.State = EntityState.Unchanged;
             delete.SoftDeleted = true;
@@ -28,7 +25,10 @@ public static class EntityEntryExtension
             creationAudited.CreationTime = DateTime.UtcNow;
             creationAudited.CreatorId = userId;
         }
-        if (entry.State == EntityState.Modified && entry.Entity is ILastModificationAudited lastModificationAudited)
+        if (
+            entry.State == EntityState.Modified
+            && entry.Entity is ILastModificationAudited lastModificationAudited
+        )
         {
             lastModificationAudited.LastModificationTime = DateTime.UtcNow;
             lastModificationAudited.LastModifierId = userId;
@@ -37,7 +37,10 @@ public static class EntityEntryExtension
         return entry;
     }
 
-    public static EntityEntry ApplyPendingInvalidations(this EntityEntry entry, Dictionary<string, HashSet<object>> invalidations)
+    public static EntityEntry ApplyPendingInvalidations(
+        this EntityEntry entry,
+        Dictionary<string, HashSet<object>> invalidations
+    )
     {
         if (entry.State is EntityState.Deleted or EntityState.Modified or EntityState.Added)
         {

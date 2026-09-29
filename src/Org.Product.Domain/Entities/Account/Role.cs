@@ -94,6 +94,5 @@ public class Role : AggregateRoot<Guid>, ISoftDelete, IAudited, IHasSortOrder, I
 
     #endregion static roles
 
-    public static Role[] Seeds { get; } =
-    [DevRole, SuperRole, AdminRole, MemberRole, VisitorRole];
+    public static Role[] Seeds { get; } = [DevRole, SuperRole, AdminRole, MemberRole, VisitorRole];
 }

@@ -11,17 +11,17 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Moq;
+using Org.Product.Application.Abstractions.Authentication;
 using Org.Product.Application.Services.Base;
-using Org.Product.Domain.Shared;
 using Org.Product.Domain.Services;
 using Org.Product.Domain.Services.Base;
+using Org.Product.Domain.Shared;
+using Org.Product.Infrastructure.Adapters.Authentication;
 using Org.Product.Tests.Support;
 using Org.Product.WebApi.Auth;
 using Org.Product.WebApi.Auth.AuthHandlers;
 using Org.Product.WebApi.Controllers;
 using Role = Org.Product.Domain.Entities.Account.Role;
-using Org.Product.Application.Abstractions.Authentication;
-using Org.Product.Infrastructure.Adapters.Authentication;
 
 namespace Org.Product.Tests;
 
@@ -36,7 +36,10 @@ public sealed class AuthorizationTests
     [InlineData("menu.delete.Id.extra", HttpStatusCode.Forbidden)]
     [InlineData("Menu.delete.Id", HttpStatusCode.Forbidden)]
     [InlineData("", HttpStatusCode.Forbidden)]
-    public async Task MenuDelete_RequiresExactOrParentPermission(string permission, HttpStatusCode expected)
+    public async Task MenuDelete_RequiresExactOrParentPermission(
+        string permission,
+        HttpStatusCode expected
+    )
     {
         await using var host = await AuthHost.CreateAsync([permission]);
         var token = host.Token();
@@ -70,10 +73,19 @@ public sealed class AuthorizationTests
     {
         await using var host = await AuthHost.CreateAsync([]);
         Assert.Equal(HttpStatusCode.Unauthorized, await host.DeleteMenu(null));
-        Assert.Equal(HttpStatusCode.Unauthorized, (await host.Client.PostAsync("/api/menu", null)).StatusCode);
-        Assert.Equal(HttpStatusCode.Unauthorized, (await host.Client.GetAsync("/fallback")).StatusCode);
+        Assert.Equal(
+            HttpStatusCode.Unauthorized,
+            (await host.Client.PostAsync("/api/menu", null)).StatusCode
+        );
+        Assert.Equal(
+            HttpStatusCode.Unauthorized,
+            (await host.Client.GetAsync("/fallback")).StatusCode
+        );
         Assert.Equal(HttpStatusCode.OK, (await host.Client.GetAsync("/api/menu/tree")).StatusCode);
-        Assert.Equal(HttpStatusCode.OK, (await host.Client.GetAsync("/api/home/captcha")).StatusCode);
+        Assert.Equal(
+            HttpStatusCode.OK,
+            (await host.Client.GetAsync("/api/home/captcha")).StatusCode
+        );
     }
 
     [Fact]
@@ -146,9 +158,11 @@ public sealed class AuthorizationTests
             var redis = new RedisStub();
             var users = new RedisUserSessionStore(redis.Connection.Object);
             var roles = new Mock<IRolePermissionStore>();
-            roles.Setup(service => service.ContainsAsync(It.IsAny<IEnumerable<Guid>>()))
+            roles
+                .Setup(service => service.ContainsAsync(It.IsAny<IEnumerable<Guid>>()))
                 .ReturnsAsync(permissions is not null);
-            roles.Setup(service => service.GetPermissionsAsync(It.IsAny<IEnumerable<Guid>>()))
+            roles
+                .Setup(service => service.GetPermissionsAsync(It.IsAny<IEnumerable<Guid>>()))
                 .ReturnsAsync(permissions ?? []);
             var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
             var builder = WebApplication.CreateBuilder();
@@ -158,26 +172,41 @@ public sealed class AuthorizationTests
             builder.Services.AddSingleton<IUserSessionStore>(users);
             builder.Services.AddSingleton(roles.Object);
             var userService = new Mock<IUserService>();
-            userService.Setup(service => service.LogoutAsync(It.IsAny<IEnumerable<Claim>>(), It.IsAny<string>()))
-                .Returns((IEnumerable<Claim> claims, string token) => users.RevokeAsync(
-                    Guid.Parse(claims.Single(claim => claim.Type == CustomClaimsType.UserId).Value), token));
+            userService
+                .Setup(service =>
+                    service.LogoutAsync(It.IsAny<IEnumerable<Claim>>(), It.IsAny<string>())
+                )
+                .Returns(
+                    (IEnumerable<Claim> claims, string token) =>
+                        users.RevokeAsync(
+                            Guid.Parse(
+                                claims.Single(claim => claim.Type == CustomClaimsType.UserId).Value
+                            ),
+                            token
+                        )
+                );
             builder.Services.AddSingleton(userService.Object);
             builder.Services.AddSingleton(Mock.Of<IMenuService>());
             builder.Services.AddSingleton(Mock.Of<IRoleService>());
-            builder.Services.AddSingleton<IAuthorizationDomainService, AuthorizationDomainService>();
+            builder.Services.AddSingleton<
+                IAuthorizationDomainService,
+                AuthorizationDomainService
+            >();
             builder.Services.AddScoped<SessionJwtBearerEvents>();
             builder.Services.AddScoped<IAuthorizationHandler, CustomRequireHandler>();
-            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
-            {
-                options.EventsType = typeof(SessionJwtBearerEvents);
-                options.TokenValidationParameters = new TokenValidationParameters
+            builder
+                .Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
                 {
-                    IssuerSigningKey = new ECDsaSecurityKey(key),
-                    ValidIssuer = "tests",
-                    ValidAudience = "tests",
-                    ValidAlgorithms = [SecurityAlgorithms.EcdsaSha256],
-                };
-            });
+                    options.EventsType = typeof(SessionJwtBearerEvents);
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        IssuerSigningKey = new ECDsaSecurityKey(key),
+                        ValidIssuer = "tests",
+                        ValidAudience = "tests",
+                        ValidAlgorithms = [SecurityAlgorithms.EcdsaSha256],
+                    };
+                });
             builder.Services.AddAuthorization(options => options.AddAllPolicies());
             var app = builder.Build();
             app.UseAuthentication();
@@ -193,17 +222,33 @@ public sealed class AuthorizationTests
             var claims = new[]
             {
                 new Claim(CustomClaimsType.UserId, UserId.ToString()),
-                new Claim(CustomClaimsType.RoleId, roleClaim ?? (_super ? Role.SuperRole.Id : Role.MemberRole.Id).ToString()),
+                new Claim(
+                    CustomClaimsType.RoleId,
+                    roleClaim ?? (_super ? Role.SuperRole.Id : Role.MemberRole.Id).ToString()
+                ),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             };
-            return new JwtSecurityTokenHandler().WriteToken(new JwtSecurityToken(
-                "tests", "tests", claims, DateTime.UtcNow.AddSeconds(-1), DateTime.UtcNow.AddMinutes(5),
-                new SigningCredentials(new ECDsaSecurityKey(_key), SecurityAlgorithms.EcdsaSha256)));
+            return new JwtSecurityTokenHandler().WriteToken(
+                new JwtSecurityToken(
+                    "tests",
+                    "tests",
+                    claims,
+                    DateTime.UtcNow.AddSeconds(-1),
+                    DateTime.UtcNow.AddMinutes(5),
+                    new SigningCredentials(
+                        new ECDsaSecurityKey(_key),
+                        SecurityAlgorithms.EcdsaSha256
+                    )
+                )
+            );
         }
 
         public async Task<HttpStatusCode> DeleteMenu(string? token)
         {
-            using var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/menu/id/{Guid.NewGuid()}");
+            using var request = new HttpRequestMessage(
+                HttpMethod.Delete,
+                $"/api/menu/id/{Guid.NewGuid()}"
+            );
             if (token is not null)
             {
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);

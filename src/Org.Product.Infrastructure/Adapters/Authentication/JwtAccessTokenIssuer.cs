@@ -29,10 +29,16 @@ public sealed class JwtAccessTokenIssuer : IAccessTokenIssuer
         ];
         var now = DateTime.UtcNow;
         var token = new JwtSecurityToken(
-            _options.Issuer, _options.Audience, claims, now, now + _options.Expiration,
+            _options.Issuer,
+            _options.Audience,
+            claims,
+            now,
+            now + _options.Expiration,
             new SigningCredentials(_keys.PrivateKey, SecurityAlgorithms.EcdsaSha256)
         );
         return new IssuedAccessToken(
-            new JwtSecurityTokenHandler().WriteToken(token), _options.Expiration);
+            new JwtSecurityTokenHandler().WriteToken(token),
+            _options.Expiration
+        );
     }
 }

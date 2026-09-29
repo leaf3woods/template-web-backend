@@ -16,19 +16,13 @@ public class MenuService
 {
     private readonly IRepository<Permission> _permissionRepo;
 
-    public MenuService(
-        IRepository<Permission> repository,
-        IUnitOfWork unitOfWork,
-        IMapper mapper
-    )
+    public MenuService(IRepository<Permission> repository, IUnitOfWork unitOfWork, IMapper mapper)
         : base(repository, unitOfWork, mapper)
     {
         _permissionRepo = repository;
     }
 
-    public override async Task<IEnumerable<MenuReadDto>> GetListAsync(
-        MenuQueryDto? queryDto = null
-    )
+    public override async Task<IEnumerable<MenuReadDto>> GetListAsync(MenuQueryDto? queryDto = null)
     {
         var permissions = await Queryable.ToListAsync();
         return Mapper.Map<IEnumerable<MenuReadDto>>(permissions);
@@ -44,10 +38,7 @@ public class MenuService
             .WhereIf(queryDto.ParentId != null, x => x.ParentId == queryDto.ParentId)
             .WhereIf(queryDto.Type != null, x => x.Type == (PermissionType)queryDto.Type!.Value)
             .WhereIf(queryDto.Visible != null, x => x.Visible == queryDto.Visible)
-            .WhereIf(
-                queryDto.IsEnabled != null,
-                x => x.IsEnabled == queryDto.IsEnabled
-            )
+            .WhereIf(queryDto.IsEnabled != null, x => x.IsEnabled == queryDto.IsEnabled)
             .ToPaginatedListAsync(queryDto.PageIndex, queryDto.PageSize);
         return Mapper.Map<PaginatedList<MenuReadDto>>(permissions);
     }

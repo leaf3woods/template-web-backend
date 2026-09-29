@@ -17,7 +17,9 @@ public class HttpCurrentUser : ICurrentUser
     {
         get
         {
-            var uid = _accessor.HttpContext?.User.FindFirst(c => c.Type == CustomClaimsType.UserId)?.Value;
+            var uid = _accessor
+                .HttpContext?.User.FindFirst(c => c.Type == CustomClaimsType.UserId)
+                ?.Value;
             if (Guid.TryParse(uid, out var result))
             {
                 return result;
@@ -30,7 +32,9 @@ public class HttpCurrentUser : ICurrentUser
     {
         get
         {
-            var rid = _accessor.HttpContext?.User.FindFirst(c => c.Type == CustomClaimsType.RoleId)?.Value;
+            var rid = _accessor
+                .HttpContext?.User.FindFirst(c => c.Type == CustomClaimsType.RoleId)
+                ?.Value;
             if (Guid.TryParse(rid, out var result))
             {
                 return result;
@@ -38,5 +42,4 @@ public class HttpCurrentUser : ICurrentUser
             return null;
         }
     }
-
 }

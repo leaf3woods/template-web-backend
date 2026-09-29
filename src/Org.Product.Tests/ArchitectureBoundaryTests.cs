@@ -23,7 +23,10 @@ public sealed class ArchitectureBoundaryTests
     [Fact]
     public void Application_DoesNotReferenceInfrastructureSigningOrRendering()
     {
-        var names = typeof(UserService).Assembly.GetReferencedAssemblies().Select(item => item.Name).ToArray();
+        var names = typeof(UserService)
+            .Assembly.GetReferencedAssemblies()
+            .Select(item => item.Name)
+            .ToArray();
         Assert.DoesNotContain("Org.Product.Infrastructure", names);
         Assert.DoesNotContain("SkiaSharp", names);
         Assert.DoesNotContain("System.IdentityModel.Tokens.Jwt", names);
@@ -42,8 +45,9 @@ public sealed class ArchitectureBoundaryTests
     public void InitialMigration_CanGenerateIdempotentScriptWithoutDatabase()
     {
         using var context = CreateContext();
-        var script = context.GetService<IMigrator>().GenerateScript(
-            options: MigrationsSqlGenerationOptions.Idempotent);
+        var script = context
+            .GetService<IMigrator>()
+            .GenerateScript(options: MigrationsSqlGenerationOptions.Idempotent);
         Assert.Contains("__EFMigrationsHistory", script);
         Assert.Contains("CREATE TABLE", script);
         Assert.Contains(User.DevUser.Id.ToString(), script);
@@ -64,8 +68,10 @@ public sealed class ArchitectureBoundaryTests
         var services = new ServiceCollection();
         services.AddHttpContextAccessor();
         services.AddDbContextPool<ApiDbContext>(options =>
-            options.UseNpgsql(configuration.GetConnectionString("Postgres"))
-                .UseSnakeCaseNamingConvention());
+            options
+                .UseNpgsql(configuration.GetConnectionString("Postgres"))
+                .UseSnakeCaseNamingConvention()
+        );
         var factory = new AutofacServiceProviderFactory();
         var container = factory.CreateBuilder(services);
         container.RegisterAssemblyModules(typeof(PersistenceModule).Assembly);
@@ -79,7 +85,8 @@ public sealed class ArchitectureBoundaryTests
             var repository = scope.ServiceProvider.GetRequiredService<IRepository<User>>();
             var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
             var sqlExecutor = scope.ServiceProvider.GetRequiredService<ISqlExecutor>();
-            var authorization = scope.ServiceProvider.GetRequiredService<IAuthorizationDomainService>();
+            var authorization =
+                scope.ServiceProvider.GetRequiredService<IAuthorizationDomainService>();
 
             Assert.IsType<ApiDbContext>(context);
             Assert.IsType<Repository<User>>(repository);

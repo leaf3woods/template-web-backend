@@ -1,5 +1,4 @@
-﻿
-namespace Org.Product.Infrastructure.Utilities.Options;
+﻿namespace Org.Product.Infrastructure.Utilities.Options;
 
 public class CacheOptions
 {

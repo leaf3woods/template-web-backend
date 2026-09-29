@@ -14,10 +14,7 @@ public sealed class SqlExecutor : ISqlExecutor
         _dbContext = dbContext;
     }
 
-    public Task<int> ExecuteAsync(
-        SqlCommand command,
-        CancellationToken cancellationToken = default
-    )
+    public Task<int> ExecuteAsync(SqlCommand command, CancellationToken cancellationToken = default)
     {
         Validate(command);
         return _dbContext.Database.ExecuteSqlRawAsync(
@@ -67,5 +64,4 @@ public sealed class SqlExecutor : ISqlExecutor
             ArgumentException.ThrowIfNullOrWhiteSpace(parameter.Name);
         }
     }
-
 }

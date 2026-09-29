@@ -315,7 +315,7 @@ dotnet test "$projectName.sln" --filter FullyQualifiedName~AuthorizationTests
 
 新增业务通常按以下位置组织：HTTP 路由和策略放在 WebApi，用例与 DTO 放在 Application，领域模型放在 Domain，数据库或外部服务实现放在 Infrastructure。修改持久化模型时同时维护迁移；修改授权时检查角色、JWT claims、Redis 快照和接口策略之间的关系。
 
-格式化使用 `dotnet format`，控制在修改范围内。EF 工具清单位于 `.config/dotnet-tools.json`，执行 `dotnet tool restore` 即可还原。提交约定采用 Conventional Commits，例如 `feat(user): add profile update`。详情见 [贡献指南](AGENTS.md)。
+格式化使用 `dotnet format`，控制在修改范围内。EF 与 CSharpier 工具清单位于 `.config/dotnet-tools.json`，执行 `dotnet tool restore` 即可还原；需要调整 C# 折行时，可对修改的文件运行 `dotnet csharpier format <文件路径>`。CSharpier 忽略 EF 迁移目录。提交约定采用 Conventional Commits，例如 `feat(user): add profile update`。详情见 [贡献指南](AGENTS.md)。
 
 ## 当前实现边界
 
@@ -324,7 +324,7 @@ dotnet test "$projectName.sln" --filter FullyQualifiedName~AuthorizationTests
 | 角色权限快照 | 从 Redis 读取；缺失时拒绝权限授权。尚无自动填充、数据库回源或角色修改后的同步流程 |
 | 初始账号与角色 | 迁移含内置数据，但不创建用户角色分配；新业务需设计自己的初始化和凭据管理 |
 | 数据库与 Redis 一致性 | 用户修改先保存数据库，再撤销会话；没有跨存储事务或失败补偿任务 |
-| 通用缓存查询 | `ICacheQuery<TEntity, TKey, TCacheItem>` 与 Redis 适配器已注册；条件列表只缓存受支持的比较/逻辑表达式，方法调用绕过 Redis，超过 `Cache:MaxCollectionItems` 时拒绝完整集合查询；`ICacheInvalidator` 支持精确实体、Store key 失效，以及通过实体类型 generation 使列表缓存失效；旧列表按 TTL 过期 |
+| 通用缓存查询 | `ICacheQuery<TEntity, TKey, TCacheItem>` 与 Redis 适配器已注册；条件列表只缓存受支持的比较/逻辑表达式，方法调用绕过 Redis，超过 `Cache:MaxCollectionItems` 时拒绝完整集合查询；`GetFilteredListAsync<TRelation>` 和 `<TRelation1, TRelation2>` 可声明最多两个关联实体作为列表失效依赖；`ICacheInvalidator` 支持精确实体、Store key 失效，以及通过实体类型 generation 使列表缓存失效；旧列表按 TTL 过期 |
 | 领域事件 | MediatR 已注册，登录事件未发布，事件处理器仍为占位实现 |
 | 部分示例服务 | `UpdateEnabledAsync`、`SetMenuRouteAsync` 尚未实现，`SettingService` 为空 |
 | 部署验证 | Compose 为待定制示例；当前没有应用健康检查端点，验证码容器渲染等需要运行验证 |

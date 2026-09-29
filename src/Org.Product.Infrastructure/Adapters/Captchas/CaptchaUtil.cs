@@ -181,7 +181,9 @@ public static class CaptchaUtil
         .ToArray();
 
     public static SKColor? ToSkColor(this Color? color) =>
-        color is null ? null : new SKColor(color.Value.R, color.Value.G, color.Value.B, color.Value.A);
+        color is null
+            ? null
+            : new SKColor(color.Value.R, color.Value.G, color.Value.B, color.Value.A);
 
     public static readonly IEnumerable<int> NumChars = Enumerable.Range(48, 10);
     public static readonly IEnumerable<int> LowerChars = Enumerable.Range(65, 26);

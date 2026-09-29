@@ -12,7 +12,9 @@ public static class AuthPolicyExtensions
         IEnumerable<string>? permissions = null
     )
     {
-        options.FallbackPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
+        options.FallbackPolicy = new AuthorizationPolicyBuilder()
+            .RequireAuthenticatedUser()
+            .Build();
 
         permissions ??= Assembly
             .GetExecutingAssembly()
@@ -30,8 +32,10 @@ public static class AuthPolicyExtensions
         {
             options.AddPolicy(
                 permission,
-                policy => policy.RequireAuthenticatedUser()
-                    .AddRequirements(new PermissionAuthorizationRequirement(permission))
+                policy =>
+                    policy
+                        .RequireAuthenticatedUser()
+                        .AddRequirements(new PermissionAuthorizationRequirement(permission))
             );
         }
     }

@@ -103,22 +103,23 @@ public class FingerprintVisitor : ExpressionVisitor
         return base.VisitUnary(node);
     }
 
-    private static bool IsSupportedNodeType(ExpressionType nodeType) => nodeType is
-        ExpressionType.Lambda
-        or ExpressionType.Parameter
-        or ExpressionType.Constant
-        or ExpressionType.MemberAccess
-        or ExpressionType.Equal
-        or ExpressionType.NotEqual
-        or ExpressionType.GreaterThan
-        or ExpressionType.GreaterThanOrEqual
-        or ExpressionType.LessThan
-        or ExpressionType.LessThanOrEqual
-        or ExpressionType.AndAlso
-        or ExpressionType.OrElse
-        or ExpressionType.Not
-        or ExpressionType.Convert
-        or ExpressionType.ConvertChecked;
+    private static bool IsSupportedNodeType(ExpressionType nodeType) =>
+        nodeType
+            is ExpressionType.Lambda
+                or ExpressionType.Parameter
+                or ExpressionType.Constant
+                or ExpressionType.MemberAccess
+                or ExpressionType.Equal
+                or ExpressionType.NotEqual
+                or ExpressionType.GreaterThan
+                or ExpressionType.GreaterThanOrEqual
+                or ExpressionType.LessThan
+                or ExpressionType.LessThanOrEqual
+                or ExpressionType.AndAlso
+                or ExpressionType.OrElse
+                or ExpressionType.Not
+                or ExpressionType.Convert
+                or ExpressionType.ConvertChecked;
 
     private static bool TryGetCapturedValue(MemberExpression expression, out object? value)
     {
@@ -128,8 +129,10 @@ public class FingerprintVisitor : ExpressionVisitor
             return true;
         }
 
-        if (expression.Expression is MemberExpression parent
-            && TryGetCapturedValue(parent, out var owner))
+        if (
+            expression.Expression is MemberExpression parent
+            && TryGetCapturedValue(parent, out var owner)
+        )
         {
             value = GetMemberValue(owner, expression.Member);
             return true;
@@ -139,12 +142,13 @@ public class FingerprintVisitor : ExpressionVisitor
         return false;
     }
 
-    private static object? GetMemberValue(object? owner, MemberInfo member) => member switch
-    {
-        FieldInfo field => field.GetValue(owner),
-        PropertyInfo property => property.GetValue(owner),
-        _ => throw new NotSupportedException($"Unsupported captured member: {member.Name}"),
-    };
+    private static object? GetMemberValue(object? owner, MemberInfo member) =>
+        member switch
+        {
+            FieldInfo field => field.GetValue(owner),
+            PropertyInfo property => property.GetValue(owner),
+            _ => throw new NotSupportedException($"Unsupported captured member: {member.Name}"),
+        };
 
     private void AddMember(MemberInfo member)
     {
@@ -222,7 +226,10 @@ public class FingerprintVisitor : ExpressionVisitor
         var text = value switch
         {
             DateTime dateTime => dateTime.ToString("O", CultureInfo.InvariantCulture),
-            DateTimeOffset dateTimeOffset => dateTimeOffset.ToString("O", CultureInfo.InvariantCulture),
+            DateTimeOffset dateTimeOffset => dateTimeOffset.ToString(
+                "O",
+                CultureInfo.InvariantCulture
+            ),
             DateOnly date => date.ToString("O", CultureInfo.InvariantCulture),
             TimeOnly time => time.ToString("O", CultureInfo.InvariantCulture),
             TimeSpan duration => duration.ToString("c", CultureInfo.InvariantCulture),
@@ -302,7 +309,9 @@ public class FingerprintVisitor : ExpressionVisitor
     {
         if (!_isSupported)
         {
-            throw new InvalidOperationException("The expression cannot be fingerprinted deterministically.");
+            throw new InvalidOperationException(
+                "The expression cannot be fingerprinted deterministically."
+            );
         }
 
         var hash = SHA256.HashData([.. _fingerprintbuffer]);

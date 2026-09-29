@@ -18,7 +18,9 @@ public sealed class PersistenceModule : Module
 
         builder
             .RegisterAssemblyTypes(typeof(UnitOfWork).Assembly)
-            .Where(type => type.IsAssignableTo<IUnitOfWork>() || type.IsAssignableTo<ISqlExecutor>())
+            .Where(type =>
+                type.IsAssignableTo<IUnitOfWork>() || type.IsAssignableTo<ISqlExecutor>()
+            )
             .AsImplementedInterfaces()
             .InstancePerLifetimeScope();
 

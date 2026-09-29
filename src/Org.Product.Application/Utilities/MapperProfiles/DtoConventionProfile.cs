@@ -32,7 +32,8 @@ public sealed class DtoConventionProfile : Profile
             var genericDefinition = dtoBaseType.GetGenericTypeDefinition();
             var entityType = dtoBaseType.GetGenericArguments()[0];
 
-            if (genericDefinition == typeof(ReadDto<>)
+            if (
+                genericDefinition == typeof(ReadDto<>)
                 || genericDefinition == typeof(ReadDto<,>)
                 || genericDefinition == typeof(CacheItem<,>)
             )

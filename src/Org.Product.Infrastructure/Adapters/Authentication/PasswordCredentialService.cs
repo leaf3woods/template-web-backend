@@ -23,6 +23,8 @@ public sealed class PasswordCredentialService : IPasswordCredentialService
         var salt = Convert.FromBase64String(user.Salt);
         var salted = SHA256.HashData(secret.Concat(salt).ToArray());
         return CryptographicOperations.FixedTimeEquals(
-            Convert.FromBase64String(user.Passphrase), salted);
+            Convert.FromBase64String(user.Passphrase),
+            salted
+        );
     }
 }

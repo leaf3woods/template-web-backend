@@ -62,8 +62,16 @@ public sealed class PermissionCacheTests
 
     private static void AssertNoWrites(RedisStub redis)
     {
-        redis.Database.Verify(database => database.StringSetAsync(
-            It.IsAny<RedisKey>(), It.IsAny<RedisValue>(), It.IsAny<Expiration>(),
-            It.IsAny<ValueCondition>(), It.IsAny<CommandFlags>()), Times.Never);
+        redis.Database.Verify(
+            database =>
+                database.StringSetAsync(
+                    It.IsAny<RedisKey>(),
+                    It.IsAny<RedisValue>(),
+                    It.IsAny<Expiration>(),
+                    It.IsAny<ValueCondition>(),
+                    It.IsAny<CommandFlags>()
+                ),
+            Times.Never
+        );
     }
 }

@@ -5,7 +5,7 @@ public sealed class CacheQueryResultTooLargeException : InvalidOperationExceptio
     public CacheQueryResultTooLargeException(Type entityType, int maximumItems)
         : base(
             $"The cached query for '{entityType.Name}' exceeded the maximum of "
-            + $"{maximumItems} items. Use a paginated query instead."
+                + $"{maximumItems} items. Use a paginated query instead."
         )
     {
         EntityType = entityType;

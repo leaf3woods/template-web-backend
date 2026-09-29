@@ -10,8 +10,10 @@ public sealed class ApiDbContextFactory : IDesignTimeDbContextFactory<ApiDbConte
     {
         // Design-time model and script generation never require a live database.
         var options = new DbContextOptionsBuilder<ApiDbContext>();
-        DatabaseOptions.Configure(options,
-            "Host=localhost;Database=org_product_design;Username=design");
+        DatabaseOptions.Configure(
+            options,
+            "Host=localhost;Database=org_product_design;Username=design"
+        );
         return new ApiDbContext(options.Options);
     }
 }

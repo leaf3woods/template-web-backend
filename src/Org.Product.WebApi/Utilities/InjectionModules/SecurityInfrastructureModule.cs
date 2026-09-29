@@ -13,7 +13,7 @@ public sealed class SecurityInfrastructureModule : Module
             .Register(context =>
                 ConnectionMultiplexer.Connect(
                     context.Resolve<IConfiguration>().GetConnectionString("Redis")
-                    ?? throw new InvalidOperationException("Missing Redis connection string.")
+                        ?? throw new InvalidOperationException("Missing Redis connection string.")
                 )
             )
             .As<IConnectionMultiplexer>()
@@ -29,12 +29,10 @@ public sealed class SecurityInfrastructureModule : Module
             .AsImplementedInterfaces()
             .SingleInstance();
         builder
-            .Register(context =>
-                new FileSigningKeyProvider(
-                    context.Resolve<IConfiguration>()["Jwt:KeyFolder"]
+            .Register(context => new FileSigningKeyProvider(
+                context.Resolve<IConfiguration>()["Jwt:KeyFolder"]
                     ?? throw new InvalidOperationException("Missing Jwt:KeyFolder.")
-                )
-            )
+            ))
             .SingleInstance();
     }
 }

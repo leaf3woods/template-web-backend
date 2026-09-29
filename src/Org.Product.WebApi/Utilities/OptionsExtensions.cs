@@ -12,8 +12,7 @@ public static class OptionsExtensions
             .AddOptions<CaptchaOptions>()
             .BindConfiguration(CaptchaOptions.SectionName)
             .Validate(
-                options =>
-                    options.ExpireSeconds > 0,
+                options => options.ExpireSeconds > 0,
                 "Captcha requires a positive ExpireSeconds."
             )
             .ValidateOnStart();

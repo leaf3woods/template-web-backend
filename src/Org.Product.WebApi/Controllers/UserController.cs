@@ -52,9 +52,8 @@ public class UserController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [Authorize(Policy = $"{ManagedResource.User}.{ManagedAction.Get}.Query")]
-    public async Task<ResponseWrapper<IEnumerable<UserReadDto>>> GetUsers(
-        string? name = null
-    ) => (await _userService.GetUsersWhereAsync(name)).Wrap();
+    public async Task<ResponseWrapper<IEnumerable<UserReadDto>>> GetUsers(string? name = null) =>
+        (await _userService.GetUsersWhereAsync(name)).Wrap();
 
     /// <summary>
     ///     删除用户

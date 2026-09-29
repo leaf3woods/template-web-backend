@@ -41,9 +41,7 @@ public sealed class RedisCacheInvalidatorTests
         redis.Values[permissionsKey] = "[]";
         var invalidator = new RedisCacheInvalidator(redis.Connection.Object);
 
-        var invalidated = await invalidator.InvalidateStoreCacheAsync(
-            [tokenKey, permissionsKey]
-        );
+        var invalidated = await invalidator.InvalidateStoreCacheAsync([tokenKey, permissionsKey]);
 
         Assert.Equal(2, invalidated);
         Assert.DoesNotContain(tokenKey, redis.Values.Keys);

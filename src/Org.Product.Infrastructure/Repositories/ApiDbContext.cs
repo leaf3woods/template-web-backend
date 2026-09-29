@@ -58,8 +58,12 @@ public class ApiDbContext : DbContext
             .HasMany(r => r.Permissions)
             .WithMany()
             .UsingEntity<RolePermission>(
-                join => join.HasOne(item => item.Permission).WithMany().HasForeignKey(item => item.PermissionId),
-                join => join.HasOne(item => item.Role).WithMany().HasForeignKey(item => item.RoleId));
+                join =>
+                    join.HasOne(item => item.Permission)
+                        .WithMany()
+                        .HasForeignKey(item => item.PermissionId),
+                join => join.HasOne(item => item.Role).WithMany().HasForeignKey(item => item.RoleId)
+            );
 
         #endregion role
 
@@ -69,10 +73,15 @@ public class ApiDbContext : DbContext
 
         modelBuilder.Entity<User>().HasIndex(u => new { u.Username, u.SoftDeleted }).IsUnique();
 
-        modelBuilder.Entity<User>().HasMany(u => u.Roles).WithMany(r => r.Users)
+        modelBuilder
+            .Entity<User>()
+            .HasMany(u => u.Roles)
+            .WithMany(r => r.Users)
             .UsingEntity<UserRole>(
-                join => join.HasOne(item => item.Role).WithMany().HasForeignKey(item => item.RoleId),
-                join => join.HasOne(item => item.User).WithMany().HasForeignKey(item => item.UserId));
+                join =>
+                    join.HasOne(item => item.Role).WithMany().HasForeignKey(item => item.RoleId),
+                join => join.HasOne(item => item.User).WithMany().HasForeignKey(item => item.UserId)
+            );
 
         modelBuilder.Entity<User>().HasIndex(u => u.SoftDeleted);
 

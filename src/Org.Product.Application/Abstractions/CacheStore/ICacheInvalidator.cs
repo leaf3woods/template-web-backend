@@ -2,10 +2,7 @@ namespace Org.Product.Application.Abstractions.CacheStore;
 
 public interface ICacheInvalidator : ICacheStore
 {
-    Task<int> InvalidateEntityCacheAsync(
-        string entityName,
-        IReadOnlyCollection<object> ids
-    );
+    Task<int> InvalidateEntityCacheAsync(string entityName, IReadOnlyCollection<object> ids);
 
     Task InvalidateEntityListCacheAsync(string entityName);
 

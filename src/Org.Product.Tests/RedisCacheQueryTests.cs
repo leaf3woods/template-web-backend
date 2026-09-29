@@ -22,8 +22,18 @@ public sealed class RedisCacheQueryTests
     {
         var users = new[]
         {
-            new User { Id = Guid.NewGuid(), Username = "operator", IsEnabled = true },
-            new User { Id = Guid.NewGuid(), Username = "administrator", IsEnabled = true },
+            new User
+            {
+                Id = Guid.NewGuid(),
+                Username = "operator",
+                IsEnabled = true,
+            },
+            new User
+            {
+                Id = Guid.NewGuid(),
+                Username = "administrator",
+                IsEnabled = true,
+            },
         };
         var repository = new Mock<IRepository<User>>();
         repository.Setup(item => item.Query(false)).Returns(new AsyncQuery<User>(users));
@@ -45,10 +55,21 @@ public sealed class RedisCacheQueryTests
     public async Task WhereAsync_EquivalentExpressionUsesCachedResult()
     {
         var repository = new Mock<IRepository<User>>();
-        repository.Setup(item => item.Query(false)).Returns(new AsyncQuery<User>(new[]
-        {
-            new User { Id = Guid.NewGuid(), Username = "operator", IsEnabled = true },
-        }));
+        repository
+            .Setup(item => item.Query(false))
+            .Returns(
+                new AsyncQuery<User>(
+                    new[]
+                    {
+                        new User
+                        {
+                            Id = Guid.NewGuid(),
+                            Username = "operator",
+                            IsEnabled = true,
+                        },
+                    }
+                )
+            );
         var redis = new RedisStub();
         var query = CreateQuery(repository.Object, redis);
 
@@ -56,7 +77,10 @@ public sealed class RedisCacheQueryTests
         var second = await query.GetFilteredListAsync(account => account.Username == "operator");
 
         Assert.Equal(Assert.Single(first).Id, Assert.Single(second).Id);
-        Assert.Contains(redis.Values.Keys, key => key.ToString().Contains(":entities:v2:", StringComparison.Ordinal));
+        Assert.Contains(
+            redis.Values.Keys,
+            key => key.ToString().Contains(":entities:v1:", StringComparison.Ordinal)
+        );
         repository.Verify(item => item.Query(false), Times.Once);
     }
 
@@ -65,7 +89,12 @@ public sealed class RedisCacheQueryTests
     {
         var users = new List<User>
         {
-            new() { Id = Guid.NewGuid(), Username = "operator", IsEnabled = true },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Username = "operator",
+                IsEnabled = true,
+            },
         };
         var repository = new Mock<IRepository<User>>();
         repository.Setup(item => item.Query(false)).Returns(() => new AsyncQuery<User>(users));
@@ -74,14 +103,152 @@ public sealed class RedisCacheQueryTests
         var invalidator = new RedisCacheInvalidator(redis.Connection.Object);
 
         var first = await query.GetFilteredListAsync(user => user.IsEnabled);
-        users.Add(new User { Id = Guid.NewGuid(), Username = "administrator", IsEnabled = true });
+        users.Add(
+            new User
+            {
+                Id = Guid.NewGuid(),
+                Username = "administrator",
+                IsEnabled = true,
+            }
+        );
         await invalidator.InvalidateEntityListCacheAsync(nameof(User));
         var second = await query.GetFilteredListAsync(user => user.IsEnabled);
 
         Assert.Single(first);
         Assert.Equal(2, second.Count);
-        Assert.Equal(2, redis.Values.Keys.Count(key => key.ToString().Contains(":entities:v2:user:g", StringComparison.Ordinal)));
+        Assert.Equal(
+            2,
+            redis.Values.Keys.Count(key =>
+                key.ToString().Contains(":entities:v1:", StringComparison.Ordinal)
+            )
+        );
+        Assert.Contains(
+            redis.Values.Keys,
+            key => key.ToString().Contains(":User:0:", StringComparison.Ordinal)
+        );
+        Assert.Contains(
+            redis.Values.Keys,
+            key => key.ToString().Contains(":User:1:", StringComparison.Ordinal)
+        );
         Assert.Equal("1", redis.Values[CacheKeys.EntitiesGeneration<User>()].ToString());
+        repository.Verify(item => item.Query(false), Times.Exactly(2));
+    }
+
+    [Fact]
+    public async Task GetFilteredListAsync_RelatedEntityChanges_UseNewCacheKeys()
+    {
+        var users = new List<User>
+        {
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Username = "operator",
+                IsEnabled = true,
+            },
+        };
+        var repository = new Mock<IRepository<User>>();
+        repository.Setup(item => item.Query(false)).Returns(() => new AsyncQuery<User>(users));
+        var redis = new RedisStub();
+        var query = CreateQuery(repository.Object, redis);
+        var invalidator = new RedisCacheInvalidator(redis.Connection.Object);
+        var first = await query.GetFilteredListAsync<Role, Permission>(user => user.IsEnabled);
+        var cached = await query.GetFilteredListAsync<Role, Permission>(user => user.IsEnabled);
+        users.Add(
+            new User
+            {
+                Id = Guid.NewGuid(),
+                Username = "administrator",
+                IsEnabled = true,
+            }
+        );
+        await invalidator.InvalidateEntityListCacheAsync(nameof(Role));
+        var afterRoleChange = await query.GetFilteredListAsync<Role, Permission>(user =>
+            user.IsEnabled
+        );
+        users.Add(
+            new User
+            {
+                Id = Guid.NewGuid(),
+                Username = "auditor",
+                IsEnabled = true,
+            }
+        );
+        await invalidator.InvalidateEntityListCacheAsync(nameof(Permission));
+        var afterPermissionChange = await query.GetFilteredListAsync<Role, Permission>(user =>
+            user.IsEnabled
+        );
+        users.Add(
+            new User
+            {
+                Id = Guid.NewGuid(),
+                Username = "reader",
+                IsEnabled = true,
+            }
+        );
+        await invalidator.InvalidateEntityListCacheAsync(nameof(User));
+        var afterUserChange = await query.GetFilteredListAsync<Role, Permission>(user =>
+            user.IsEnabled
+        );
+
+        Assert.Single(first);
+        Assert.Single(cached);
+        Assert.Equal(2, afterRoleChange.Count);
+        Assert.Equal(3, afterPermissionChange.Count);
+        Assert.Equal(4, afterUserChange.Count);
+        Assert.Contains(
+            redis.Values.Keys,
+            key => key.ToString().Contains(":User:0|Role:0|Permission:0:", StringComparison.Ordinal)
+        );
+        Assert.Contains(
+            redis.Values.Keys,
+            key => key.ToString().Contains(":User:0|Role:1|Permission:0:", StringComparison.Ordinal)
+        );
+        Assert.Contains(
+            redis.Values.Keys,
+            key => key.ToString().Contains(":User:0|Role:1|Permission:1:", StringComparison.Ordinal)
+        );
+        Assert.Contains(
+            redis.Values.Keys,
+            key => key.ToString().Contains(":User:1|Role:1|Permission:1:", StringComparison.Ordinal)
+        );
+        repository.Verify(item => item.Query(false), Times.Exactly(4));
+    }
+
+    [Fact]
+    public async Task GetFilteredListAsync_OneRelatedEntityChange_UsesNewCacheKey()
+    {
+        var repository = new Mock<IRepository<User>>();
+        repository
+            .Setup(item => item.Query(false))
+            .Returns(
+                new AsyncQuery<User>(
+                    new[]
+                    {
+                        new User
+                        {
+                            Id = Guid.NewGuid(),
+                            Username = "operator",
+                            IsEnabled = true,
+                        },
+                    }
+                )
+            );
+        var redis = new RedisStub();
+        var query = CreateQuery(repository.Object, redis);
+        var invalidator = new RedisCacheInvalidator(redis.Connection.Object);
+
+        await query.GetFilteredListAsync<Role>(user => user.IsEnabled);
+        await invalidator.InvalidateEntityListCacheAsync(nameof(Role));
+        await query.GetFilteredListAsync<Role>(user => user.IsEnabled);
+
+        Assert.Contains(
+            redis.Values.Keys,
+            key => key.ToString().Contains(":User:0|Role:0:", StringComparison.Ordinal)
+        );
+        Assert.Contains(
+            redis.Values.Keys,
+            key => key.ToString().Contains(":User:0|Role:1:", StringComparison.Ordinal)
+        );
         repository.Verify(item => item.Query(false), Times.Exactly(2));
     }
 
@@ -90,10 +257,22 @@ public sealed class RedisCacheQueryTests
     {
         var permissionId = Guid.NewGuid();
         var repository = new Mock<IRepository<Permission>>();
-        repository.Setup(item => item.Query(false)).Returns(new AsyncQuery<Permission>(new[]
-        {
-            new Permission { Id = permissionId, Name = "View users", Code = "users.view", IsEnabled = true },
-        }));
+        repository
+            .Setup(item => item.Query(false))
+            .Returns(
+                new AsyncQuery<Permission>(
+                    new[]
+                    {
+                        new Permission
+                        {
+                            Id = permissionId,
+                            Name = "View users",
+                            Code = "users.view",
+                            IsEnabled = true,
+                        },
+                    }
+                )
+            );
         var redis = new RedisStub();
         var query = new RedisCacheQuery<Permission, Guid, PermissionCacheItem>(
             repository.Object,
@@ -115,8 +294,18 @@ public sealed class RedisCacheQueryTests
     {
         var users = new[]
         {
-            new User { Id = Guid.NewGuid(), Username = "operator", IsEnabled = true },
-            new User { Id = Guid.NewGuid(), Username = "administrator", IsEnabled = true },
+            new User
+            {
+                Id = Guid.NewGuid(),
+                Username = "operator",
+                IsEnabled = true,
+            },
+            new User
+            {
+                Id = Guid.NewGuid(),
+                Username = "administrator",
+                IsEnabled = true,
+            },
         };
         var repository = new Mock<IRepository<User>>();
         repository.Setup(item => item.Query(false)).Returns(new AsyncQuery<User>(users));
@@ -141,10 +330,21 @@ public sealed class RedisCacheQueryTests
     public async Task WhereAsync_UnsupportedMethodCall_BypassesCache()
     {
         var repository = new Mock<IRepository<User>>();
-        repository.Setup(item => item.Query(false)).Returns(new AsyncQuery<User>(new[]
-        {
-            new User { Id = Guid.NewGuid(), Username = "operator", IsEnabled = true },
-        }));
+        repository
+            .Setup(item => item.Query(false))
+            .Returns(
+                new AsyncQuery<User>(
+                    new[]
+                    {
+                        new User
+                        {
+                            Id = Guid.NewGuid(),
+                            Username = "operator",
+                            IsEnabled = true,
+                        },
+                    }
+                )
+            );
         var redis = new RedisStub();
         var query = CreateQuery(repository.Object, redis);
 
@@ -165,16 +365,32 @@ public sealed class RedisCacheQueryTests
     public async Task WhereAsync_ResultExceedsLimit_ThrowsWithoutCaching()
     {
         var repository = new Mock<IRepository<User>>();
-        repository.Setup(item => item.Query(false)).Returns(new AsyncQuery<User>(new[]
-        {
-            new User { Id = Guid.NewGuid(), Username = "operator", IsEnabled = true },
-            new User { Id = Guid.NewGuid(), Username = "administrator", IsEnabled = true },
-        }));
+        repository
+            .Setup(item => item.Query(false))
+            .Returns(
+                new AsyncQuery<User>(
+                    new[]
+                    {
+                        new User
+                        {
+                            Id = Guid.NewGuid(),
+                            Username = "operator",
+                            IsEnabled = true,
+                        },
+                        new User
+                        {
+                            Id = Guid.NewGuid(),
+                            Username = "administrator",
+                            IsEnabled = true,
+                        },
+                    }
+                )
+            );
         var redis = new RedisStub();
         var query = CreateQuery(repository.Object, redis, maxCollectionItems: 1);
 
-        var exception = await Assert.ThrowsAsync<CacheQueryResultTooLargeException>(
-            () => query.GetFilteredListAsync(user => user.IsEnabled)
+        var exception = await Assert.ThrowsAsync<CacheQueryResultTooLargeException>(() =>
+            query.GetFilteredListAsync(user => user.IsEnabled)
         );
 
         Assert.Equal(typeof(User), exception.EntityType);
@@ -187,11 +403,27 @@ public sealed class RedisCacheQueryTests
     public async Task WhereAsync_ResultAtLimit_IsCached()
     {
         var repository = new Mock<IRepository<User>>();
-        repository.Setup(item => item.Query(false)).Returns(new AsyncQuery<User>(new[]
-        {
-            new User { Id = Guid.NewGuid(), Username = "operator", IsEnabled = true },
-            new User { Id = Guid.NewGuid(), Username = "administrator", IsEnabled = true },
-        }));
+        repository
+            .Setup(item => item.Query(false))
+            .Returns(
+                new AsyncQuery<User>(
+                    new[]
+                    {
+                        new User
+                        {
+                            Id = Guid.NewGuid(),
+                            Username = "operator",
+                            IsEnabled = true,
+                        },
+                        new User
+                        {
+                            Id = Guid.NewGuid(),
+                            Username = "administrator",
+                            IsEnabled = true,
+                        },
+                    }
+                )
+            );
         var redis = new RedisStub();
         var query = CreateQuery(repository.Object, redis, maxCollectionItems: 2);
 
@@ -208,15 +440,13 @@ public sealed class RedisCacheQueryTests
         IRepository<User> repository,
         RedisStub redis,
         int maxCollectionItems = 500
-    ) => new(
-        repository,
-        redis.Connection.Object,
-        CreateMapper(),
-        Options.Create(new CacheOptions
-        {
-            MaxCollectionItems = maxCollectionItems,
-        })
-    );
+    ) =>
+        new(
+            repository,
+            redis.Connection.Object,
+            CreateMapper(),
+            Options.Create(new CacheOptions { MaxCollectionItems = maxCollectionItems })
+        );
 
     private static IMapper CreateMapper() =>
         new MapperConfiguration(

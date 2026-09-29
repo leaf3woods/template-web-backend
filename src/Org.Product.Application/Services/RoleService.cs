@@ -31,9 +31,7 @@ public class RoleService
         _permissionRepository = permissionRepository;
     }
 
-    public override async Task<IEnumerable<RoleReadDto>> GetListAsync(
-        RoleQueryDto? queryDto = null
-    )
+    public override async Task<IEnumerable<RoleReadDto>> GetListAsync(RoleQueryDto? queryDto = null)
     {
         var roles = await Queryable.Include(r => r.Permissions).ToListAsync();
         return Mapper.Map<IEnumerable<RoleReadDto>>(roles);
@@ -46,10 +44,7 @@ public class RoleService
         var roles = await Queryable
             .WhereIf(!string.IsNullOrEmpty(queryDto.Name), x => x.Name.Contains(queryDto.Name!))
             .WhereIf(!string.IsNullOrEmpty(queryDto.Code), x => x.Code.Contains(queryDto.Code!))
-            .WhereIf(
-                queryDto.IsEnabled != null,
-                x => x.IsEnabled == queryDto.IsEnabled
-            )
+            .WhereIf(queryDto.IsEnabled != null, x => x.IsEnabled == queryDto.IsEnabled)
             .Include(r => r.Permissions)
             .ToPaginatedListAsync(queryDto.PageIndex, queryDto.PageSize);
         return Mapper.Map<PaginatedList<RoleReadDto>>(roles);
@@ -68,10 +63,7 @@ public class RoleService
         return index == 0 ? null : Mapper.Map<RoleReadDto>(entity);
     }
 
-    [PermissionDefinition(
-        "get role info by id",
-        $"{ManagedResource.Role}.{ManagedAction.Get}.Id"
-    )]
+    [PermissionDefinition("get role info by id", $"{ManagedResource.Role}.{ManagedAction.Get}.Id")]
     public async Task<RoleReadDto?> GetRoleAsync(Guid id)
     {
         var role = await Repository

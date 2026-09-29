@@ -17,15 +17,16 @@ public sealed class RedisUserSessionStore : IUserSessionStore
     {
         var database = _connection.GetDatabase();
         var key = CacheKeys.Token(userId);
-        await (expiration is null
-            ? database.StringSetAsync(key, token)
-            : database.StringSetAsync(key, token, expiration.Value));
+        await (
+            expiration is null
+                ? database.StringSetAsync(key, token)
+                : database.StringSetAsync(key, token, expiration.Value)
+        );
     }
 
     public async Task<bool> IsValidAsync(Guid userId, string token)
     {
-        var value = await _connection.GetDatabase()
-            .StringGetAsync(CacheKeys.Token(userId));
+        var value = await _connection.GetDatabase().StringGetAsync(CacheKeys.Token(userId));
         return value.HasValue && value.ToString() == token;
     }
 

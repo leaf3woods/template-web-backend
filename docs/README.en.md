@@ -315,7 +315,7 @@ Tests use xUnit, Moq, and ASP.NET Core TestHost. They cover layer dependencies, 
 
 Place routes and policies in WebApi, use cases and DTOs in Application, domain models in Domain, and database/external service implementations in Infrastructure. Maintain migrations when changing persisted models. When changing authorization, trace roles, JWT claims, Redis snapshots, and endpoint policies together.
 
-Use `dotnet format` within the changed scope. The EF tool manifest is `.config/dotnet-tools.json`, and `dotnet tool restore` restores it. Follow Conventional Commits, such as `feat(user): add profile update`. See [Contributor guidelines](../AGENTS.md).
+Use `dotnet format` within the changed scope. The EF and CSharpier tools are listed in `.config/dotnet-tools.json`; `dotnet tool restore` restores them. For C# line wrapping, run `dotnet csharpier format <file-path>` on changed files. CSharpier ignores EF migrations. Follow Conventional Commits, such as `feat(user): add profile update`. See [Contributor guidelines](../AGENTS.md).
 
 ## Current implementation boundaries
 
@@ -324,7 +324,7 @@ Use `dotnet format` within the changed scope. The EF tool manifest is `.config/d
 | Role permission snapshots | Read from Redis; missing snapshots deny permission authorization. Automatic population, database fallback, and synchronization after role changes are not implemented |
 | Initial accounts and roles | Migrations include built-in data but no user-role assignments; applications need their own provisioning and credential management |
 | Database/Redis consistency | User mutations save first and revoke sessions afterward; no cross-store transaction or compensation worker |
-| Generic cache queries | `ICacheQuery<TEntity, TKey, TCacheItem>` and its Redis adapter are registered; filtered lists cache only supported comparison/logical expressions, method calls bypass Redis, and complete collections above `Cache:MaxCollectionItems` are rejected; `ICacheInvalidator` supports exact entity and store-key invalidation plus per-entity-type generation invalidation for lists; old lists expire by TTL |
+| Generic cache queries | `ICacheQuery<TEntity, TKey, TCacheItem>` and its Redis adapter are registered; filtered lists cache only supported comparison/logical expressions, method calls bypass Redis, and complete collections above `Cache:MaxCollectionItems` are rejected; `GetFilteredListAsync<TRelation>` and `<TRelation1, TRelation2>` can declare up to two related entities as list-invalidation dependencies; `ICacheInvalidator` supports exact entity and store-key invalidation plus per-entity-type generation invalidation for lists; old lists expire by TTL |
 | Domain events | MediatR is registered, but login does not publish its event and the handler is a placeholder |
 | Example services | `UpdateEnabledAsync` and `SetMenuRouteAsync` are unimplemented; `SettingService` is empty |
 | Deployment verification | Compose requires customization. No application health endpoint is registered; container captcha rendering and other runtime behaviors need verification |

@@ -3,12 +3,7 @@ using Org.Product.Domain.Entities.Base.Audited;
 
 namespace Org.Product.Domain.Entities.Authority;
 
-public class Permission
-    : AggregateRoot<Guid>,
-        ISoftDelete,
-        IAudited,
-        IHasSortOrder,
-        IEnableable
+public class Permission : AggregateRoot<Guid>, ISoftDelete, IAudited, IHasSortOrder, IEnableable
 {
     public string Name { get; set; } = null!;
 

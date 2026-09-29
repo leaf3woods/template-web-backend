@@ -17,8 +17,11 @@ public sealed class DatabaseMigrator
     public async Task RunAsync(CancellationToken cancellationToken = default)
     {
         var connection = _context.Database.GetDbConnection();
-        _logger.LogInformation("Applying migrations to {Database} on {DataSource}.",
-            connection.Database, connection.DataSource);
+        _logger.LogInformation(
+            "Applying migrations to {Database} on {DataSource}.",
+            connection.Database,
+            connection.DataSource
+        );
         if (!_context.Database.GetMigrations().Any())
         {
             throw new InvalidOperationException("No migrations were found.");

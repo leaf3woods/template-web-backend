@@ -17,15 +17,16 @@ public sealed class RedisCaptchaChallengeStore : ICaptchaChallengeStore
     {
         var database = _connection.GetDatabase();
         var key = CacheKeys.Captcha(captcha.Id);
-        await (expiration is null
-            ? database.StringSetAsync(key, captcha.Answer)
-            : database.StringSetAsync(key, captcha.Answer, expiration.Value));
+        await (
+            expiration is null
+                ? database.StringSetAsync(key, captcha.Answer)
+                : database.StringSetAsync(key, captcha.Answer, expiration.Value)
+        );
     }
 
     public async Task<bool> VerifyAsync(Captcha captcha)
     {
-        var value = await _connection.GetDatabase()
-            .StringGetAsync(CacheKeys.Captcha(captcha.Id));
+        var value = await _connection.GetDatabase().StringGetAsync(CacheKeys.Captcha(captcha.Id));
         if (!value.HasValue)
         {
             throw new Exception("captcha is invalid");

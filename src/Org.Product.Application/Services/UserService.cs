@@ -1,21 +1,21 @@
 using System.Security.Claims;
-using AutoMapper;
 using System.Security.Cryptography;
 using System.Text;
+using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Org.Product.Application.Abstractions.Authentication;
+using Org.Product.Application.Abstractions.Captchas;
 using Org.Product.Application.Dtos;
 using Org.Product.Application.Services.Base;
 using Org.Product.Application.Utilities;
+using Org.Product.Application.Utilities.Options;
 using Org.Product.Domain.Entities.Account;
 using Org.Product.Domain.Repositories;
 using Org.Product.Domain.Shared;
 using Org.Product.Domain.Shared.Attributes;
 using Org.Product.Domain.Shared.Exceptions;
 using Org.Product.Domain.Utilities;
-using Org.Product.Application.Utilities.Options;
-using Org.Product.Application.Abstractions.Authentication;
-using Org.Product.Application.Abstractions.Captchas;
 
 namespace Org.Product.Application.Services;
 
@@ -68,28 +68,21 @@ public class UserService
                 u => u.Username.Contains(query!.UserName!)
             )
             .WhereIf(!string.IsNullOrEmpty(query?.Name), u => u.Name!.Contains(query!.Name!))
-            .WhereIf(
-                query?.IsEnabled != null,
-                u => u.IsEnabled == query!.IsEnabled
-            )
+            .WhereIf(query?.IsEnabled != null, u => u.IsEnabled == query!.IsEnabled)
             .Where(u => !defaultIds.Contains(u.Id))
             .Include(u => u.Roles)
             .ToListAsync();
         return Mapper.Map<IEnumerable<UserReadDto>>(users);
     }
 
-    public override async Task<PaginatedList<UserReadDto>> GetPaginatedListAsync(
-        UserQueryDto query
-    )
+    public override async Task<PaginatedList<UserReadDto>> GetPaginatedListAsync(UserQueryDto query)
     {
         var users = await Queryable
             .Where(u =>
                 u.PhoneNumber != null
                 && (string.IsNullOrEmpty(query.Phone) || u.PhoneNumber.Contains(query.Phone))
             )
-            .Where(u =>
-                string.IsNullOrEmpty(query.UserName) || u.Username.Contains(query.UserName)
-            )
+            .Where(u => string.IsNullOrEmpty(query.UserName) || u.Username.Contains(query.UserName))
             .Where(u => string.IsNullOrEmpty(query.Name) || u.Name!.Contains(query.Name))
             .Where(u => query.IsEnabled == null || u.IsEnabled == query.IsEnabled)
             .Where(u => u.Roles.Count() == 1 && u.Roles.Any(r => r.Id == Role.MemberRole.Id))
@@ -179,10 +172,7 @@ public class UserService
         return Mapper.Map<UserReadDto>(user);
     }
 
-    [PermissionDefinition(
-        "get users where",
-        $"{ManagedResource.User}.{ManagedAction.Get}.Query"
-    )]
+    [PermissionDefinition("get users where", $"{ManagedResource.User}.{ManagedAction.Get}.Query")]
     public async Task<IEnumerable<UserReadDto>> GetUsersWhereAsync(string? name = null)
     {
         var users = await Queryable
@@ -197,10 +187,7 @@ public class UserService
         return Mapper.Map<IEnumerable<UserReadDto>>(users);
     }
 
-    [PermissionDefinition(
-        "change user role",
-        $"{ManagedResource.User}.{ManagedAction.Put}.Role"
-    )]
+    [PermissionDefinition("change user role", $"{ManagedResource.User}.{ManagedAction.Put}.Role")]
     public async Task<UserReadDto?> ChangeRoleAsync(Guid userId, IEnumerable<Guid> roleIds)
     {
         var requestedRoleIds = roleIds.Distinct().ToArray();

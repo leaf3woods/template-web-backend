@@ -1,11 +1,11 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authentication;
+﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Org.Product.Application.Abstractions.Captchas;
 using Org.Product.Application.Dtos;
 using Org.Product.Application.Services.Base;
 using Org.Product.WebApi.Utilities;
-using Org.Product.Application.Abstractions.Captchas;
 
 namespace Org.Product.WebApi.Controllers;
 
@@ -60,10 +60,16 @@ public class HomeController : ControllerBase
     [Authorize]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task Logout() => await _userService.LogoutAsync(
-        HttpContext.User.Claims,
-        (await HttpContext.GetTokenAsync(JwtBearerDefaults.AuthenticationScheme, "access_token"))!
-    );
+    public async Task Logout() =>
+        await _userService.LogoutAsync(
+            HttpContext.User.Claims,
+            (
+                await HttpContext.GetTokenAsync(
+                    JwtBearerDefaults.AuthenticationScheme,
+                    "access_token"
+                )
+            )!
+        );
 
     /// <summary>
     ///     用户注册

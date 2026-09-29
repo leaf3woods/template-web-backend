@@ -1,9 +1,5 @@
 namespace Org.Product.Application.Abstractions.Authentication;
 
-public interface ISecurityStore
-{
-}
+public interface ISecurityStore { }
 
-public interface ISecurityService
-{
-}
+public interface ISecurityService { }

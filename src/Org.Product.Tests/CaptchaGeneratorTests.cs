@@ -32,10 +32,7 @@ public sealed class CaptchaGeneratorTests
     {
         var generator = CreateGenerator();
 
-        var captcha = generator.Generate(new CaptchaGenSettings
-        {
-            Type = CaptchaType.Question,
-        });
+        var captcha = generator.Generate(new CaptchaGenSettings { Type = CaptchaType.Question });
 
         Assert.Equal(CaptchaType.Question, captcha.Type);
         Assert.Equal((180, 72), captcha.Pixel);
@@ -49,12 +46,14 @@ public sealed class CaptchaGeneratorTests
     {
         var generator = CreateGenerator();
 
-        var captcha = generator.Generate(new CaptchaGenSettings
-        {
-            Type = CaptchaType.Character,
-            Width = 0,
-            Height = 0,
-        });
+        var captcha = generator.Generate(
+            new CaptchaGenSettings
+            {
+                Type = CaptchaType.Character,
+                Width = 0,
+                Height = 0,
+            }
+        );
 
         Assert.Equal((180, 72), captcha.Pixel);
     }
@@ -65,13 +64,15 @@ public sealed class CaptchaGeneratorTests
         var generator = CreateGenerator();
         var background = Color.FromArgb(255, 12, 34, 56);
 
-        var captcha = generator.Generate(new CaptchaGenSettings
-        {
-            Type = CaptchaType.Character,
-            Width = 240,
-            Height = 96,
-            Background = background,
-        });
+        var captcha = generator.Generate(
+            new CaptchaGenSettings
+            {
+                Type = CaptchaType.Character,
+                Width = 240,
+                Height = 96,
+                Background = background,
+            }
+        );
 
         Assert.Equal((240, 96), captcha.Pixel);
         Assert.NotNull(captcha.Image);
@@ -89,11 +90,7 @@ public sealed class CaptchaGeneratorTests
     public void Generate_WithNegativeDimension_Throws(int width, int height)
     {
         var generator = CreateGenerator();
-        var settings = new CaptchaGenSettings
-        {
-            Width = width,
-            Height = height,
-        };
+        var settings = new CaptchaGenSettings { Width = width, Height = height };
 
         Assert.Throws<ArgumentOutOfRangeException>(() => generator.Generate(settings));
     }
@@ -103,10 +100,9 @@ public sealed class CaptchaGeneratorTests
     {
         var generator = CreateGenerator();
 
-        Assert.Throws<NotSupportedException>(() => generator.Generate(new CaptchaGenSettings
-        {
-            Type = CaptchaType.Han,
-        }));
+        Assert.Throws<NotSupportedException>(() =>
+            generator.Generate(new CaptchaGenSettings { Type = CaptchaType.Han })
+        );
     }
 
     [Fact]
@@ -114,16 +110,17 @@ public sealed class CaptchaGeneratorTests
     {
         var generator = CreateGenerator();
 
-        Assert.Throws<ArgumentOutOfRangeException>(() => generator.Generate(
-            new CaptchaGenSettings { Type = (CaptchaType)999 }
-        ));
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            generator.Generate(new CaptchaGenSettings { Type = (CaptchaType)999 })
+        );
     }
 
     [Fact]
     public async Task GetCaptcha_WithType_ForwardsRequestedType()
     {
         var service = new Mock<IUserService>();
-        service.Setup(candidate => candidate.GenerateCaptchaAsync(CaptchaType.Question))
+        service
+            .Setup(candidate => candidate.GenerateCaptchaAsync(CaptchaType.Question))
             .ReturnsAsync(new CaptchaReadDto());
         var controller = new HomeController(service.Object);
 
@@ -135,15 +132,18 @@ public sealed class CaptchaGeneratorTests
         );
     }
 
-    private static SkiaCaptchaGenerator CreateGenerator() => new(Options.Create(
-        new CaptchaRenderingOptions
-        {
-            FontFamily = "consolas",
-            Width = 180,
-            Height = 72,
-            EnableNoise = false,
-            EnableLines = false,
-            EnableCircles = false,
-        }
-    ));
+    private static SkiaCaptchaGenerator CreateGenerator() =>
+        new(
+            Options.Create(
+                new CaptchaRenderingOptions
+                {
+                    FontFamily = "consolas",
+                    Width = 180,
+                    Height = 72,
+                    EnableNoise = false,
+                    EnableLines = false,
+                    EnableCircles = false,
+                }
+            )
+        );
 }
