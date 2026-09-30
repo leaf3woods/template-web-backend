@@ -15,6 +15,8 @@ using Org.Product.Infrastructure.Adapters.Cache;
 using Org.Product.Infrastructure.Repositories;
 using Org.Product.Infrastructure.Utilities.Options;
 using Org.Product.Tests.Support;
+using CommandFlags = StackExchange.Redis.CommandFlags;
+using RedisKey = StackExchange.Redis.RedisKey;
 
 namespace Org.Product.Tests;
 
@@ -75,6 +77,156 @@ public sealed class RedisCacheQueryTests
                     .Contains(typeof(RolePermissionsCacheItem).FullName!, StringComparison.Ordinal)
         );
         repository.Verify(item => item.FindAsync(It.IsAny<object?[]>()), Times.Exactly(4));
+    }
+
+    [Fact]
+    public async Task FindManyAsync_SharesSingleLookupCacheAndQueriesOnlyDistinctMissingIds()
+    {
+        var firstUser = new User { Id = Guid.NewGuid(), Username = "first" };
+        var secondUser = new User { Id = Guid.NewGuid(), Username = "second" };
+        var unknownId = Guid.NewGuid();
+        var repository = new Mock<IRepository<User>>();
+        repository
+            .Setup(item => item.FindAsync(It.IsAny<object?[]>()))
+            .ReturnsAsync(firstUser);
+        repository
+            .Setup(item => item.Query(false))
+            .Returns(() => new AsyncQuery<User>([firstUser, secondUser]));
+        var redis = new RedisStub();
+        var query = CreateQuery(repository.Object, redis);
+
+        await query.FindAsync(firstUser.Id);
+        firstUser.Username = "changed-after-caching";
+        var results = await query.FindManyAsync([
+            firstUser.Id,
+            secondUser.Id,
+            unknownId,
+            firstUser.Id,
+            secondUser.Id,
+        ]);
+        var single = await query.FindAsync(secondUser.Id);
+        var cached = await query.FindManyAsync([firstUser.Id, secondUser.Id]);
+
+        Assert.Equal(2, results.Count);
+        Assert.Equal("first", results[firstUser.Id].Username);
+        Assert.Equal("second", results[secondUser.Id].Username);
+        Assert.False(results.ContainsKey(unknownId));
+        Assert.Equal("second", single!.Username);
+        Assert.Equal(2, cached.Count);
+        Assert.DoesNotContain(
+            CacheKeys.Entity<User, Guid, UserCacheItem>(unknownId, 0),
+            redis.Values.Keys
+        );
+        repository.Verify(item => item.FindAsync(It.IsAny<object?[]>()), Times.Once);
+        repository.Verify(item => item.Query(false), Times.Once);
+        redis.Database.Verify(
+            database => database.StringGetAsync(
+                It.Is<RedisKey[]>(keys => keys.Length == 3),
+                It.IsAny<CommandFlags>()
+            ),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task FindManyAsync_EmptyIdsReturnsEmptyWithoutAccessingStores()
+    {
+        var repository = new Mock<IRepository<User>>(MockBehavior.Strict);
+        var redis = new RedisStub();
+        var query = CreateQuery(repository.Object, redis);
+
+        Assert.Empty(await query.FindManyAsync([]));
+
+        repository.VerifyNoOtherCalls();
+        redis.Connection.Verify(
+            connection => connection.GetDatabase(It.IsAny<int>(), It.IsAny<object>()),
+            Times.Never
+        );
+    }
+
+    [Fact]
+    public async Task FindManyAsync_NullIdsThrowsBeforeAccessingStores()
+    {
+        var repository = new Mock<IRepository<User>>(MockBehavior.Strict);
+        var redis = new RedisStub();
+        var query = CreateQuery(repository.Object, redis);
+
+        await Assert.ThrowsAsync<ArgumentNullException>(() => query.FindManyAsync(null!));
+
+        repository.VerifyNoOtherCalls();
+        redis.Connection.Verify(
+            connection => connection.GetDatabase(It.IsAny<int>(), It.IsAny<object>()),
+            Times.Never
+        );
+    }
+
+    [Fact]
+    public async Task FindManyAsync_DifferentProjectionTypesAndGenerationUseSeparateKeys()
+    {
+        var role = new Role
+        {
+            Id = Guid.NewGuid(),
+            Name = "reader",
+            Code = "reader",
+            Permissions = [new Permission { PermissionCode = "menu.read" }],
+        };
+        var repository = new Mock<IRepository<Role>>();
+        repository.Setup(item => item.Query(false)).Returns(() => new AsyncQuery<Role>([role]));
+        var redis = new RedisStub();
+        var roleQuery = new RedisCacheQuery<Role, Guid, RoleCacheItem>(
+            repository.Object,
+            redis.Connection.Object,
+            CreateMapper(),
+            Options.Create(new CacheOptions())
+        );
+        var permissionsQuery = new RedisCacheQuery<Role, Guid, RolePermissionsCacheItem>(
+            repository.Object,
+            redis.Connection.Object,
+            CreateMapper(),
+            Options.Create(new CacheOptions())
+        );
+        var invalidator = new RedisCacheInvalidator(redis.Connection.Object);
+
+        await roleQuery.FindManyAsync([role.Id]);
+        await permissionsQuery.FindManyAsync([role.Id]);
+        role.Code = "updated";
+        role.Permissions = [new Permission { PermissionCode = "menu.write" }];
+        var cachedRole = await roleQuery.FindManyAsync([role.Id]);
+        var cachedPermissions = await permissionsQuery.FindManyAsync([role.Id]);
+        await invalidator.InvalidateEntityListCacheAsync(nameof(Role));
+        var updatedRole = await roleQuery.FindManyAsync([role.Id]);
+        var updatedPermissions = await permissionsQuery.FindManyAsync([role.Id]);
+
+        Assert.Equal("reader", cachedRole[role.Id].Code);
+        Assert.Equal("menu.read", Assert.Single(cachedPermissions[role.Id].PermissionCodes));
+        Assert.Equal("updated", updatedRole[role.Id].Code);
+        Assert.Equal("menu.write", Assert.Single(updatedPermissions[role.Id].PermissionCodes));
+        Assert.Contains(CacheKeys.Entity<Role, Guid, RoleCacheItem>(role.Id, 1), redis.Values.Keys);
+        Assert.Contains(
+            CacheKeys.Entity<Role, Guid, RolePermissionsCacheItem>(role.Id, 1),
+            redis.Values.Keys
+        );
+        repository.Verify(item => item.Query(false), Times.Exactly(4));
+    }
+
+    [Fact]
+    public async Task FindManyAsync_CachedNullIsRefetchedAndReplaced()
+    {
+        var user = new User { Id = Guid.NewGuid(), Username = "operator" };
+        var repository = new Mock<IRepository<User>>();
+        repository.Setup(item => item.Query(false)).Returns(new AsyncQuery<User>([user]));
+        var redis = new RedisStub();
+        var key = CacheKeys.Entity<User, Guid, UserCacheItem>(user.Id, 0);
+        redis.Values[key] = "null";
+        var query = CreateQuery(repository.Object, redis);
+
+        var result = await query.FindManyAsync([user.Id]);
+        var cached = await query.FindAsync(user.Id);
+
+        Assert.Equal("operator", result[user.Id].Username);
+        Assert.Equal("operator", cached!.Username);
+        repository.Verify(item => item.Query(false), Times.Once);
+        repository.Verify(item => item.FindAsync(It.IsAny<object?[]>()), Times.Never);
     }
 
     [Fact]

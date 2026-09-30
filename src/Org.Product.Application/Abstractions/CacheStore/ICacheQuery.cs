@@ -13,6 +13,11 @@ public interface ICacheQuery<TEntity, TKey, TCacheItem> : ICacheQuery
 {
     Task<TCacheItem?> FindAsync(TKey id, CancellationToken cancellationToken = default);
 
+    Task<IReadOnlyDictionary<TKey, TCacheItem>> FindManyAsync(
+        IReadOnlyCollection<TKey> ids,
+        CancellationToken cancellationToken = default
+    );
+
     Task<TCacheItem?> FindWithDetailAsync(TKey id, CancellationToken cancellationToken = default);
 
     Task<TCacheItem?> FindWithDetailAsync<TRelation>(

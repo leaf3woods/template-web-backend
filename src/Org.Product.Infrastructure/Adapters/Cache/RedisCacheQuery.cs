@@ -68,6 +68,76 @@ public sealed class RedisCacheQuery<TEntity, TKey, TCacheItem>
         return cacheItem;
     }
 
+    public async Task<IReadOnlyDictionary<TKey, TCacheItem>> FindManyAsync(
+        IReadOnlyCollection<TKey> ids,
+        CancellationToken cancellationToken = default
+    )
+    {
+        ArgumentNullException.ThrowIfNull(ids);
+        if (ids.Count == 0)
+        {
+            return new Dictionary<TKey, TCacheItem>();
+        }
+
+        var distinctIds = ids.Distinct().ToArray();
+        var database = _database.Value;
+        var generationValue = await database.StringGetAsync(
+            CacheKeys.EntitiesGeneration<TEntity>()
+        );
+        var generation = generationValue.HasValue
+            ? long.Parse(generationValue.ToString(), CultureInfo.InvariantCulture)
+            : 0;
+        var keys = distinctIds
+            .Select(id => (RedisKey)CacheKeys.Entity<TEntity, TKey, TCacheItem>(id, generation))
+            .ToArray();
+        var cachedValues = await database.StringGetAsync(keys);
+        var items = new Dictionary<TKey, TCacheItem>(distinctIds.Length);
+        var missingIds = new List<TKey>();
+        for (var index = 0; index < distinctIds.Length; index++)
+        {
+            var item = cachedValues[index].HasValue
+                ? JsonSerializer.Deserialize<TCacheItem>(cachedValues[index].ToString())
+                : null;
+            if (item is null)
+            {
+                missingIds.Add(distinctIds[index]);
+            }
+            else
+            {
+                items.Add(distinctIds[index], item);
+            }
+        }
+
+        if (missingIds.Count == 0)
+        {
+            return items;
+        }
+
+        var entities = await _repository
+            .Query(tracking: false)
+            .Where(entity => missingIds.Contains(entity.Id))
+            .ToListAsync(cancellationToken);
+        var fetchedItems = entities.ToDictionary(
+            entity => entity.Id,
+            entity => _mapper.Map<TCacheItem>(entity)
+        );
+        foreach (var (id, item) in fetchedItems)
+        {
+            items.Add(id, item);
+        }
+
+        await Task.WhenAll(
+            fetchedItems.Select(entry =>
+                database.StringSetAsync(
+                    CacheKeys.Entity<TEntity, TKey, TCacheItem>(entry.Key, generation),
+                    JsonSerializer.Serialize(entry.Value),
+                    _options.Expiration
+                )
+            )
+        );
+        return items;
+    }
+
     public Task<TCacheItem?> FindWithDetailAsync(
         TKey id,
         CancellationToken cancellationToken = default
