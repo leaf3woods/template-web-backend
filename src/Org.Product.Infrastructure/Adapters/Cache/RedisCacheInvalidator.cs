@@ -3,7 +3,7 @@ using StackExchange.Redis;
 
 namespace Org.Product.Infrastructure.Adapters.Cache;
 
-public sealed class RedisCacheInvalidator : ICacheInvalidator
+public class RedisCacheInvalidator : ICacheInvalidator
 {
     public RedisCacheInvalidator(IConnectionMultiplexer connectionMultiplexer)
     {

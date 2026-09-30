@@ -12,7 +12,7 @@ using Org.Product.Application.Services;
 using Org.Product.Domain.Entities.Account;
 using Org.Product.Domain.Repositories;
 using Org.Product.Domain.Services;
-using Org.Product.Domain.Services.Base;
+using Org.Product.Infrastructure.DomainServices;
 using Org.Product.Infrastructure.Repositories;
 using Org.Product.WebApi.Utilities.InjectionModules;
 

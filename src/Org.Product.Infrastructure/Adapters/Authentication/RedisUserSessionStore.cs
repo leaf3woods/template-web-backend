@@ -1,50 +1,14 @@
-using Org.Product.Application.Abstractions.Authentication;
 using Org.Product.Application.Abstractions.CacheStore;
+using Org.Product.Domain.Entities.Account;
+using Org.Product.Infrastructure.Adapters.Cache;
 using StackExchange.Redis;
 
 namespace Org.Product.Infrastructure.Adapters.Authentication;
 
-public sealed class RedisUserSessionStore : IUserSessionStore
+public sealed class RedisUserSessionStore : CacheStore<Guid>, ICacheStore<User, Guid>
 {
-    private readonly IConnectionMultiplexer _connection;
+    public override string Key(Guid id) => CacheKeys.Token(id);
 
     public RedisUserSessionStore(IConnectionMultiplexer connection)
-    {
-        _connection = connection;
-    }
-
-    public async Task SaveAsync(Guid userId, string token, TimeSpan? expiration = null)
-    {
-        var database = _connection.GetDatabase();
-        var key = CacheKeys.Token(userId);
-        await (
-            expiration is null
-                ? database.StringSetAsync(key, token)
-                : database.StringSetAsync(key, token, expiration.Value)
-        );
-    }
-
-    public async Task<bool> IsValidAsync(Guid userId, string token)
-    {
-        var value = await _connection.GetDatabase().StringGetAsync(CacheKeys.Token(userId));
-        return value.HasValue && value.ToString() == token;
-    }
-
-    public async Task<bool> RevokeAsync(Guid userId, string? expectedToken = null)
-    {
-        var database = _connection.GetDatabase();
-        var key = CacheKeys.Token(userId);
-        if (expectedToken is null)
-        {
-            return await database.KeyDeleteAsync(key);
-        }
-
-        // An older in-flight logout must not delete a newer login session.
-        var result = await database.ScriptEvaluateAsync(
-            "if redis.call('GET', KEYS[1]) == ARGV[1] then return redis.call('DEL', KEYS[1]) else return 0 end",
-            [new RedisKey(key)],
-            [new RedisValue(expectedToken)]
-        );
-        return (long)result == 1;
-    }
+        : base(connection) { }
 }

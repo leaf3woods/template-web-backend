@@ -13,15 +13,17 @@ public static class CacheKeys
 
     public static string Permissions(Guid roleId) => $"{Version}:sys:permissions:{roleId}";
 
-    public static string Entity<TEntity, TKey>(TKey id)
+    public static string Entity<TEntity, TId>(TId id)
+        where TId : notnull, IEquatable<TId>
         where TEntity : IAggregateRoot => Entity(CacheTypeName<TEntity>.Value, id);
 
-    public static string Entity<TEntity, TKey, TCacheItem>(TKey id, long generation)
+    public static string Entity<TEntity, TId, TCacheItem>(TId id, long generation)
+        where TId : notnull, IEquatable<TId>
         where TEntity : IAggregateRoot =>
         $"{Version}:sys:entity:{CacheTypeName<TEntity>.Value.ToLowerInvariant()}:{id}:{typeof(TCacheItem).FullName}:{generation}";
 
-    public static string Entity<TKey>(string entityName, TKey id) =>
-        $"{Version}:sys:entity:{entityName.ToLowerInvariant()}:{id}";
+    public static string Entity<TId>(string entityName, TId id)
+        where TId : notnull => $"{Version}:sys:entity:{entityName.ToLowerInvariant()}:{id}";
 
     public static string EntitiesGeneration<TEntity>()
         where TEntity : IAggregateRoot => EntitiesGeneration(CacheTypeName<TEntity>.Value);
@@ -32,10 +34,11 @@ public static class CacheKeys
         return $"{Version}:sys:entities-generation:{entityName.ToLowerInvariant()}";
     }
 
-    public static string ProjectedEntity<TEntity, TKey, TCacheItem>(
-        TKey id,
+    public static string ProjectedEntity<TEntity, TId, TCacheItem>(
+        TId id,
         params (string name, long generation)[] entityGen
     )
+        where TId : notnull, IEquatable<TId>
         where TEntity : IAggregateRoot =>
         $"{Version}:sys:projected-entity:{CacheTypeName<TEntity>.Value}:{id}:{typeof(TCacheItem).FullName}:{string.Join('|', entityGen.Select(e => $"{e.name}:{e.generation}"))}";
 
@@ -102,10 +105,10 @@ public static class CacheKeys
         }
         return $"{Version}:sys:entities:{FingerprintVersion}:{string.Join('|', entityGen!.Select(e => $"{e.name}:{e.generation}"))}:{typeof(TCacheItem).FullName}:{predicateFingerprint}";
     }
+}
 
-    private static class CacheTypeName<TEntity>
-        where TEntity : IAggregateRoot
-    {
-        public static string Value { get; } = typeof(TEntity).Name;
-    }
+public static class CacheTypeName<TEntity>
+    where TEntity : IAggregateRoot
+{
+    public static string Value { get; } = typeof(TEntity).Name;
 }

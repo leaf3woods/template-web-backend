@@ -1,16 +1,17 @@
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.JsonWebTokens;
-using Org.Product.Application.Abstractions.Authentication;
+using Org.Product.Application.Abstractions.CacheStore;
+using Org.Product.Domain.Entities.Account;
 using Org.Product.Infrastructure.Utilities;
 
 namespace Org.Product.WebApi.Auth.AuthHandlers;
 
 public sealed class SessionJwtBearerEvents : JwtBearerEvents
 {
-    private readonly IUserSessionStore _sessions;
+    private readonly ICacheStore<User, Guid> _sessions;
 
-    public SessionJwtBearerEvents(IUserSessionStore sessions)
+    public SessionJwtBearerEvents(ICacheStore<User, Guid> sessions)
     {
         _sessions = sessions;
     }
@@ -28,7 +29,7 @@ public sealed class SessionJwtBearerEvents : JwtBearerEvents
         if (
             userId is null
             || string.IsNullOrEmpty(token)
-            || !await _sessions.IsValidAsync(userId.Value, token)
+            || !await _sessions.MatchesAsync(userId.Value, token)
         )
         {
             context.Fail("The login session is no longer valid.");

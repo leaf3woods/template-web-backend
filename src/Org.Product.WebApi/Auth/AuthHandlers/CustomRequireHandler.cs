@@ -3,7 +3,7 @@ using Org.Product.Application.Abstractions.CacheStore;
 using Org.Product.Application.Dtos.Cache;
 using Org.Product.Domain.Entities.Account;
 using Org.Product.Domain.Entities.Authority;
-using Org.Product.Domain.Services.Base;
+using Org.Product.Domain.Services;
 using Org.Product.Infrastructure.Utilities;
 using Org.Product.WebApi.Auth.Requirements;
 

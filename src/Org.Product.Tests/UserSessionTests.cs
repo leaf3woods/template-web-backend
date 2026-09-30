@@ -3,6 +3,7 @@ using AutoMapper;
 using Microsoft.Extensions.Options;
 using Moq;
 using Org.Product.Application.Abstractions.Authentication;
+using Org.Product.Application.Abstractions.CacheStore;
 using Org.Product.Application.Abstractions.Captchas;
 using Org.Product.Application.Dtos;
 using Org.Product.Application.Services;
@@ -12,6 +13,8 @@ using Org.Product.Domain.Repositories;
 using Org.Product.Domain.Shared;
 using Org.Product.Domain.Shared.Exceptions;
 using Org.Product.Infrastructure.Adapters.Authentication;
+using Org.Product.Infrastructure.Adapters.Captchas;
+using Org.Product.Infrastructure.DomainServices;
 using Org.Product.Tests.Support;
 
 namespace Org.Product.Tests;
@@ -31,8 +34,8 @@ public sealed class UserSessionTests
         var second = await fixture.Service.LoginAsync(credentials);
 
         Assert.NotEqual(first, second);
-        Assert.False(await fixture.Sessions.IsValidAsync(fixture.User.Id, first));
-        Assert.True(await fixture.Sessions.IsValidAsync(fixture.User.Id, second));
+        Assert.False(await fixture.Sessions.MatchesAsync(fixture.User.Id, first));
+        Assert.True(await fixture.Sessions.MatchesAsync(fixture.User.Id, second));
     }
 
     [Fact]
@@ -49,7 +52,7 @@ public sealed class UserSessionTests
                 }
             )
         );
-        Assert.True(await fixture.Sessions.IsValidAsync(fixture.User.Id, "session"));
+        Assert.True(await fixture.Sessions.MatchesAsync(fixture.User.Id, "session"));
     }
 
     [Fact]
@@ -60,10 +63,10 @@ public sealed class UserSessionTests
         var claims = new[] { new Claim(CustomClaimsType.UserId, fixture.User.Id.ToString()) };
 
         await fixture.Service.LogoutAsync(claims, "older-session");
-        Assert.True(await fixture.Sessions.IsValidAsync(fixture.User.Id, "session"));
+        Assert.True(await fixture.Sessions.MatchesAsync(fixture.User.Id, "session"));
 
         await fixture.Service.LogoutAsync(claims, "session");
-        Assert.False(await fixture.Sessions.IsValidAsync(fixture.User.Id, "session"));
+        Assert.False(await fixture.Sessions.MatchesAsync(fixture.User.Id, "session"));
     }
 
     [Fact]
@@ -75,7 +78,7 @@ public sealed class UserSessionTests
         fixture.Roles.Add(role);
         await fixture.Service.ChangeRoleAsync(fixture.User.Id, [role.Id]);
         Assert.Equal(role.Id, fixture.User.Roles.Single().Id);
-        Assert.False(await fixture.Sessions.IsValidAsync(fixture.User.Id, "session"));
+        Assert.False(await fixture.Sessions.MatchesAsync(fixture.User.Id, "session"));
     }
 
     [Fact]
@@ -86,7 +89,7 @@ public sealed class UserSessionTests
         await Assert.ThrowsAsync<NotFoundException>(() =>
             fixture.Service.ChangeRoleAsync(fixture.User.Id, [fixture.Roles[0].Id, Guid.NewGuid()])
         );
-        Assert.True(await fixture.Sessions.IsValidAsync(fixture.User.Id, "session"));
+        Assert.True(await fixture.Sessions.MatchesAsync(fixture.User.Id, "session"));
         fixture.UnitOfWork.Verify(
             unit => unit.SaveChangesAsync(It.IsAny<CancellationToken>()),
             Times.Never
@@ -108,7 +111,7 @@ public sealed class UserSessionTests
             }
         );
         Assert.True(new PasswordCredentialService().Verify(fixture.User, newPassword));
-        Assert.False(await fixture.Sessions.IsValidAsync(fixture.User.Id, "session"));
+        Assert.False(await fixture.Sessions.MatchesAsync(fixture.User.Id, "session"));
     }
 
     [Theory]
@@ -131,7 +134,7 @@ public sealed class UserSessionTests
                 await fixture.Service.ResetPasswordAsync(fixture.User.Id);
                 break;
         }
-        Assert.False(await fixture.Sessions.IsValidAsync(fixture.User.Id, "session"));
+        Assert.False(await fixture.Sessions.MatchesAsync(fixture.User.Id, "session"));
     }
 
     [Fact]
@@ -145,7 +148,54 @@ public sealed class UserSessionTests
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             fixture.Service.DeleteAsync(fixture.User.Id)
         );
-        Assert.True(await fixture.Sessions.IsValidAsync(fixture.User.Id, "session"));
+        Assert.True(await fixture.Sessions.MatchesAsync(fixture.User.Id, "session"));
+    }
+
+    [Theory]
+    [InlineData("login", false)]
+    [InlineData("login", true)]
+    [InlineData("change-password", false)]
+    [InlineData("change-password", true)]
+    public async Task MissingOrIncorrectCaptcha_RejectsCredentialsWithoutChangingSession(
+        string operation,
+        bool challengeExists
+    )
+    {
+        var fixture = new Fixture(requireVerification: true);
+        await fixture.CacheSessionAsync();
+        var answer = new CaptchaAnswerDto { Id = Guid.NewGuid(), Answer = "wrong" };
+        if (challengeExists)
+        {
+            await fixture.Challenges.SaveAsync(answer.Id, "correct");
+        }
+
+        await Assert.ThrowsAsync<NotAcceptableException>(() =>
+            operation == "login"
+                ? fixture.Service.LoginAsync(
+                    new UserLoginDto
+                    {
+                        Username = fixture.User.Username,
+                        Password = fixture.Password,
+                        Captcha = answer,
+                    }
+                )
+                : (Task)
+                    fixture.Service.ChangePasswordAsync(
+                        new ChangePasswordDto
+                        {
+                            Username = fixture.User.Username,
+                            OldPassword = fixture.Password,
+                            NewPassword = Convert.ToBase64String([4, 5, 6]),
+                            Captcha = answer,
+                        }
+                    )
+        );
+
+        Assert.True(await fixture.Sessions.MatchesAsync(fixture.User.Id, "session"));
+        fixture.UnitOfWork.Verify(
+            unit => unit.SaveChangesAsync(It.IsAny<CancellationToken>()),
+            Times.Never
+        );
     }
 
     private sealed class Fixture
@@ -154,14 +204,16 @@ public sealed class UserSessionTests
         public List<Role> Roles { get; } = [new Role { Id = Guid.NewGuid() }];
         public string Password { get; } = Convert.ToBase64String([10, 20, 30]);
         public Mock<IUnitOfWork> UnitOfWork { get; } = new();
-        public RedisUserSessionStore Sessions { get; }
+        public ICacheStore<User, Guid> Sessions { get; }
+        public ICacheStore<Captcha, Guid> Challenges { get; }
         public UserService Service { get; }
 
-        public Fixture()
+        public Fixture(bool requireVerification = false)
         {
             User.Roles = Roles.ToArray();
             new PasswordCredentialService().SetPassword(User, Password);
             Sessions = new RedisUserSessionStore(new RedisStub().Connection.Object);
+            Challenges = new RedisCaptchaChallengeStore(new RedisStub().Connection.Object);
             var users = new Mock<IRepository<User>>();
             users
                 .Setup(repository => repository.Query(It.IsAny<bool>()))
@@ -182,17 +234,27 @@ public sealed class UserSessionTests
                 .Returns(() =>
                     new IssuedAccessToken(Guid.NewGuid().ToString(), TimeSpan.FromMinutes(5))
                 );
+            var mapper = new Mock<IMapper>();
+            if (requireVerification)
+            {
+                mapper
+                    .Setup(candidate => candidate.Map<Captcha>(It.IsAny<CaptchaAnswerDto>()))
+                    .Returns(
+                        (CaptchaAnswerDto answer) =>
+                            new Captcha { Id = answer.Id, Answer = answer.Answer }
+                    );
+            }
             Service = new UserService(
                 users.Object,
                 roles.Object,
                 UnitOfWork.Object,
-                Mock.Of<IMapper>(),
+                mapper.Object,
                 Sessions,
-                Mock.Of<ICaptchaChallengeStore>(),
+                Challenges,
                 new PasswordCredentialService(),
                 tokens.Object,
                 Mock.Of<ICaptchaGenerator>(),
-                Options.Create(new CaptchaOptions { RequireVerification = false })
+                Options.Create(new CaptchaOptions { RequireVerification = requireVerification })
             );
         }
 

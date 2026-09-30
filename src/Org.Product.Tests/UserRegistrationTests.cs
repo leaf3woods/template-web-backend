@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
 using Org.Product.Application.Abstractions.Authentication;
+using Org.Product.Application.Abstractions.CacheStore;
 using Org.Product.Application.Abstractions.Captchas;
 using Org.Product.Application.Dtos;
 using Org.Product.Application.Services;
@@ -10,7 +11,7 @@ using Org.Product.Application.Utilities.MapperProfiles.DtoProfiles;
 using Org.Product.Application.Utilities.Options;
 using Org.Product.Domain.Entities.Account;
 using Org.Product.Domain.Repositories;
-using Org.Product.Infrastructure.Adapters.Authentication;
+using Org.Product.Infrastructure.DomainServices;
 
 namespace Org.Product.Tests;
 
@@ -38,8 +39,8 @@ public sealed class UserRegistrationTests
             Mock.Of<IRepository<Role>>(),
             unit.Object,
             mapper,
-            Mock.Of<IUserSessionStore>(),
-            Mock.Of<ICaptchaChallengeStore>(),
+            Mock.Of<ICacheStore<User, Guid>>(),
+            Mock.Of<ICacheStore<Captcha, Guid>>(),
             passwords,
             Mock.Of<IAccessTokenIssuer>(),
             Mock.Of<ICaptchaGenerator>(),

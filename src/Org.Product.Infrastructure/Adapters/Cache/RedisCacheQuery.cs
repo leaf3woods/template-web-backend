@@ -19,7 +19,7 @@ namespace Org.Product.Infrastructure.Adapters.Cache;
 public sealed class RedisCacheQuery<TEntity, TKey, TCacheItem>
     : ICacheQuery<TEntity, TKey, TCacheItem>
     where TEntity : AggregateRoot<TKey>
-    where TKey : notnull, new()
+    where TKey : notnull, IEquatable<TKey>, new()
     where TCacheItem : CacheItem<TEntity, TKey>
 {
     public RedisCacheQuery(
@@ -74,7 +74,7 @@ public sealed class RedisCacheQuery<TEntity, TKey, TCacheItem>
     ) =>
         FindWithDetailCoreAsync(
             id,
-            [(typeof(TEntity).Name, CacheKeys.EntitiesGeneration<TEntity>())],
+            [(CacheTypeName<TEntity>.Value, CacheKeys.EntitiesGeneration<TEntity>())],
             cancellationToken
         );
 
@@ -86,8 +86,8 @@ public sealed class RedisCacheQuery<TEntity, TKey, TCacheItem>
         FindWithDetailCoreAsync(
             id,
             [
-                (typeof(TEntity).Name, CacheKeys.EntitiesGeneration<TEntity>()),
-                (typeof(TRelation).Name, CacheKeys.EntitiesGeneration<TRelation>()),
+                (CacheTypeName<TEntity>.Value, CacheKeys.EntitiesGeneration<TEntity>()),
+                (CacheTypeName<TRelation>.Value, CacheKeys.EntitiesGeneration<TRelation>()),
             ],
             cancellationToken
         );
@@ -101,9 +101,9 @@ public sealed class RedisCacheQuery<TEntity, TKey, TCacheItem>
         FindWithDetailCoreAsync(
             id,
             [
-                (typeof(TEntity).Name, CacheKeys.EntitiesGeneration<TEntity>()),
-                (typeof(TRelation1).Name, CacheKeys.EntitiesGeneration<TRelation1>()),
-                (typeof(TRelation2).Name, CacheKeys.EntitiesGeneration<TRelation2>()),
+                (CacheTypeName<TEntity>.Value, CacheKeys.EntitiesGeneration<TEntity>()),
+                (CacheTypeName<TRelation1>.Value, CacheKeys.EntitiesGeneration<TRelation1>()),
+                (CacheTypeName<TRelation2>.Value, CacheKeys.EntitiesGeneration<TRelation2>()),
             ],
             cancellationToken
         );
@@ -114,7 +114,7 @@ public sealed class RedisCacheQuery<TEntity, TKey, TCacheItem>
     ) =>
         FindManyWithDetailCoreAsync(
             ids,
-            [(typeof(TEntity).Name, CacheKeys.EntitiesGeneration<TEntity>())],
+            [(CacheTypeName<TEntity>.Value, CacheKeys.EntitiesGeneration<TEntity>())],
             cancellationToken
         );
 
@@ -126,8 +126,8 @@ public sealed class RedisCacheQuery<TEntity, TKey, TCacheItem>
         FindManyWithDetailCoreAsync(
             ids,
             [
-                (typeof(TEntity).Name, CacheKeys.EntitiesGeneration<TEntity>()),
-                (typeof(TRelation).Name, CacheKeys.EntitiesGeneration<TRelation>()),
+                (CacheTypeName<TEntity>.Value, CacheKeys.EntitiesGeneration<TEntity>()),
+                (CacheTypeName<TRelation>.Value, CacheKeys.EntitiesGeneration<TRelation>()),
             ],
             cancellationToken
         );
@@ -141,9 +141,9 @@ public sealed class RedisCacheQuery<TEntity, TKey, TCacheItem>
         FindManyWithDetailCoreAsync(
             ids,
             [
-                (typeof(TEntity).Name, CacheKeys.EntitiesGeneration<TEntity>()),
-                (typeof(TRelation1).Name, CacheKeys.EntitiesGeneration<TRelation1>()),
-                (typeof(TRelation2).Name, CacheKeys.EntitiesGeneration<TRelation2>()),
+                (CacheTypeName<TEntity>.Value, CacheKeys.EntitiesGeneration<TEntity>()),
+                (CacheTypeName<TRelation1>.Value, CacheKeys.EntitiesGeneration<TRelation1>()),
+                (CacheTypeName<TRelation2>.Value, CacheKeys.EntitiesGeneration<TRelation2>()),
             ],
             cancellationToken
         );

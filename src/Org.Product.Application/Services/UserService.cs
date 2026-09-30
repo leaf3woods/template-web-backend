@@ -5,6 +5,7 @@ using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Org.Product.Application.Abstractions.Authentication;
+using Org.Product.Application.Abstractions.CacheStore;
 using Org.Product.Application.Abstractions.Captchas;
 using Org.Product.Application.Dtos;
 using Org.Product.Application.Services.Base;
@@ -12,6 +13,7 @@ using Org.Product.Application.Utilities;
 using Org.Product.Application.Utilities.Options;
 using Org.Product.Domain.Entities.Account;
 using Org.Product.Domain.Repositories;
+using Org.Product.Domain.Services;
 using Org.Product.Domain.Shared;
 using Org.Product.Domain.Shared.Attributes;
 using Org.Product.Domain.Shared.Exceptions;
@@ -29,8 +31,8 @@ public class UserService
         IRepository<Role> roleRepository,
         IUnitOfWork unitOfWork,
         IMapper mapper,
-        IUserSessionStore sessions,
-        ICaptchaChallengeStore challenges,
+        ICacheStore<User, Guid> sessions,
+        ICacheStore<Captcha, Guid> challenges,
         IPasswordCredentialService passwords,
         IAccessTokenIssuer tokens,
         ICaptchaGenerator captchaGenerator,
@@ -48,8 +50,8 @@ public class UserService
     }
 
     private readonly IRepository<Role> _roleRepository;
-    private readonly IUserSessionStore _sessions;
-    private readonly ICaptchaChallengeStore _challenges;
+    private readonly ICacheStore<User, Guid> _sessions;
+    private readonly ICacheStore<Captcha, Guid> _challenges;
     private readonly IPasswordCredentialService _passwords;
     private readonly IAccessTokenIssuer _tokens;
     private readonly ICaptchaGenerator _captchaGenerator;
@@ -109,7 +111,7 @@ public class UserService
 
         if (
             _captchaOptions.RequireVerification
-            && (answer is null || !await _challenges.VerifyAsync(answer))
+            && (answer is null || !await _challenges.MatchesAsync(answer.Id, answer.Answer))
         )
         {
             throw new NotAcceptableException("captcha not found or not correct");
@@ -134,13 +136,13 @@ public class UserService
         {
             throw new ForbiddenException("invalid login session");
         }
-        await _sessions.RevokeAsync(uid, token);
+        await _sessions.RemoveAsync(uid, token);
     }
 
     public override async Task<int> DeleteAsync(Guid key)
     {
         var count = await base.DeleteAsync(key);
-        await _sessions.RevokeAsync(key);
+        await _sessions.RemoveAsync(key);
         return count;
     }
 
@@ -155,7 +157,7 @@ public class UserService
         Mapper.Map(dto, entity);
         Repository.Update(entity);
         await UnitOfWork.SaveChangesAsync();
-        await _sessions.RevokeAsync(key);
+        await _sessions.RemoveAsync(key);
         return Mapper.Map<UserReadDto>(entity);
     }
 
@@ -206,14 +208,14 @@ public class UserService
         user.Roles = roles;
         Repository.Update(user);
         var count = await UnitOfWork.SaveChangesAsync();
-        await _sessions.RevokeAsync(userId);
+        await _sessions.RemoveAsync(userId);
         return count == 0 ? null : Mapper.Map<UserReadDto>(user);
     }
 
     public async Task<CaptchaReadDto> GenerateCaptchaAsync(CaptchaType? type = null)
     {
         var captcha = _captchaGenerator.Generate(new CaptchaGenSettings { Type = type });
-        await _challenges.SaveAsync(captcha, _captchaOptions.Expiration);
+        await _challenges.SaveAsync(captcha.Id, captcha.Answer, _captchaOptions.Expiration);
         return Mapper.Map<CaptchaReadDto>(captcha);
     }
 
@@ -223,7 +225,7 @@ public class UserService
 
         if (
             _captchaOptions.RequireVerification
-            && (answer is null || !await _challenges.VerifyAsync(answer))
+            && (answer is null || !await _challenges.MatchesAsync(answer.Id, answer.Answer))
         )
         {
             throw new NotAcceptableException("captcha not exist or not correct");
@@ -239,7 +241,7 @@ public class UserService
         _passwords.SetPassword(user, passwordDto.NewPassword);
         Repository.Update(user);
         var count = await UnitOfWork.SaveChangesAsync();
-        await _sessions.RevokeAsync(user.Id);
+        await _sessions.RemoveAsync(user.Id);
         return count;
     }
 
@@ -255,7 +257,7 @@ public class UserService
         _passwords.SetPassword(user, hash);
         Repository.Update(user);
         var count = await UnitOfWork.SaveChangesAsync();
-        await _sessions.RevokeAsync(user.Id);
+        await _sessions.RemoveAsync(user.Id);
         return count;
     }
 }

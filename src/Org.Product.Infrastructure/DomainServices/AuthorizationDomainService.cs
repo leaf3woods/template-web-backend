@@ -1,7 +1,7 @@
 using Org.Product.Domain.Entities.Account;
-using Org.Product.Domain.Services.Base;
+using Org.Product.Domain.Services;
 
-namespace Org.Product.Domain.Services;
+namespace Org.Product.Infrastructure.DomainServices;
 
 public class AuthorizationDomainService : IAuthorizationDomainService
 {

@@ -8,7 +8,7 @@ public abstract class ReadDto : IReadDto
 public abstract class ReadDto<TEntity> : ReadDto, IEntityDto<TEntity> { }
 
 public abstract class ReadDto<TEntity, TKey> : IReadDto, IEntityDto<TEntity>
-    where TKey : notnull
+    where TKey : notnull, IEquatable<TKey>
 {
     public TKey Id { get; set; } = default!;
 }

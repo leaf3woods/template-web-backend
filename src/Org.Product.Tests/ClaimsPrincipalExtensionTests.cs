@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using Org.Product.Domain.Shared;
-using Org.Product.Infrastructure.Adapters.Authentication;
+using Org.Product.Infrastructure.DomainServices;
 using Org.Product.Infrastructure.Utilities;
 
 namespace Org.Product.Tests;
@@ -57,6 +57,6 @@ public sealed class ClaimsPrincipalExtensionTests
             ])
         );
 
-    private static HttpCurrentUser CreateCurrentUser(ClaimsPrincipal principal) =>
+    private static CurrentUserDomainService CreateCurrentUser(ClaimsPrincipal principal) =>
         new(new HttpContextAccessor { HttpContext = new DefaultHttpContext { User = principal } });
 }

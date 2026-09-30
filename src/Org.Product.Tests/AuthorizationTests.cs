@@ -11,21 +11,20 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Moq;
-using Org.Product.Application.Abstractions.Authentication;
 using Org.Product.Application.Abstractions.CacheStore;
 using Org.Product.Application.Dtos.Cache;
 using Org.Product.Application.Services.Base;
 using Org.Product.Domain.Entities.Authority;
 using Org.Product.Domain.Services;
-using Org.Product.Domain.Services.Base;
 using Org.Product.Domain.Shared;
-using Org.Product.Domain.Shared.Exceptions;
 using Org.Product.Infrastructure.Adapters.Authentication;
+using Org.Product.Infrastructure.DomainServices;
 using Org.Product.Tests.Support;
 using Org.Product.WebApi.Auth;
 using Org.Product.WebApi.Auth.AuthHandlers;
 using Org.Product.WebApi.Controllers;
 using Role = Org.Product.Domain.Entities.Account.Role;
+using User = Org.Product.Domain.Entities.Account.User;
 
 namespace Org.Product.Tests;
 
@@ -66,9 +65,9 @@ public sealed class AuthorizationTests
         Assert.Equal(HttpStatusCode.Unauthorized, await host.DeleteMenu(first));
         Assert.Equal(HttpStatusCode.OK, await host.DeleteMenu(second));
 
-        Assert.False(await host.Users.RevokeAsync(host.UserId, first));
+        Assert.False(await host.Users.RemoveAsync(host.UserId, first));
         Assert.Equal(HttpStatusCode.OK, await host.DeleteMenu(second));
-        Assert.True(await host.Users.RevokeAsync(host.UserId, second));
+        Assert.True(await host.Users.RemoveAsync(host.UserId, second));
         Assert.Equal(HttpStatusCode.Unauthorized, await host.DeleteMenu(second));
     }
 
@@ -195,7 +194,7 @@ public sealed class AuthorizationTests
         private readonly ECDsa _key;
         private readonly bool _super;
         public Guid UserId { get; } = Guid.NewGuid();
-        public RedisUserSessionStore Users { get; }
+        public ICacheStore<User, Guid> Users { get; }
         public HttpClient Client { get; }
 
         private AuthHost(WebApplication app, ECDsa key, RedisUserSessionStore users, bool super)
@@ -250,7 +249,7 @@ public sealed class AuthorizationTests
             builder.Logging.ClearProviders();
             builder.WebHost.UseTestServer();
             builder.Services.AddControllers().AddApplicationPart(typeof(MenuController).Assembly);
-            builder.Services.AddSingleton<IUserSessionStore>(users);
+            builder.Services.AddSingleton<ICacheStore<User, Guid>>(users);
             builder.Services.AddSingleton(roles.Object);
             var userService = new Mock<IUserService>();
             userService
@@ -259,7 +258,7 @@ public sealed class AuthorizationTests
                 )
                 .Returns(
                     (IEnumerable<Claim> claims, string token) =>
-                        users.RevokeAsync(
+                        users.RemoveAsync(
                             Guid.Parse(
                                 claims.Single(claim => claim.Type == CustomClaimsType.UserId).Value
                             ),

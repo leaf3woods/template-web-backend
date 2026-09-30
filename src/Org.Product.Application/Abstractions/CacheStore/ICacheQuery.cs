@@ -4,9 +4,11 @@ using Org.Product.Domain.Entities.Base;
 
 namespace Org.Product.Application.Abstractions.CacheStore;
 
-public interface ICacheQuery<TEntity, TKey, TCacheItem>
+public interface ICacheQuery { }
+
+public interface ICacheQuery<TEntity, TKey, TCacheItem> : ICacheQuery
     where TEntity : AggregateRoot<TKey>
-    where TKey : notnull, new()
+    where TKey : notnull, IEquatable<TKey>, new()
     where TCacheItem : CacheItem<TEntity, TKey>
 {
     Task<TCacheItem?> FindAsync(TKey id, CancellationToken cancellationToken = default);

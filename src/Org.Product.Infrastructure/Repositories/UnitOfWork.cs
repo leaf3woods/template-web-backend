@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore.Storage;
-using Org.Product.Application.Abstractions.Authentication;
 using Org.Product.Application.Abstractions.CacheStore;
 using Org.Product.Domain.Repositories;
+using Org.Product.Domain.Services;
 using Org.Product.Infrastructure.Utilities;
 
 namespace Org.Product.Infrastructure.Repositories;
@@ -11,7 +11,7 @@ public class UnitOfWork : IUnitOfWork
     public UnitOfWork(
         ApiDbContext dbContext,
         ICacheInvalidator cacheInvalidator,
-        ICurrentUser currentUser
+        ICurrentUserDomainService currentUser
     )
     {
         _dbContext = dbContext;
@@ -21,7 +21,7 @@ public class UnitOfWork : IUnitOfWork
 
     private readonly ApiDbContext _dbContext;
     private readonly ICacheInvalidator _cacheInvalidator;
-    private readonly ICurrentUser _currentUser;
+    private readonly ICurrentUserDomainService _currentUser;
 
     private readonly Dictionary<string, HashSet<object>> _pendingInvalidations = [];
 

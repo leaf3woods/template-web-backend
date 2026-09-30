@@ -47,11 +47,12 @@ Registration remains divided by responsibility:
 | Registration | Responsibilities and lifetimes |
 | --- | --- |
 | `ApplicationModule` | Discovers Application implementations of `IBaseService`, registers their interfaces per lifetime scope, and registers the pagination converter |
-| `AuthorizationModule` | Discovers pure Domain services through `IDomainService`, authorization handlers through `IAuthorizationHandler`, and JWT event types through their framework base class |
+| `AuthorizationModule` | Discovers authorization handlers through `IAuthorizationHandler` and JWT event types through their framework base class |
+| `DomainServiceModule` | Scans Domain and Infrastructure implementations of `IDomainService` and registers them per lifetime scope |
 | `AddAllOptions` | Binds and validates application captcha policy, JWT validation/issuance, captcha rendering, and OpenAPI configuration through the host `IServiceCollection` |
 | `AddDbContextPool<ApiDbContext>` | Native EF Core pooled request-scoped context registration in WebApi; Autofac imports it from the host service collection |
 | `PersistenceModule` | Generic `IRepository<>` and `ICacheQuery<,,>` mappings plus scanned scoped `IUnitOfWork` and `ISqlExecutor` implementations |
-| `SecurityInfrastructureModule` | Scanned `ISecurityStore` implementations per scope; scanned stateless `ISecurityService` implementations as singletons; explicit Redis connection and signing-key infrastructure |
+| `ApplicationAbstractionModule` | Explicit scoped session/captcha `ICacheStore<,>` registrations; scanned `IApplicationAbstraction` implementations as singletons; explicit Redis connection and signing-key infrastructure |
 | `DbMigrator` `Program` | Its own pooled `ApiDbContext` and `DatabaseMigrator`; it does not register HTTP, Redis, JWT, or captcha components |
 
 Autofac is the WebApi service provider and WebApi is the composition root for the HTTP process. It automatically discovers parameterless `Module` types in the WebApi and Application assemblies. Use host `AddXxx` APIs for framework-owned integrations such as EF Core context pooling, options, authentication, controllers, and Swagger. Autofac modules scan implementation assemblies from a stable interface root whenever a semantic lifetime category exists. Registration callbacks remain for third-party client factories and framework APIs that require a concrete type. The separate DbMigrator host uses the standard host/service collection and creates only its own persistence registrations plus `DatabaseMigrator`. Its assembly dependency on Infrastructure does not start Redis, token issuance, or image rendering.
@@ -146,7 +147,9 @@ Logout supplies the authenticated token to `RevokeAsync`. The Redis adapter uses
 
 ### Redis semantics and consistency limits
 
-Cache contracts live in `Application/Abstractions/CacheStore`; security-store contracts live under the other Application abstraction folders. Redis implementations live in Infrastructure adapters.
+Cache contracts, including scoped session and captcha stores, live in `Application/Abstractions/CacheStore`. Redis implementations live in Infrastructure adapters.
+
+`ICacheStore<TId>` exposes key generation, saving, string-value matching, and removal. `ICacheStore<TScope, TId>` distinguishes store purposes for dependency injection: sessions use `ICacheStore<User, Guid>` and captcha challenges use `ICacheStore<Captcha, Guid>`. These contracts replace `IUserSessionStore` and `ICaptchaChallengeStore`. Concrete stores select their Redis key format through `Key` overrides; the scope type does not generate keys. `CacheStore<TId>` implements the shared Redis string operations. `MatchesAsync` returns `false` when the key is missing, its value is empty, or its value differs, without consuming the entry. `RemoveAsync` deletes the key unconditionally when no expected value is supplied; otherwise it compares and deletes atomically through Lua, returning `false` for a missing or mismatched value. User use cases and JWT session validation consume these operations directly.
 
 Application defines the strongly typed `ICacheQuery<TEntity, TKey, TCacheItem>` contract for ordinary cache-backed entity and filtered-list reads. Its entity type derives from `AggregateRoot<TKey>` so a projected lookup can use the strongly typed `Id` property. `RedisCacheQuery` implements cache-aside reads in Infrastructure and is registered as an open generic by WebApi. `FindWithDetailAsync` projects the entity by ID through `ProjectTo<TCacheItem>`; its root-only, one-relation, and two-relation overloads use the declared entity generations, ID, and projection type in a separate cache key without a predicate fingerprint. `FindManyWithDetailAsync` has the same dependency overloads, reads cache keys with MGET, and queries missing IDs together. Detail lookups omit missing IDs from batch results and return `null` for a missing single ID; ordinary `FindAsync` raises `NotFoundException`. `GetFilteredListAsync` is a terminal, non-paged complete-collection operation. It caches only predicates composed from constants, parameters, member access, and supported comparison, boolean, and conversion operators; method-call nodes, static member access, unlisted operators, and unsupported complex captured values bypass Redis rather than risk an incorrect cache hit. Supported predicates build a SHA-256 fingerprint from node/result types, member/operator identities, and length-prefixed culture-invariant scalar values. Parameter names do not affect the key, while predicate structure and captured values do. Filtered-list keys include the projection type and carry their own key-format version so changing their format does not invalidate unrelated session, captcha, or permission entries. The original predicate is used for the database query, so callers must not mutate captured values concurrently while `GetFilteredListAsync` is running.
 
@@ -156,8 +159,8 @@ On a cache miss or an unsupported predicate, `RedisCacheQuery` projects at most 
 
 | Capability | Redis key | Current behavior |
 | --- | --- | --- |
-| `IUserSessionStore` | `sys:token:{userId}` | One current token per user; login TTL follows JWT lifetime; conditional or unconditional revocation |
-| `ICaptchaChallengeStore` | `sys:captcha:{captchaId}` | Stores an answer with configured expiry; verification reads and compares without consuming the challenge |
+| `ICacheStore<User, Guid>` | `sys:token:{userId}` | One current token per user; login TTL follows JWT lifetime; conditional or unconditional removal |
+| `ICacheStore<Captcha, Guid>` | `sys:captcha:{captchaId}` | Stores an answer with configured expiry; matching returns `false` for missing or incorrect answers without consuming the challenge |
 | `IRolePermissionStore` | `sys:permissions:{roleId}` | Legacy JSON permission snapshot adapter; no longer used by `CustomRequireHandler` |
 
 No caller populates the legacy snapshots through `IRolePermissionStore.SaveAsync`; they are not part of the active authorization path. Role permission projections use the `Role`, `RolePermission`, and `Permission` generations. `RoleService.ModifyRoleScopeAsync` commits through `UnitOfWork`, which advances generations for tracked changes. A database commit and the subsequent Redis invalidation remain non-atomic.
@@ -233,6 +236,7 @@ Tests use xUnit, Moq, ASP.NET Core TestHost, and local doubles under `Tests/Supp
 | `AuthorizationTests` | Real controllers in an in-memory test host, fallback authentication, exact/parent permissions, invalid claims, multiple roles, missing roles, logout, and invalidated tokens |
 | `ClaimsPrincipalExtensionTests` | Shared user/role claim parsing and `ICurrentUser` projection, including invalid and empty identifiers |
 | `UserSessionTests` | Replacement login, token-specific logout, post-save revocation, invalid role assignment, and failed-save ordering |
+| `CacheStoreTests` | Public matching/removal contracts, missing and empty values, conditional deletion, and session/captcha scope isolation |
 | `UserRegistrationTests` | Shared registration/create initialization and side-effect-free credential/role mapping |
 | `PermissionCacheTests` | Read-only snapshot lookup, missing/partial snapshots, and existing empty permission sets |
 | `ExpressionFingerprintTests` / `RedisCacheQueryTests` | Stable predicate fingerprints, captured values, operator whitelist, method/unlisted-operator bypass, bounded collection enforcement, and filtered-list cache miss/hit behavior |

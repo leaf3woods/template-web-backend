@@ -1,15 +1,14 @@
 ﻿using Microsoft.AspNetCore.Http;
-using Org.Product.Application.Abstractions.Authentication;
-using Org.Product.Domain.Shared.Exceptions;
+using Org.Product.Domain.Services;
 using Org.Product.Infrastructure.Utilities;
 
-namespace Org.Product.Infrastructure.Adapters.Authentication;
+namespace Org.Product.Infrastructure.DomainServices;
 
-public class HttpCurrentUser : ICurrentUser
+public class CurrentUserDomainService : ICurrentUserDomainService
 {
     private readonly IHttpContextAccessor _accessor;
 
-    public HttpCurrentUser(IHttpContextAccessor accessor)
+    public CurrentUserDomainService(IHttpContextAccessor accessor)
     {
         _accessor = accessor;
     }

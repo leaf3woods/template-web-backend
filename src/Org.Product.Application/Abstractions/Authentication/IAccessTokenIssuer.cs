@@ -1,6 +1,6 @@
 namespace Org.Product.Application.Abstractions.Authentication;
 
-public interface IAccessTokenIssuer : ISecurityService
+public interface IAccessTokenIssuer : IApplicationAbstraction
 {
     IssuedAccessToken Issue(Guid userId, IEnumerable<Guid> roleIds);
 }

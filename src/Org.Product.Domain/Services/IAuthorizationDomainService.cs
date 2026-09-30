@@ -1,4 +1,6 @@
-namespace Org.Product.Domain.Services.Base;
+using Org.Product.Domain.Services.Base;
+
+namespace Org.Product.Domain.Services;
 
 public interface IAuthorizationDomainService : IDomainService
 {
