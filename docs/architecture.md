@@ -53,6 +53,7 @@ Registration remains divided by responsibility:
 | `AddDbContextPool<ApiDbContext>` | Native EF Core pooled request-scoped context registration in WebApi; Autofac imports it from the host service collection |
 | `PersistenceModule` | Generic `IRepository<>` and `ICacheQuery<,,>` mappings plus scanned scoped `IUnitOfWork` and `ISqlExecutor` implementations |
 | `ApplicationAbstractionModule` | Explicit scoped session/captcha `ICacheStore<,>` registrations; scanned `IApplicationAbstraction` implementations as singletons; explicit Redis connection and signing-key infrastructure |
+| `AddMqtt` / `MqttModule` | Host-bound and validated MQTT options, `MqttWorker`, a third-party client singleton, and scoped Application message handlers; the existing abstraction scan exposes one adapter through publisher and lifecycle interfaces |
 | `DbMigrator` `Program` | Its own pooled `ApiDbContext` and `DatabaseMigrator`; it does not register HTTP, Redis, JWT, or captcha components |
 
 Autofac is the WebApi service provider and WebApi is the composition root for the HTTP process. It automatically discovers parameterless `Module` types in the WebApi and Application assemblies. Use host `AddXxx` APIs for framework-owned integrations such as EF Core context pooling, options, authentication, controllers, and Swagger. Autofac modules scan implementation assemblies from a stable interface root whenever a semantic lifetime category exists. Registration callbacks remain for third-party client factories and framework APIs that require a concrete type. The separate DbMigrator host uses the standard host/service collection and creates only its own persistence registrations plus `DatabaseMigrator`. Its assembly dependency on Infrastructure does not start Redis, token issuance, or image rendering.
@@ -171,7 +172,11 @@ No caller populates the legacy snapshots through `IRolePermissionStore.SaveAsync
 
 `ICaptchaGenerator` is implemented by `SkiaCaptchaGenerator`. Application owns verification/expiry decisions and passes runtime generation settings; Infrastructure merges those settings with configured renderer defaults and owns fonts, dimensions, rendering, and image bytes. Character captcha is the default, callers can select Character or Question, and Han currently throws `NotSupportedException` because its builder is not implemented. The store does not implement attempt limits or one-time consumption.
 
-`Infrastructure/Adapters/Protocols` contains binary frame, CRC, and JSON message examples. These are wire-format adapters, not domain entities or a running device-message ingestion service. The Compose MQTT service does not establish an application MQTT consumer or publisher.
+`Infrastructure/Protocols` contains binary frame, CRC, and JSON message examples. These are wire-format adapters, not domain entities or a complete device-message ingestion use case. The Compose MQTT broker must be started and configured independently of the optional application integration.
+
+`Application/Abstractions/Messaging/Topics` owns pure MQTT topic conventions, immutable topic records, and fluent builders for basic, device, and user/application paths. Application use cases can construct names without referencing Infrastructure or MQTTnet. Device-type interpretation stays with the consuming use case. Construction and parsing preserve dynamic identifiers, validate the shape, and share suffix handling; these types require no DI registration. See [MQTT topic conventions](mqtt-topics.md) for examples, validation, and migration differences.
+
+`IMqttPublisher` is implemented by the singleton `MqttClientAdapter`. WebApi's hosted worker manages optional connection/reconnection and configuration subscriptions. A bounded receive queue moves processing off the network callback and creates an asynchronous scope per message for `IMqttMessageHandler` implementations. QoS 1/2 acknowledgement follows successful processing, with session checks preventing stale acknowledgements after reconnect. Publishing waits for the native publish result and rejects disabled/disconnected states. Clean sessions and the in-memory queue do not provide durable business delivery. See [MQTT integration](mqtt.md) for enablement, handler discovery, and delivery boundaries; MQTT is disabled by default and DbMigrator does not start it.
 
 MediatR scans Application handlers, and Domain declares `UserLoginEvent`. The login use case does not publish it; `UserLoginEventHandler.Handle` currently throws `NotImplementedException`. There is no implemented durable event bus, aggregate event dispatch, or outbox. Other explicit placeholders include `CrudAppService.UpdateEnabledAsync`, `MenuService.SetMenuRouteAsync`, and the empty `SettingService`.
 
@@ -183,6 +188,7 @@ WebApi uses standard ASP.NET Core configuration sources, including environment-s
 | --- | --- |
 | `ConnectionStrings:Postgres` | WebApi `AddDbContextPool<ApiDbContext>` and DbMigrator's local persistence registration; both must target the same database |
 | `ConnectionStrings:Redis` | Shared Redis connection for sessions, captcha challenges, and permission snapshots |
+| `Mqtt` | Optional MQTT client connection, protocol/TLS, publish defaults, receive queue, and subscription filters; validated when enabled |
 | `Jwt:Issuer`, `Audience`, `KeyFolder` | WebApi authentication and signing-key loading |
 | `Jwt:ExpireMin` | Security module's token issuer and resulting session TTL |
 | `Captcha:RequireVerification`, `ExpireSeconds` | Application captcha policy |
@@ -226,7 +232,7 @@ The initial migration seeds built-in users, roles, and the root permission. It d
 
 Migration files are versioned EF Core generator output. The root `.editorconfig` marks `Infrastructure/Repositories/Migrations` as generated and disables its style transformations, so the standard `dotnet format .` command preserves Migration, Designer, and model-snapshot source shape. Create model changes through `dotnet ef migrations add`; edit a migration only when the database change itself requires it.
 
-WebApi and DbMigrator have separate Dockerfiles. [deployment/docker-compose.yaml](../deployment/docker-compose.yaml) includes PostgreSQL, Redis, MQTT, SFTP, proxy, WebApi, and a `migration` profile. Only the migrator explicitly waits for PostgreSQL health; the sample does not gate WebApi startup on migration completion. WebApi/proxy images are placeholders. MQTT/SFTP containers are deployment examples without corresponding active application integrations, and container rendering/font behavior still requires runtime verification.
+WebApi and DbMigrator have separate Dockerfiles. [deployment/docker-compose.yaml](../deployment/docker-compose.yaml) includes PostgreSQL, Redis, MQTT, SFTP, proxy, WebApi, and a `migration` profile. Only the migrator explicitly waits for PostgreSQL health; the sample does not gate WebApi startup on migration completion. WebApi/proxy images are placeholders. MQTT requires explicit application enablement and broker configuration; SFTP remains a deployment example without an application integration. Container rendering/font behavior still requires runtime verification.
 
 ## 11. Test coverage and verification boundaries
 

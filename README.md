@@ -269,7 +269,7 @@ Compose 中的服务：
 | `queue` | `1883`、`9001` 等 | Mosquitto；配置实际监听 MQTT 1883 和 WebSocket 9001 |
 | `file` | `122` → `22` | SFTP 示例 |
 
-API 核心流程使用 PostgreSQL 和 Redis。MQTT、SFTP 和前端代理可按业务需要选择，仓库没有提供完整前端，也没有接入运行中的 MQTT/SFTP 应用服务。端口映射本身不会启用 MQTT TLS。
+API 核心流程使用 PostgreSQL 和 Redis。MQTT、SFTP 和前端代理可按业务需要选择。MQTT 客户端默认关闭，可通过 `Mqtt` 配置启用发布、配置订阅和 scoped 消息处理，详见 [MQTT 接入说明](docs/mqtt.md) 与 [主题构建说明](docs/mqtt-topics.md)。仓库没有提供完整前端，SFTP 仍是部署示例。端口映射本身不会启用 MQTT TLS。
 
 ### 部署前调整
 

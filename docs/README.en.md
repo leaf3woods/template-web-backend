@@ -269,7 +269,7 @@ Compose services:
 | `queue` | `1883`, `9001`, and others | Mosquitto; configuration actually listens on MQTT 1883 and WebSocket 9001 |
 | `file` | `122` → `22` | SFTP example |
 
-Core API workflows use PostgreSQL and Redis. Select MQTT, SFTP, and the frontend proxy as your application requires. The repository includes neither a complete frontend nor active application integrations with MQTT/SFTP. Publishing a port does not enable MQTT TLS.
+Core API workflows use PostgreSQL and Redis. Select MQTT, SFTP, and the frontend proxy as your application requires. The MQTT client is disabled by default; the `Mqtt` section enables publishing, configured subscriptions, and scoped message handling. See [MQTT integration](mqtt.md) and [topic conventions](mqtt-topics.md). The repository includes no complete frontend, and SFTP remains a deployment example. Publishing a port does not enable MQTT TLS.
 
 ### Required deployment adjustments
 
