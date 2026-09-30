@@ -31,6 +31,7 @@ public sealed class ArchitectureBoundaryTests
         Assert.DoesNotContain("SkiaSharp", names);
         Assert.DoesNotContain("System.IdentityModel.Tokens.Jwt", names);
         Assert.DoesNotContain("StackExchange.Redis", names);
+        Assert.DoesNotContain("MQTTnet", names);
     }
 
     [Fact]

@@ -28,6 +28,7 @@ var openApiOptions =
     ?? throw new InvalidOperationException("Missing OpenApiInfo configuration.");
 
 builder.Services.AddAllOptions();
+builder.Services.AddMqtt();
 
 var postgresConnectionString = builder.Configuration.GetConnectionString("Postgres");
 ArgumentException.ThrowIfNullOrWhiteSpace(postgresConnectionString);
