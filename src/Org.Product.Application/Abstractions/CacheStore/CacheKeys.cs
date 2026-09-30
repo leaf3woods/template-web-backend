@@ -16,6 +16,10 @@ public static class CacheKeys
     public static string Entity<TEntity, TKey>(TKey id)
         where TEntity : IAggregateRoot => Entity(CacheTypeName<TEntity>.Value, id);
 
+    public static string Entity<TEntity, TKey, TCacheItem>(TKey id, long generation)
+        where TEntity : IAggregateRoot =>
+        $"{Version}:sys:entity:{CacheTypeName<TEntity>.Value.ToLowerInvariant()}:{id}:{typeof(TCacheItem).FullName}:{generation}";
+
     public static string Entity<TKey>(string entityName, TKey id) =>
         $"{Version}:sys:entity:{entityName.ToLowerInvariant()}:{id}";
 
@@ -28,17 +32,24 @@ public static class CacheKeys
         return $"{Version}:sys:entities-generation:{entityName.ToLowerInvariant()}";
     }
 
-    public static string Entities<TEntity>(string predicateFingerprint, long generation)
+    public static string ProjectedEntity<TEntity, TKey, TCacheItem>(
+        TKey id,
+        params (string name, long generation)[] entityGen
+    )
         where TEntity : IAggregateRoot =>
-        Entities(predicateFingerprint, (CacheTypeName<TEntity>.Value, generation));
+        $"{Version}:sys:projected-entity:{CacheTypeName<TEntity>.Value}:{id}:{typeof(TCacheItem).FullName}:{string.Join('|', entityGen.Select(e => $"{e.name}:{e.generation}"))}";
 
-    public static string Entities<TEntity, TRelation>(
+    public static string Entities<TEntity, TCacheItem>(string predicateFingerprint, long generation)
+        where TEntity : IAggregateRoot =>
+        Entities<TCacheItem>(predicateFingerprint, (CacheTypeName<TEntity>.Value, generation));
+
+    public static string Entities<TEntity, TRelation, TCacheItem>(
         string predicateFingerprint,
         params long[] generations
     )
         where TEntity : IAggregateRoot
         where TRelation : IAggregateRoot =>
-        Entities(
+        Entities<TCacheItem>(
             predicateFingerprint,
             [
                 (CacheTypeName<TEntity>.Value, generations[0]),
@@ -46,14 +57,14 @@ public static class CacheKeys
             ]
         );
 
-    public static string Entities<TEntity, TRelation1, TRelation2>(
+    public static string Entities<TEntity, TRelation1, TRelation2, TCacheItem>(
         string predicateFingerprint,
         params long[] generations
     )
         where TEntity : IAggregateRoot
         where TRelation1 : IAggregateRoot
         where TRelation2 : IAggregateRoot =>
-        Entities(
+        Entities<TCacheItem>(
             predicateFingerprint,
             [
                 (CacheTypeName<TEntity>.Value, generations[0]),
@@ -62,7 +73,7 @@ public static class CacheKeys
             ]
         );
 
-    public static string Entities<TEntity, TRelation1, TRelation2, TRelation3>(
+    public static string Entities<TEntity, TRelation1, TRelation2, TRelation3, TCacheItem>(
         string predicateFingerprint,
         params long[] generations
     )
@@ -70,7 +81,7 @@ public static class CacheKeys
         where TRelation1 : IAggregateRoot
         where TRelation2 : IAggregateRoot
         where TRelation3 : IAggregateRoot =>
-        Entities(
+        Entities<TCacheItem>(
             predicateFingerprint,
             [
                 (CacheTypeName<TEntity>.Value, generations[0]),
@@ -80,7 +91,7 @@ public static class CacheKeys
             ]
         );
 
-    public static string Entities(
+    public static string Entities<TCacheItem>(
         string predicateFingerprint,
         params (string name, long generation)[] entityGen
     )
@@ -89,7 +100,7 @@ public static class CacheKeys
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(predicateFingerprint);
         }
-        return $"{Version}:sys:entities:{FingerprintVersion}:{string.Join('|', entityGen!.Select(e => $"{e.name}:{e.generation}"))}:{predicateFingerprint}";
+        return $"{Version}:sys:entities:{FingerprintVersion}:{string.Join('|', entityGen!.Select(e => $"{e.name}:{e.generation}"))}:{typeof(TCacheItem).FullName}:{predicateFingerprint}";
     }
 
     private static class CacheTypeName<TEntity>

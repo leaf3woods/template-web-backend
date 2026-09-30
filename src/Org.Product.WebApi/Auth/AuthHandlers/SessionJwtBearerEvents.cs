@@ -2,7 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Org.Product.Application.Abstractions.Authentication;
-using Org.Product.Domain.Shared;
+using Org.Product.Infrastructure.Utilities;
 
 namespace Org.Product.WebApi.Auth.AuthHandlers;
 
@@ -17,7 +17,7 @@ public sealed class SessionJwtBearerEvents : JwtBearerEvents
 
     public override async Task TokenValidated(TokenValidatedContext context)
     {
-        var userId = context.Principal?.FindFirst(CustomClaimsType.UserId)?.Value;
+        var userId = context.Principal?.GetUserId();
         var token = context.SecurityToken switch
         {
             JsonWebToken jwt => jwt.EncodedToken,
@@ -26,10 +26,9 @@ public sealed class SessionJwtBearerEvents : JwtBearerEvents
         };
 
         if (
-            !Guid.TryParse(userId, out var uid)
-            || uid == Guid.Empty
+            userId is null
             || string.IsNullOrEmpty(token)
-            || !await _sessions.IsValidAsync(uid, token)
+            || !await _sessions.IsValidAsync(userId.Value, token)
         )
         {
             context.Fail("The login session is no longer valid.");

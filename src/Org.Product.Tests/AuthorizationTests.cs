@@ -12,10 +12,14 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Moq;
 using Org.Product.Application.Abstractions.Authentication;
+using Org.Product.Application.Abstractions.CacheStore;
+using Org.Product.Application.Dtos.Cache;
 using Org.Product.Application.Services.Base;
+using Org.Product.Domain.Entities.Authority;
 using Org.Product.Domain.Services;
 using Org.Product.Domain.Services.Base;
 using Org.Product.Domain.Shared;
+using Org.Product.Domain.Shared.Exceptions;
 using Org.Product.Infrastructure.Adapters.Authentication;
 using Org.Product.Tests.Support;
 using Org.Product.WebApi.Auth;
@@ -112,11 +116,61 @@ public sealed class AuthorizationTests
     }
 
     [Fact]
-    public async Task MissingSuperRoleCache_DoesNotBypassAuthorization()
+    public async Task PartiallyInvalidRoleClaims_AreRejected()
+    {
+        await using var host = await AuthHost.CreateAsync(["menu"]);
+        var token = host.Token($"{Role.MemberRole.Id},invalid");
+        await host.Users.SaveAsync(host.UserId, token, TimeSpan.FromMinutes(5));
+
+        Assert.Equal(HttpStatusCode.Forbidden, await host.DeleteMenu(token));
+    }
+
+    [Fact]
+    public async Task MissingSuperRole_DoesNotBypassAuthorization()
     {
         await using var host = await AuthHost.CreateAsync(null, super: true);
         var token = host.Token();
         await host.Users.SaveAsync(host.UserId, token, TimeSpan.FromMinutes(5));
+        Assert.Equal(HttpStatusCode.Forbidden, await host.DeleteMenu(token));
+    }
+
+    [Fact]
+    public async Task MultipleRoles_CombinePermissions()
+    {
+        var rolePermissions = new Dictionary<Guid, string[]?>
+        {
+            [Role.MemberRole.Id] = [],
+            [Role.AdminRole.Id] = ["menu"],
+        };
+        await using var host = await AuthHost.CreateAsync([], rolePermissions: rolePermissions);
+        var token = host.Token($"{Role.MemberRole.Id},{Role.AdminRole.Id}");
+        await host.Users.SaveAsync(host.UserId, token, TimeSpan.FromMinutes(5));
+
+        Assert.Equal(HttpStatusCode.OK, await host.DeleteMenu(token));
+    }
+
+    [Fact]
+    public async Task MissingOneOfMultipleRoles_RejectsGrantedPermission()
+    {
+        var rolePermissions = new Dictionary<Guid, string[]?> { [Role.MemberRole.Id] = ["menu"] };
+        await using var host = await AuthHost.CreateAsync(
+            ["menu"],
+            rolePermissions: rolePermissions
+        );
+        var token = host.Token($"{Role.MemberRole.Id},{Role.AdminRole.Id}");
+        await host.Users.SaveAsync(host.UserId, token, TimeSpan.FromMinutes(5));
+
+        Assert.Equal(HttpStatusCode.Forbidden, await host.DeleteMenu(token));
+    }
+
+    [Fact]
+    public async Task MissingOtherRole_RejectsSuperRole()
+    {
+        var rolePermissions = new Dictionary<Guid, string[]?> { [Role.SuperRole.Id] = [] };
+        await using var host = await AuthHost.CreateAsync([], super: true, rolePermissions);
+        var token = host.Token($"{Role.SuperRole.Id},{Role.AdminRole.Id}");
+        await host.Users.SaveAsync(host.UserId, token, TimeSpan.FromMinutes(5));
+
         Assert.Equal(HttpStatusCode.Forbidden, await host.DeleteMenu(token));
     }
 
@@ -153,17 +207,44 @@ public sealed class AuthorizationTests
             Client = app.GetTestClient();
         }
 
-        public static async Task<AuthHost> CreateAsync(string[]? permissions, bool super = false)
+        public static async Task<AuthHost> CreateAsync(
+            string[]? permissions,
+            bool super = false,
+            IReadOnlyDictionary<Guid, string[]?>? rolePermissions = null
+        )
         {
             var redis = new RedisStub();
             var users = new RedisUserSessionStore(redis.Connection.Object);
-            var roles = new Mock<IRolePermissionStore>();
+            rolePermissions ??= new Dictionary<Guid, string[]?>
+            {
+                [super ? Role.SuperRole.Id : Role.MemberRole.Id] = permissions,
+            };
+            var roles = new Mock<ICacheQuery<Role, Guid, RolePermissionsCacheItem>>();
             roles
-                .Setup(service => service.ContainsAsync(It.IsAny<IEnumerable<Guid>>()))
-                .ReturnsAsync(permissions is not null);
-            roles
-                .Setup(service => service.GetPermissionsAsync(It.IsAny<IEnumerable<Guid>>()))
-                .ReturnsAsync(permissions ?? []);
+                .Setup(service =>
+                    service.FindManyWithDetailAsync<RolePermission, Permission>(
+                        It.IsAny<IReadOnlyCollection<Guid>>(),
+                        It.IsAny<CancellationToken>()
+                    )
+                )
+                .Returns(
+                    (IReadOnlyCollection<Guid> roleIds, CancellationToken _) =>
+                        Task.FromResult<IReadOnlyDictionary<Guid, RolePermissionsCacheItem>>(
+                            roleIds
+                                .Where(roleId =>
+                                    rolePermissions.TryGetValue(roleId, out var codes)
+                                    && codes is not null
+                                )
+                                .ToDictionary(
+                                    roleId => roleId,
+                                    roleId => new RolePermissionsCacheItem
+                                    {
+                                        Id = roleId,
+                                        PermissionCodes = rolePermissions[roleId]!,
+                                    }
+                                )
+                        )
+                );
             var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
             var builder = WebApplication.CreateBuilder();
             builder.Logging.ClearProviders();

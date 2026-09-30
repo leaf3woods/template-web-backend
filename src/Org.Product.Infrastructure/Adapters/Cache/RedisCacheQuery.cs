@@ -18,8 +18,8 @@ namespace Org.Product.Infrastructure.Adapters.Cache;
 
 public sealed class RedisCacheQuery<TEntity, TKey, TCacheItem>
     : ICacheQuery<TEntity, TKey, TCacheItem>
-    where TEntity : class, IAggregateRoot
-    where TKey : notnull
+    where TEntity : AggregateRoot<TKey>
+    where TKey : notnull, new()
     where TCacheItem : CacheItem<TEntity, TKey>
 {
     public RedisCacheQuery(
@@ -45,7 +45,13 @@ public sealed class RedisCacheQuery<TEntity, TKey, TCacheItem>
     public async Task<TCacheItem?> FindAsync(TKey id, CancellationToken cancellationToken = default)
     {
         var database = _database.Value;
-        var key = CacheKeys.Entity<TEntity, TKey>(id);
+        var generationValue = await database.StringGetAsync(
+            CacheKeys.EntitiesGeneration<TEntity>()
+        );
+        var generation = generationValue.HasValue
+            ? long.Parse(generationValue.ToString(), CultureInfo.InvariantCulture)
+            : 0;
+        var key = CacheKeys.Entity<TEntity, TKey, TCacheItem>(id, generation);
         var raw = await database.StringGetAsync(key);
         if (raw.HasValue)
         {
@@ -60,6 +66,178 @@ public sealed class RedisCacheQuery<TEntity, TKey, TCacheItem>
         var serialized = JsonSerializer.Serialize(cacheItem);
         await database.StringSetAsync(key, serialized, _options.Expiration);
         return cacheItem;
+    }
+
+    public Task<TCacheItem?> FindWithDetailAsync(
+        TKey id,
+        CancellationToken cancellationToken = default
+    ) =>
+        FindWithDetailCoreAsync(
+            id,
+            [(typeof(TEntity).Name, CacheKeys.EntitiesGeneration<TEntity>())],
+            cancellationToken
+        );
+
+    public Task<TCacheItem?> FindWithDetailAsync<TRelation>(
+        TKey id,
+        CancellationToken cancellationToken = default
+    )
+        where TRelation : IAggregateRoot =>
+        FindWithDetailCoreAsync(
+            id,
+            [
+                (typeof(TEntity).Name, CacheKeys.EntitiesGeneration<TEntity>()),
+                (typeof(TRelation).Name, CacheKeys.EntitiesGeneration<TRelation>()),
+            ],
+            cancellationToken
+        );
+
+    public Task<TCacheItem?> FindWithDetailAsync<TRelation1, TRelation2>(
+        TKey id,
+        CancellationToken cancellationToken = default
+    )
+        where TRelation1 : IAggregateRoot
+        where TRelation2 : IAggregateRoot =>
+        FindWithDetailCoreAsync(
+            id,
+            [
+                (typeof(TEntity).Name, CacheKeys.EntitiesGeneration<TEntity>()),
+                (typeof(TRelation1).Name, CacheKeys.EntitiesGeneration<TRelation1>()),
+                (typeof(TRelation2).Name, CacheKeys.EntitiesGeneration<TRelation2>()),
+            ],
+            cancellationToken
+        );
+
+    public Task<IReadOnlyDictionary<TKey, TCacheItem>> FindManyWithDetailAsync(
+        IReadOnlyCollection<TKey> ids,
+        CancellationToken cancellationToken = default
+    ) =>
+        FindManyWithDetailCoreAsync(
+            ids,
+            [(typeof(TEntity).Name, CacheKeys.EntitiesGeneration<TEntity>())],
+            cancellationToken
+        );
+
+    public Task<IReadOnlyDictionary<TKey, TCacheItem>> FindManyWithDetailAsync<TRelation>(
+        IReadOnlyCollection<TKey> ids,
+        CancellationToken cancellationToken = default
+    )
+        where TRelation : IAggregateRoot =>
+        FindManyWithDetailCoreAsync(
+            ids,
+            [
+                (typeof(TEntity).Name, CacheKeys.EntitiesGeneration<TEntity>()),
+                (typeof(TRelation).Name, CacheKeys.EntitiesGeneration<TRelation>()),
+            ],
+            cancellationToken
+        );
+
+    public Task<IReadOnlyDictionary<TKey, TCacheItem>> FindManyWithDetailAsync<
+        TRelation1,
+        TRelation2
+    >(IReadOnlyCollection<TKey> ids, CancellationToken cancellationToken = default)
+        where TRelation1 : IAggregateRoot
+        where TRelation2 : IAggregateRoot =>
+        FindManyWithDetailCoreAsync(
+            ids,
+            [
+                (typeof(TEntity).Name, CacheKeys.EntitiesGeneration<TEntity>()),
+                (typeof(TRelation1).Name, CacheKeys.EntitiesGeneration<TRelation1>()),
+                (typeof(TRelation2).Name, CacheKeys.EntitiesGeneration<TRelation2>()),
+            ],
+            cancellationToken
+        );
+
+    private async Task<TCacheItem?> FindWithDetailCoreAsync(
+        TKey id,
+        (string name, string key)[] dependencies,
+        CancellationToken cancellationToken
+    )
+    {
+        var items = await FindManyWithDetailCoreAsync([id], dependencies, cancellationToken);
+        return items.TryGetValue(id, out var item) ? item : null;
+    }
+
+    private async Task<IReadOnlyDictionary<TKey, TCacheItem>> FindManyWithDetailCoreAsync(
+        IReadOnlyCollection<TKey> ids,
+        (string name, string key)[] dependencies,
+        CancellationToken cancellationToken
+    )
+    {
+        ArgumentNullException.ThrowIfNull(ids);
+        if (ids.Count == 0)
+        {
+            return new Dictionary<TKey, TCacheItem>();
+        }
+
+        var distinctIds = ids.Distinct().ToArray();
+        var database = _database.Value;
+        var generationValues = await database.StringGetAsync(
+            dependencies.Select(dependency => (RedisKey)dependency.key).ToArray()
+        );
+        var generations = dependencies
+            .Select(
+                (dependency, index) =>
+                    (
+                        dependency.name,
+                        generationValues[index].HasValue
+                            ? long.Parse(
+                                generationValues[index].ToString(),
+                                CultureInfo.InvariantCulture
+                            )
+                            : 0
+                    )
+            )
+            .ToArray();
+
+        var keys = distinctIds
+            .Select(id =>
+                (RedisKey)CacheKeys.ProjectedEntity<TEntity, TKey, TCacheItem>(id, generations)
+            )
+            .ToArray();
+        var cachedValues = await database.StringGetAsync(keys);
+        var items = new Dictionary<TKey, TCacheItem>(distinctIds.Length);
+        var missingIds = new List<TKey>();
+        for (var index = 0; index < distinctIds.Length; index++)
+        {
+            var item = cachedValues[index].HasValue
+                ? JsonSerializer.Deserialize<TCacheItem>(cachedValues[index].ToString())
+                : null;
+            if (item is null)
+            {
+                missingIds.Add(distinctIds[index]);
+            }
+            else
+            {
+                items.Add(distinctIds[index], item);
+            }
+        }
+
+        if (missingIds.Count == 0)
+        {
+            return items;
+        }
+
+        var fetchedItems = await _repository
+            .Query(tracking: false)
+            .Where(entity => missingIds.Contains(entity.Id))
+            .ProjectTo<TCacheItem>(_mapper.ConfigurationProvider)
+            .ToListAsync(cancellationToken);
+        foreach (var item in fetchedItems)
+        {
+            items[item.Id] = item;
+        }
+
+        await Task.WhenAll(
+            fetchedItems.Select(item =>
+                database.StringSetAsync(
+                    CacheKeys.ProjectedEntity<TEntity, TKey, TCacheItem>(item.Id, generations),
+                    JsonSerializer.Serialize(item),
+                    _options.Expiration
+                )
+            )
+        );
+        return items;
     }
 
     public async Task<IReadOnlyList<TCacheItem>> GetFilteredListAsync(
@@ -79,7 +257,7 @@ public sealed class RedisCacheQuery<TEntity, TKey, TCacheItem>
         var generation = generationValue.HasValue
             ? long.Parse(generationValue.ToString(), CultureInfo.InvariantCulture)
             : 0;
-        var key = CacheKeys.Entities<TEntity>(fingerprint, generation);
+        var key = CacheKeys.Entities<TEntity, TCacheItem>(fingerprint, generation);
         var raw = await database.StringGetAsync(key);
         if (raw.HasValue)
         {
@@ -119,7 +297,7 @@ public sealed class RedisCacheQuery<TEntity, TKey, TCacheItem>
             return generation;
         });
         var generations = await Task.WhenAll(generationTasks);
-        var key = CacheKeys.Entities<TEntity, TRelation>(fingerprint, generations);
+        var key = CacheKeys.Entities<TEntity, TRelation, TCacheItem>(fingerprint, generations);
         return await GetFilteredListCoreAsync(predicate, key, cancellationToken);
     }
 
@@ -151,7 +329,10 @@ public sealed class RedisCacheQuery<TEntity, TKey, TCacheItem>
             return generation;
         });
         var generations = await Task.WhenAll(generationTasks);
-        var key = CacheKeys.Entities<TEntity, TRelation1, TRelation2>(fingerprint, generations);
+        var key = CacheKeys.Entities<TEntity, TRelation1, TRelation2, TCacheItem>(
+            fingerprint,
+            generations
+        );
         return await GetFilteredListCoreAsync(predicate, key, cancellationToken);
     }
 

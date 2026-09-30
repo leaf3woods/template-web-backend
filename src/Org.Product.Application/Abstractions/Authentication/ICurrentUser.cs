@@ -4,5 +4,5 @@ public interface ICurrentUser
 {
     Guid? UserId { get; }
 
-    Guid? RoleId { get; }
+    IReadOnlyList<Guid> RoleIds { get; }
 }

@@ -1,24 +1,27 @@
 using Microsoft.AspNetCore.Authorization;
-using Org.Product.Application.Abstractions.Authentication;
+using Org.Product.Application.Abstractions.CacheStore;
+using Org.Product.Application.Dtos.Cache;
+using Org.Product.Domain.Entities.Account;
+using Org.Product.Domain.Entities.Authority;
 using Org.Product.Domain.Services.Base;
-using Org.Product.Domain.Shared;
+using Org.Product.Infrastructure.Utilities;
 using Org.Product.WebApi.Auth.Requirements;
 
 namespace Org.Product.WebApi.Auth.AuthHandlers;
 
 public sealed class CustomRequireHandler : AuthorizationHandler<PermissionAuthorizationRequirement>
 {
-    private readonly IRolePermissionStore _permissions;
+    private readonly ICacheQuery<Role, Guid, RolePermissionsCacheItem> _rolesQuery;
     private readonly IAuthorizationDomainService _authorization;
     private readonly ILogger<CustomRequireHandler> _logger;
 
     public CustomRequireHandler(
-        IRolePermissionStore permissions,
+        ICacheQuery<Role, Guid, RolePermissionsCacheItem> rolesQuery,
         IAuthorizationDomainService authorization,
         ILogger<CustomRequireHandler> logger
     )
     {
-        _permissions = permissions;
+        _rolesQuery = rolesQuery;
         _authorization = authorization;
         _logger = logger;
     }
@@ -28,31 +31,34 @@ public sealed class CustomRequireHandler : AuthorizationHandler<PermissionAuthor
         PermissionAuthorizationRequirement requirement
     )
     {
-        var userId = context.User.FindFirst(CustomClaimsType.UserId)?.Value;
-        var roleIdsValue = context.User.FindFirst(CustomClaimsType.RoleId)?.Value;
-        if (
-            context.User.Identity?.IsAuthenticated != true
-            || !Guid.TryParse(userId, out var uid)
-            || uid == Guid.Empty
-            || string.IsNullOrWhiteSpace(roleIdsValue)
-        )
+        var userId = context.User.GetUserId();
+        if (context.User.Identity?.IsAuthenticated != true || userId is null)
         {
             _logger.LogWarning("invalid token claims");
             context.Fail(new AuthorizationFailureReason(this, "invalid claims"));
             return;
         }
 
-        if (!TryParseRoleIds(roleIdsValue, out var roleIds))
+        var roleIds = context.User.GetRoleIds().ToArray();
+
+        if (roleIds.Length == 0)
         {
             _logger.LogWarning("invalid role claims");
             context.Fail(new AuthorizationFailureReason(this, "invalid role claims"));
             return;
         }
 
-        if (!await _permissions.ContainsAsync(roleIds))
+        var roles = await _rolesQuery.FindManyWithDetailAsync<RolePermission, Permission>(roleIds);
+        if (roleIds.Any(roleId => !roles.ContainsKey(roleId)))
         {
             context.Fail(new AuthorizationFailureReason(this, "role permissions not found"));
             return;
+        }
+
+        var permissions = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var role in roles.Values)
+        {
+            permissions.UnionWith(role.PermissionCodes);
         }
 
         if (_authorization.HasGlobalAccess(roleIds))
@@ -61,7 +67,6 @@ public sealed class CustomRequireHandler : AuthorizationHandler<PermissionAuthor
             return;
         }
 
-        var permissions = await _permissions.GetPermissionsAsync(roleIds);
         if (_authorization.HasPermission(permissions, requirement.Permission))
         {
             context.Succeed(requirement);
@@ -69,17 +74,5 @@ public sealed class CustomRequireHandler : AuthorizationHandler<PermissionAuthor
         }
 
         context.Fail(new AuthorizationFailureReason(this, "no authorization"));
-    }
-
-    private static bool TryParseRoleIds(string value, out Guid[] roleIds)
-    {
-        roleIds = value
-            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .Select(roleId =>
-                Guid.TryParse(roleId, out var parsedRoleId) ? parsedRoleId : Guid.Empty
-            )
-            .ToArray();
-
-        return roleIds.Length > 0 && roleIds.All(roleId => roleId != Guid.Empty);
     }
 }
