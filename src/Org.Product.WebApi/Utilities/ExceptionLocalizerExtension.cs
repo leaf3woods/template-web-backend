@@ -22,6 +22,8 @@ public static class ExceptionLocalizerExtension
             {
                 NotFoundException => StatusCodes.Status404NotFound,
                 NotAcceptableException => StatusCodes.Status406NotAcceptable,
+                ForbiddenException => StatusCodes.Status403Forbidden,
+                ValidateException or BadRequestException => StatusCodes.Status400BadRequest,
                 _ => StatusCodes.Status500InternalServerError,
             };
 

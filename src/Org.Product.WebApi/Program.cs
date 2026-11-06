@@ -168,13 +168,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
-
-app.UseAuthentication();
-app.UseAuthorization();
-
-app.MapControllers();
-
 app.UseExceptionHandler(builder =>
     builder.Run(async context =>
         await ExceptionLocalizerExtension.LocalizeException(
@@ -184,5 +177,12 @@ app.UseExceptionHandler(builder =>
         )
     )
 );
+
+app.UseHttpsRedirection();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapControllers();
 
 app.Run();
