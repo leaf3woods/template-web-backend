@@ -23,7 +23,7 @@ namespace Org.Product.Application.Services;
 
 [PermissionDefinition("manage all user resources", ManagedResource.User)]
 public class UserService
-    : CrudAppService<User, Guid, UserReadDto, UserQueryDto, UserRegisterDto, UserUpdateDto>,
+    : CrudAppService<User, Guid, UserReadDto, UserQueryDto, UserCreateDto, UserUpdateDto>,
         IUserService
 {
     public UserService(
@@ -93,16 +93,29 @@ public class UserService
         return Mapper.Map<PaginatedList<UserReadDto>>(users);
     }
 
-    public override Task<UserReadDto?> CreateAsync(UserRegisterDto dto) => RegisterAsync(dto);
-
-    public async Task<UserReadDto?> RegisterAsync(UserRegisterDto registerDto)
+    public override async Task<UserReadDto?> CreateAsync(UserCreateDto dto)
     {
-        var user = Mapper.Map<User>(registerDto);
-        _passwords.SetPassword(user, registerDto.Password);
-        user.Roles = [Role.MemberRole];
+        var user = Mapper.Map<User>(dto);
+        _passwords.SetPassword(user, dto.Password);
+        var roleIds = dto.RoleIds.Distinct().ToArray();
+        var roles = await _roleRepository.Query()
+            .Where(r => roleIds.Length > 0 && roleIds.Contains(r.Id))
+            .ToArrayAsync();
+        if(roles?.Length != roleIds.Length)
+        {
+            throw new InvalidOperationException("One or more selected roles are invalid");
+        }
+        user.Roles = roles;
         await Repository.AddAsync(user);
         var count = await UnitOfWork.SaveChangesAsync();
         return count == 0 ? null : Mapper.Map<UserReadDto>(user);
+    }
+
+    public async Task<UserReadDto?> RegisterAsync(UserRegisterDto registerDto)
+    {
+        var createDto = Mapper.Map<UserCreateDto>(registerDto);
+        createDto.RoleIds = [Role.MemberRole.Id];
+        return await CreateAsync(createDto);
     }
 
     public async Task<string> LoginAsync(UserLoginDto credential)

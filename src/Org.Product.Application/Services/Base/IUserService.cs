@@ -6,7 +6,7 @@ using Org.Product.Domain.Entities.Account;
 namespace Org.Product.Application.Services.Base;
 
 public interface IUserService
-    : ICrudAppService<User, Guid, UserReadDto, UserQueryDto, UserRegisterDto, UserUpdateDto>
+    : ICrudAppService<User, Guid, UserReadDto, UserQueryDto, UserCreateDto, UserUpdateDto>
 {
     Task<UserReadDto?> RegisterAsync(UserRegisterDto registerDto);
 

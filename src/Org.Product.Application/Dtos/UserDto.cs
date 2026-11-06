@@ -15,6 +15,11 @@ public class UserRegisterDto : CreateDto<User>, IManualDtoMapping
     public DateTime RegisterTime { get; set; }
 }
 
+public class UserCreateDto : UserRegisterDto
+{
+    public IEnumerable<Guid> RoleIds { get; set; } = [];
+}
+
 public class UserUpdateDto : UpdateDto<User>
 {
     public string Username { get; set; } = null!;

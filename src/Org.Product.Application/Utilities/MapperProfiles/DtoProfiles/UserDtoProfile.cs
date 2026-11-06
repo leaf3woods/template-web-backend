@@ -14,6 +14,8 @@ public class UserDtoProfile : Profile
             .ForMember(dest => dest.Passphrase, opt => opt.Ignore())
             .ForMember(dest => dest.Salt, opt => opt.Ignore())
             .ForMember(dest => dest.Roles, opt => opt.Ignore());
+
+        CreateMap<UserRegisterDto, UserCreateDto>();
         CreateMap<UserSetting, UserSettingReadDto>();
         CreateMap<UserSetting, UserDetailReadDto>();
         CreateMap<Captcha, CaptchaReadDto>()
